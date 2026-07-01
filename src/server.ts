@@ -1,9 +1,8 @@
 import app from './app.js';
-import dotenv from 'dotenv';
 import { connectDatabase } from './config/database.js';
+import env from './config/env.js';
 
-dotenv.config({ path: "src/config/.env" });
-const port = Number(process.env.PORT) || 3000;
+const port = env.port;
 
 async function startServer() {
   await connectDatabase();

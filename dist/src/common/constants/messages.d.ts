@@ -1,0 +1,26 @@
+export declare const MESSAGE: {
+    readonly SUCCESS: "Operation completed successfully.";
+    readonly SERVER_ERROR: "Internal Server Error.";
+    readonly ROUTE_NOT_FOUND: "Route not found.";
+    readonly LOGIN_SUCCESS: "Login successful.";
+    readonly LOGOUT_SUCCESS: "Logout successful.";
+    readonly REGISTER_SUCCESS: "Registration successful.";
+    readonly INVALID_CREDENTIALS: "Invalid email or password.";
+    readonly UNAUTHORIZED: "Unauthorized access.";
+    readonly ACCESS_DENIED: "Access denied.";
+    readonly TOKEN_EXPIRED: "Token has expired.";
+    readonly INVALID_TOKEN: "Invalid token.";
+    readonly USER_CREATED: "User created successfully.";
+    readonly USER_UPDATED: "User updated successfully.";
+    readonly USER_DELETED: "User deleted successfully.";
+    readonly USER_NOT_FOUND: "User not found.";
+    readonly VALIDATION_FAILED: "Validation failed.";
+    readonly COMPANY_CREATED: "Company created successfully.";
+    readonly COMPANY_UPDATED: "Company updated successfully.";
+    readonly COMPANY_NOT_FOUND: "Company not found.";
+    readonly JOB_CREATED: "Job created successfully.";
+    readonly JOB_UPDATED: "Job updated successfully.";
+    readonly JOB_DELETED: "Job deleted successfully.";
+    readonly JOB_NOT_FOUND: "Job not found.";
+};
+//# sourceMappingURL=messages.d.ts.map

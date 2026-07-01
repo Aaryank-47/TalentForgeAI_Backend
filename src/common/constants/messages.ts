@@ -1,0 +1,39 @@
+export const MESSAGE = {
+
+    // General
+    SUCCESS: "Operation completed successfully.",
+    SERVER_ERROR: "Internal Server Error.",
+    ROUTE_NOT_FOUND: "Route not found.",
+
+    // Authentication
+    LOGIN_SUCCESS: "Login successful.",
+    LOGOUT_SUCCESS: "Logout successful.",
+    REGISTER_SUCCESS: "Registration successful.",
+
+    INVALID_CREDENTIALS: "Invalid email or password.",
+    UNAUTHORIZED: "Unauthorized access.",
+    ACCESS_DENIED: "Access denied.",
+
+    TOKEN_EXPIRED: "Token has expired.",
+    INVALID_TOKEN: "Invalid token.",
+
+    // User
+    USER_CREATED: "User created successfully.",
+    USER_UPDATED: "User updated successfully.",
+    USER_DELETED: "User deleted successfully.",
+    USER_NOT_FOUND: "User not found.",
+
+    // Validation
+    VALIDATION_FAILED: "Validation failed.",
+
+    // Company
+    COMPANY_CREATED: "Company created successfully.",
+    COMPANY_UPDATED: "Company updated successfully.",
+    COMPANY_NOT_FOUND: "Company not found.",
+
+    // Job
+    JOB_CREATED: "Job created successfully.",
+    JOB_UPDATED: "Job updated successfully.",
+    JOB_DELETED: "Job deleted successfully.",
+    JOB_NOT_FOUND: "Job not found."
+} as const;

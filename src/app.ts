@@ -4,11 +4,13 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import prisma from './config/database.js';
+import compression from 'compression';
 
 const app: Application = express();
 
 
 app.use(helmet());
+app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

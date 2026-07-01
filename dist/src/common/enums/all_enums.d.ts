@@ -1,0 +1,45 @@
+export declare enum UserRole {
+    CANDIDATE = "CANDIDATE",
+    RECRUITER = "RECRUITER",
+    HIRING_MANAGER = "HIRING_MANAGER",
+    ADMIN = "ADMIN",
+    SUPER_ADMIN = "SUPER_ADMIN"
+}
+export declare enum AccountStatus {
+    PENDING = "PENDING",
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE",
+    SUSPENDED = "SUSPENDED",
+    BLOCKED = "BLOCKED",
+    DELETED = "DELETED"
+}
+export declare enum JobStatus {
+    DRAFT = "DRAFT",
+    OPEN = "OPEN",
+    PAUSED = "PAUSED",
+    CLOSED = "CLOSED",
+    FILLED = "FILLED",
+    EXPIRED = "EXPIRED",
+    ARCHIVED = "ARCHIVED"
+}
+export declare enum ApplicationStatus {
+    APPLIED = "APPLIED",
+    SHORTLISTED = "SHORTLISTED",
+    ASSESSMENT_PENDING = "ASSESSMENT_PENDING",
+    ASSESSMENT_COMPLETED = "ASSESSMENT_COMPLETED",
+    INTERVIEW_SCHEDULED = "INTERVIEW_SCHEDULED",
+    INTERVIEW_COMPLETED = "INTERVIEW_COMPLETED",
+    OFFER_SENT = "OFFER_SENT",
+    HIRED = "HIRED",
+    REJECTED = "REJECTED",
+    WITHDRAWN = "WITHDRAWN"
+}
+export declare enum InterviewStatus {
+    SCHEDULED = "SCHEDULED",
+    RESCHEDULED = "RESCHEDULED",
+    IN_PROGRESS = "IN_PROGRESS",
+    COMPLETED = "COMPLETED",
+    CANCELLED = "CANCELLED",
+    NO_SHOW = "NO_SHOW"
+}
+//# sourceMappingURL=all_enums.d.ts.map
