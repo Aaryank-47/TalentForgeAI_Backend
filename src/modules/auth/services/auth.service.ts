@@ -2,12 +2,15 @@ import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
+
 import type {
     RegisterCandidateDto,
 } from "../dto/registerCandidate.dto.js";
+
 import type { RegisterRecruiterDto } from "../dto/registerRecruiter.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt } from "../utils/auth.utils.js";
+
 import type {
     RegisterCandidateResult,
     RegisterRecruiterResult,
