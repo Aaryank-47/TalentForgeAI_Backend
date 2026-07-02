@@ -1,2 +1,2 @@
-import { UserRole } from "../enums/all_enums.js";
+export {};
 //# sourceMappingURL=types.js.map

@@ -1,0 +1,53 @@
+import { z } from "zod";
+export declare const recruiterCompanyDto: z.ZodObject<{
+    name: z.ZodString;
+    slug: z.ZodOptional<z.ZodString>;
+    email: z.ZodOptional<z.ZodEmail>;
+    phone: z.ZodOptional<z.ZodString>;
+    website: z.ZodOptional<z.ZodString>;
+    logo: z.ZodOptional<z.ZodString>;
+    coverImage: z.ZodOptional<z.ZodString>;
+    description: z.ZodOptional<z.ZodString>;
+    industry: z.ZodOptional<z.ZodString>;
+    companySize: z.ZodOptional<z.ZodString>;
+    foundedYear: z.ZodOptional<z.ZodNumber>;
+    headquarters: z.ZodOptional<z.ZodString>;
+    linkedinUrl: z.ZodOptional<z.ZodString>;
+    twitterUrl: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export declare const registerRecruiterDto: z.ZodObject<{
+    email: z.ZodEmail;
+    password: z.ZodString;
+    firstName: z.ZodString;
+    lastName: z.ZodString;
+    phone: z.ZodOptional<z.ZodString>;
+    designation: z.ZodOptional<z.ZodString>;
+    department: z.ZodOptional<z.ZodString>;
+    profilePicture: z.ZodOptional<z.ZodString>;
+    linkedinUrl: z.ZodOptional<z.ZodString>;
+    isPrimaryRecruiter: z.ZodOptional<z.ZodBoolean>;
+    canCreateJobs: z.ZodOptional<z.ZodBoolean>;
+    canEditJobs: z.ZodOptional<z.ZodBoolean>;
+    canDeleteJobs: z.ZodOptional<z.ZodBoolean>;
+    canScheduleInterview: z.ZodOptional<z.ZodBoolean>;
+    companyId: z.ZodOptional<z.ZodString>;
+    company: z.ZodOptional<z.ZodObject<{
+        name: z.ZodString;
+        slug: z.ZodOptional<z.ZodString>;
+        email: z.ZodOptional<z.ZodEmail>;
+        phone: z.ZodOptional<z.ZodString>;
+        website: z.ZodOptional<z.ZodString>;
+        logo: z.ZodOptional<z.ZodString>;
+        coverImage: z.ZodOptional<z.ZodString>;
+        description: z.ZodOptional<z.ZodString>;
+        industry: z.ZodOptional<z.ZodString>;
+        companySize: z.ZodOptional<z.ZodString>;
+        foundedYear: z.ZodOptional<z.ZodNumber>;
+        headquarters: z.ZodOptional<z.ZodString>;
+        linkedinUrl: z.ZodOptional<z.ZodString>;
+        twitterUrl: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+}, z.core.$strip>;
+export type RegisterRecruiterDto = z.infer<typeof registerRecruiterDto>;
+export type RecruiterCompanyDto = z.infer<typeof recruiterCompanyDto>;
+//# sourceMappingURL=registerRecruiter.dto.d.ts.map

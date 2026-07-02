@@ -1,8 +1,8 @@
-import { UserRole } from "../enums/all_enums.js";
+import type { UserRole } from "@prisma/client";
 export interface JwtPayload {
     id: string;
     email: string;
     role: UserRole;
-    companyId?: string;
+    companyId?: string | undefined;
 }
 //# sourceMappingURL=types.d.ts.map

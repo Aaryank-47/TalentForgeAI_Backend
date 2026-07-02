@@ -8,6 +8,7 @@ export const errorMiddleware = (err, req, res, next) => {
             message: err.message,
             errors: err.errors || null
         });
+        return;
     }
     console.error(err);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({

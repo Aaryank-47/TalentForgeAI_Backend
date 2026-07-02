@@ -11,10 +11,331 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  CANDIDATE
+  RECRUITER
+  HIRING_MANAGER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  BLOCKED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum ExperienceLevel {
+  FRESHER
+  INTERN
+  JUNIOR
+  MID_LEVEL
+  SENIOR
+  LEAD
+  ARCHITECT
+}
+
 model User {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
+  id String @id @default(cuid())
+
+  email String @unique
+
+  password String
+
+  role UserRole
+
+  status AccountStatus @default(PENDING)
+
+  isEmailVerified Boolean @default(false)
+
+  lastLoginAt DateTime?
+
   createdAt DateTime @default(now())
+
   updatedAt DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+
+  candidate Candidate?
+
+  recruiter Recruiter?
+
+  hiringManager HiringManager?
+
+  admin Admin?
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+model Candidate {
+  id String @id @default(cuid())
+
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName String
+
+  lastName String
+
+  phone String?
+
+  profilePicture String?
+
+  headline String?
+
+  bio String?
+
+  gender Gender?
+
+  experienceLevel ExperienceLevel?
+
+  currentLocation String?
+
+  preferredLocation String?
+
+  currentCompany String?
+
+  currentDesignation String?
+
+  totalExperience Float?
+
+  expectedSalary Int?
+
+  currentSalary Int?
+
+  noticePeriod Int?
+
+  linkedinUrl String?
+
+  githubUrl String?
+
+  portfolioUrl String?
+
+  websiteUrl String?
+
+  isOpenToWork Boolean @default(true)
+
+  profileCompleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  skills CandidateSkill[]
+
+  educations CandidateEducation[]
+
+  experiences CandidateExperience[]
+
+  resumes Resume[]
+
+  applications Application[]
+}
+
+model Recruiter {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  firstName String
+  lastName  String
+
+  phone String?
+
+  designation String?
+
+  department String?
+
+  profilePicture String?
+
+  linkedinUrl String?
+
+  isPrimaryRecruiter Boolean @default(false)
+
+  canCreateJobs Boolean @default(true)
+
+  canEditJobs Boolean @default(true)
+
+  canDeleteJobs Boolean @default(false)
+
+  canScheduleInterview Boolean @default(true)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  jobs Job[]
+}
+
+model HiringManager {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  firstName String
+
+  lastName String
+
+  phone String?
+
+  designation String
+
+  department String?
+
+  profilePicture String?
+
+  linkedinUrl String?
+
+  canReviewCandidates Boolean @default(true)
+
+  canConductInterview Boolean @default(true)
+
+  canGiveFeedback Boolean @default(true)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id String @id @default(cuid())
+
+  name String
+
+  slug String @unique
+
+  email String?
+
+  phone String?
+
+  website String?
+
+  logo String?
+
+  coverImage String?
+
+  description String?
+
+  industry String?
+
+  companySize String?
+
+  foundedYear Int?
+
+  headquarters String?
+
+  linkedinUrl String?
+
+  twitterUrl String?
+
+  isVerified Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  recruiters Recruiter[]
+
+  hiringManagers HiringManager[]
+
+  jobs Job[]
+}
+
+model Admin {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName String
+
+  lastName String
+
+  phone String?
+
+  profilePicture String?
+
+  designation String?
+
+  department String?
+
+  employeeId String? @unique
+
+  isSuperAdmin Boolean @default(false)
+
+  isActive Boolean @default(true)
+
+  lastActiveAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id          String     @id @default(cuid())
+  recruiter   Recruiter? @relation(fields: [recruiterId], references: [id])
+  recruiterId String?
+  company     Company?   @relation(fields: [companyId], references: [id])
+  companyId   String?
+}
+
+model Resume {
+  id          String     @id @default(cuid())
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  candidateId String?
+}
+
+model Application {
+  id          String     @id @default(cuid())
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  candidateId String?
+}
+
+model CandidateSkill {
+  id          String     @id @default(cuid())
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  candidateId String?
+}
+
+model CandidateEducation {
+  id          String     @id @default(cuid())
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  candidateId String?
+}
+
+model CandidateExperience {
+  id          String     @id @default(cuid())
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  candidateId String?
 }
