@@ -9,3 +9,10 @@ export const registerCandidateDto = z.object({
 });
 
 export type RegisterCandidateDto = z.infer<typeof registerCandidateDto>;
+
+export const loginDto = z.object({
+    email: emailValidator,
+    password: passwordValidator
+});
+
+export type LoginDto = z.infer<typeof loginDto>;

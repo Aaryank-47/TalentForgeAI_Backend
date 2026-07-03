@@ -2,11 +2,13 @@ import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
-import type { RegisterCandidateDto } from "../dto/registerCandidate.dto.js";
+import type { RegisterCandidateDto } from "../dto/Candidate.dto.js";
 import type { RegisterRecruiterDto } from "../dto/registerRecruiter.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt } from "../utils/auth.utils.js";
-import type {RegisterCandidateResult, RegisterRecruiterResult } from "../interfaces/auth.interface.js";
+import type { RegisterCandidateResult, RegisterRecruiterResult, LoginResult, CandidateLoginProfileView, RecruiterLoginProfileView } from "../interfaces/auth.interface.js";
+import type { LoginDto } from "../dto/Candidate.dto.js"
+import { UserRole, AccountStatus } from "../../../common/enums/all_enums.js"
 
 const isUniqueConstraintError = (error: unknown): boolean => {
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
@@ -56,6 +58,69 @@ export class AuthService {
 
             throw error;
         }
+    }
+
+    static async login(
+        payload: LoginDto
+    ): Promise<LoginResult> {
+        const user = await AuthRepository.findLoginUserByEmail(payload.email);
+
+        if (!user) {
+            throw new ConflictError("Invalid email or password.");
+        }
+
+        const isPassowrdValid = await bcrypt.compare(payload.password, user.password);
+
+        if (!isPassowrdValid) {
+            throw new ConflictError("Invalid email or password.");
+        }
+
+        switch (user.status) {
+            case AccountStatus.PENDING:
+                throw new ConflictError("Your account is pending approval. Please wait for an administrator to approve your account.");
+            case AccountStatus.INACTIVE:
+                throw new ConflictError("Your account is not active. Please contact support.");
+            case AccountStatus.SUSPENDED:
+                throw new ConflictError("Your account has been suspended. Please contact support.");
+            case AccountStatus.BLOCKED:
+                throw new ConflictError("Your account has been blocked. Please contact support.");
+            case AccountStatus.ACTIVE:
+                break;
+        }
+
+        const tokens = buildAuthTokens({
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            companyId: user.recruiter?.companyId,
+        });
+
+        await AuthRepository.saveRefreshToken({
+            token: tokens.refreshToken,
+            userId: user.id,
+            expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+        });
+
+        await AuthRepository.updateUserLastLogin(user.id, new Date());
+
+        let profile: CandidateLoginProfileView | RecruiterLoginProfileView | null = null;
+
+        if (user.candidate) {
+            profile = user.candidate as CandidateLoginProfileView;
+        } else if (user.recruiter) {
+            profile = user.recruiter as RecruiterLoginProfileView;
+        }
+
+        const {
+            password,
+            ...authUser
+        } = user;
+
+        return {
+            user: authUser,
+            profile,
+            tokens,
+        };
     }
 
     static async registerRecruiter(

@@ -25,4 +25,14 @@ export class AuthController {
             );
         }
     );
+
+    static login = asyncHandler(
+        async (req: Request, res: Response) => {
+            const login = await AuthService.login(req.body);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, login)
+            );
+        }
+    );
 }

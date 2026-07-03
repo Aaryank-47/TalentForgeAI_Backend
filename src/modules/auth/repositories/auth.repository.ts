@@ -6,6 +6,7 @@ import type { CandidateRegistrationView } from "../interfaces/auth.interface.js"
 import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 
+
 import type {
     RegisterCandidateInput,
     RegisterRecruiterInput,
@@ -76,6 +77,24 @@ const recruiterSelect = {
     updatedAt: true,
 } as const;
 
+const loginUserSelect = {
+    id: true,
+    email: true,
+    password: true,
+    role: true,
+    status: true,
+    isEmailVerified: true,
+    lastLoginAt: true,
+    createdAt: true,
+    updatedAt: true,
+    candidate: {
+        select: candidateSelect
+    },
+    recruiter: {
+        select: recruiterSelect
+    },
+} as const;
+
 export class AuthRepository {
     static async findUserByEmail(email: string): Promise<AuthUserView | null> {
         return prisma.user.findUnique({
@@ -84,6 +103,21 @@ export class AuthRepository {
         });
     }
 
+    static async findLoginUserByEmail(email: string) {
+        return prisma.user.findUnique({
+            where: { email },
+            select: loginUserSelect,
+        });
+    }
+
+    static async updateUserLastLogin(userId: string, lastLoginAt: Date) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+                lastLoginAt: lastLoginAt,
+            }
+        })
+    }
     static async createCandidateRegistration(
         data: RegisterCandidateInput
     ): Promise<{ user: AuthUserView; candidate: CandidateRegistrationView }> {

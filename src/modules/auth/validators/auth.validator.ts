@@ -1,2 +1,2 @@
-export { registerCandidateDto } from "../dto/registerCandidate.dto.js";
+export { registerCandidateDto, loginDto } from "../dto/Candidate.dto.js";
 export { registerRecruiterDto } from "../dto/registerRecruiter.dto.js";
