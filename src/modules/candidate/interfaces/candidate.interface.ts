@@ -3,8 +3,7 @@ import type { ExperienceLevel, Gender } from "@prisma/client";
 export interface CandidateProfileView {
     id: string;
     userId: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     phone: string | null;
     profilePicture: string | null;
     headline: string | null;

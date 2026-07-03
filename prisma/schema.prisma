@@ -45,33 +45,20 @@ enum ExperienceLevel {
 }
 
 model User {
-  id String @id @default(cuid())
-
-  email String @unique
-
-  password String
-
-  role UserRole
-
-  status AccountStatus @default(PENDING)
-
-  isEmailVerified Boolean @default(false)
-
-  lastLoginAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
-  refreshTokens RefreshToken[]
-
-  candidate Candidate?
-
-  recruiter Recruiter?
-
-  hiringManager HiringManager?
-
-  admin Admin?
+  id              String         @id @default(cuid())
+  email           String         @unique
+  password        String
+  role            UserRole
+  status          AccountStatus  @default(PENDING)
+  isEmailVerified Boolean        @default(false)
+  lastLoginAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  refreshTokens   RefreshToken[]
+  candidate       Candidate?
+  recruiter       Recruiter?
+  hiringManager   HiringManager?
+  admin           Admin?
 }
 
 model RefreshToken {
@@ -85,69 +72,37 @@ model RefreshToken {
 }
 
 model Candidate {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  firstName String
-
-  lastName String
-
-  phone String?
-
-  profilePicture String?
-
-  headline String?
-
-  bio String?
-
-  gender Gender?
-
-  experienceLevel ExperienceLevel?
-
-  currentLocation String?
-
-  preferredLocation String?
-
-  currentCompany String?
-
+  id                 String                @id @default(cuid())
+  userId             String                @unique
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName           String
+  phone              String?
+  profilePicture     String?
+  headline           String?
+  bio                String?
+  gender             Gender?
+  experienceLevel    ExperienceLevel?
+  currentLocation    String?
+  preferredLocation  String?
+  currentCompany     String?
   currentDesignation String?
-
-  totalExperience Float?
-
-  expectedSalary Int?
-
-  currentSalary Int?
-
-  noticePeriod Int?
-
-  linkedinUrl String?
-
-  githubUrl String?
-
-  portfolioUrl String?
-
-  websiteUrl String?
-
-  isOpenToWork Boolean @default(true)
-
-  profileCompleted Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
-  skills CandidateSkill[]
-
-  educations CandidateEducation[]
-
-  experiences CandidateExperience[]
-
-  resumes Resume[]
-
-  applications Application[]
+  totalExperience    Float?
+  expectedSalary     Int?
+  currentSalary      Int?
+  noticePeriod       Int?
+  linkedinUrl        String?
+  githubUrl          String?
+  portfolioUrl       String?
+  websiteUrl         String?
+  isOpenToWork       Boolean               @default(true)
+  profileCompleted   Boolean               @default(false)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  skills             CandidateSkill[]
+  educations         CandidateEducation[]
+  experiences        CandidateExperience[]
+  resumes            Resume[]
+  applications       Application[]
 }
 
 model Recruiter {

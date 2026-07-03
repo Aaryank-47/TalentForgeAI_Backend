@@ -28,27 +28,16 @@ export interface AuthUserView {
 export interface RegisterCandidateInput {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
-    phone?: string | undefined;
-    profilePicture?: string | undefined;
-    headline?: string | undefined;
-    bio?: string | undefined;
-    gender?: Gender | undefined;
-    experienceLevel?: ExperienceLevel | undefined;
-    currentLocation?: string | undefined;
-    preferredLocation?: string | undefined;
-    currentCompany?: string | undefined;
-    currentDesignation?: string | undefined;
-    totalExperience?: number | undefined;
-    expectedSalary?: number | undefined;
-    currentSalary?: number | undefined;
-    noticePeriod?: number | undefined;
-    linkedinUrl?: string | undefined;
-    githubUrl?: string | undefined;
-    portfolioUrl?: string | undefined;
-    websiteUrl?: string | undefined;
-    isOpenToWork?: boolean | undefined;
+    fullName: string
+    
+}
+
+export interface CandidateRegistrationView {
+    id: string;
+    userId: string;
+    fullName: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface RegisterRecruiterInput {
@@ -72,7 +61,7 @@ export interface RegisterRecruiterInput {
 
 export interface RegisterCandidateResult {
     user: AuthUserView;
-    candidate: CandidateProfileView;
+    candidate: CandidateRegistrationView;
     tokens: AuthTokens;
 }
 

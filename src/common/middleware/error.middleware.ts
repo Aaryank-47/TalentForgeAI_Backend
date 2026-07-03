@@ -10,6 +10,7 @@ export const errorMiddleware = (
     next: NextFunction
 ): void => {
     if (err instanceof ApiError) {
+        console.error("ApiError: ", err);
         res.status(err.statusCode).json({
             success: false,
             message: err.message,
@@ -18,7 +19,7 @@ export const errorMiddleware = (
         return;
     }
 
-    console.error(err);
+    console.error("Unexpected error:  ", err);
 
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,

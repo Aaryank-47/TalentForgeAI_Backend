@@ -1,14 +1,16 @@
-    import { AccountStatus, UserRole } from "@prisma/client";
+import { AccountStatus, UserRole } from "@prisma/client";
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-    import type { CandidateProfileView } from "../../candidate/interfaces/candidate.interface.js";
-    import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
+// import type { CandidateProfileView } from "../../candidate/interfaces/candidate.interface.js";
+import type { CandidateRegistrationView } from "../interfaces/auth.interface.js"
+import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
+import { createUniqueSlugSeed } from "../utils/auth.utils.js";
+
 import type {
     RegisterCandidateInput,
     RegisterRecruiterInput,
     AuthUserView,
 } from "../interfaces/auth.interface.js";
-import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 
 const nullableString = (value: string | undefined): string | null => value ?? null;
 const nullableNumber = (value: number | undefined): number | null => value ?? null;
@@ -27,28 +29,7 @@ const userSelect = {
 const candidateSelect = {
     id: true,
     userId: true,
-    firstName: true,
-    lastName: true,
-    phone: true,
-    profilePicture: true,
-    headline: true,
-    bio: true,
-    gender: true,
-    experienceLevel: true,
-    currentLocation: true,
-    preferredLocation: true,
-    currentCompany: true,
-    currentDesignation: true,
-    totalExperience: true,
-    expectedSalary: true,
-    currentSalary: true,
-    noticePeriod: true,
-    linkedinUrl: true,
-    githubUrl: true,
-    portfolioUrl: true,
-    websiteUrl: true,
-    isOpenToWork: true,
-    profileCompleted: true,
+    fullName: true,
     createdAt: true,
     updatedAt: true,
 } as const;
@@ -105,7 +86,7 @@ export class AuthRepository {
 
     static async createCandidateRegistration(
         data: RegisterCandidateInput
-    ): Promise<{ user: AuthUserView; candidate: CandidateProfileView }> {
+    ): Promise<{ user: AuthUserView; candidate: CandidateRegistrationView }> {
         return prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
@@ -121,29 +102,7 @@ export class AuthRepository {
             const candidate = await tx.candidate.create({
                 data: {
                     userId: user.id,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    phone: nullableString(data.phone),
-                    profilePicture: nullableString(data.profilePicture),
-                    headline: nullableString(data.headline),
-                    bio: nullableString(data.bio),
-                    gender: data.gender ?? null,
-                    experienceLevel: data.experienceLevel ?? null,
-                    currentLocation: nullableString(data.currentLocation),
-                    preferredLocation: nullableString(data.preferredLocation),
-                    currentCompany: nullableString(data.currentCompany),
-                    currentDesignation: nullableString(data.currentDesignation),
-                    totalExperience: nullableNumber(data.totalExperience),
-                    expectedSalary: nullableNumber(data.expectedSalary),
-                    currentSalary: nullableNumber(data.currentSalary),
-                    noticePeriod: nullableNumber(data.noticePeriod),
-                    linkedinUrl: nullableString(data.linkedinUrl),
-                    githubUrl: nullableString(data.githubUrl),
-                    portfolioUrl: nullableString(data.portfolioUrl),
-                    websiteUrl: nullableString(data.websiteUrl),
-                    ...(data.isOpenToWork !== undefined
-                        ? { isOpenToWork: data.isOpenToWork }
-                        : {}),
+                    fullName: data.fullName
                 },
                 select: candidateSelect,
             });
