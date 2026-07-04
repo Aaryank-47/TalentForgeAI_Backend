@@ -220,12 +220,11 @@ export class AuthService {
             throw new NotFoundError("User not found.");
         }
 
-        const userRole = user.role;
-        
+        const profile = await AuthRepository.findProfileByUserId(userId);
 
         return {
             user,
-            profile: null
+            profile: profile.profile
         };
     }
 
