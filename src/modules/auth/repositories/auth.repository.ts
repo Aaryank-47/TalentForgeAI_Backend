@@ -6,7 +6,6 @@ import type { CandidateRegistrationView } from "../interfaces/auth.interface.js"
 import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 
-
 import type {
     RegisterCandidateInput,
     RegisterRecruiterInput,
@@ -110,6 +109,7 @@ export class AuthRepository {
         });
     }
 
+
     static async updateUserLastLogin(userId: string, lastLoginAt: Date) {
         return prisma.user.update({
             where: { id: userId },
@@ -118,6 +118,46 @@ export class AuthRepository {
             }
         })
     }
+
+    static async findUserById(userId: string): Promise<AuthUserView | null> {
+        return prisma.user.findUnique({
+            where: { id: userId },
+            select: userSelect,
+        });
+    }
+
+    static async findRefreshToken(token: string) {
+        return prisma.refreshToken.findUnique({
+            where: { token },
+            select: {
+                token: true,
+                userId: true,
+                expiresAt: true,
+            }
+        })
+    }
+
+    static async deleteRefreshToken(token: string) {
+        return prisma.refreshToken.delete({
+            where: {
+                token
+            }
+        });
+
+    }
+
+    static async verifyRefeshToken(token: string): Promise<{ userId: string; expiresAt: Date } | null> {
+        const refreshToken = await prisma.refreshToken.findUnique({
+            where: { token },
+            select: {
+                userId: true,
+                expiresAt: true,
+            }
+        });
+
+        return refreshToken;
+    }
+
     static async createCandidateRegistration(
         data: RegisterCandidateInput
     ): Promise<{ user: AuthUserView; candidate: CandidateRegistrationView }> {

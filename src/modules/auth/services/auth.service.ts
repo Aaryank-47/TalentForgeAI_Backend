@@ -9,6 +9,10 @@ import { buildAuthTokens, getRefreshTokenExpiresAt } from "../utils/auth.utils.j
 import type { RegisterCandidateResult, RegisterRecruiterResult, LoginResult, CandidateLoginProfileView, RecruiterLoginProfileView } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js"
 import { UserRole, AccountStatus } from "../../../common/enums/all_enums.js"
+import type { AuthTokens } from "../interfaces/auth.interface.js"
+import { JwtHelper } from "../../../common/helper/jwt.helper.js";
+import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
+
 
 const isUniqueConstraintError = (error: unknown): boolean => {
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
@@ -121,6 +125,40 @@ export class AuthService {
             profile,
             tokens,
         };
+    }
+
+    static async newRefreshToken(
+        refreshToken: string
+    ):Promise<AuthTokens> {
+        const verifiedToken = JwtHelper.verifyRefreshToken(refreshToken);
+        if(!verifiedToken) {
+            throw new ConflictError("Invalid refresh token.");
+        }
+
+        const storedToken = await AuthRepository.findRefreshToken(refreshToken);
+        // console.log("storedToken", storedToken);
+        if(!storedToken) {
+            throw new ConflictError("Refresh token not found.");
+        }
+
+        if(storedToken.expiresAt < new Date()){
+            throw new UnauthorizedError("Refresh token has expired.");
+        }
+
+        const user = await AuthRepository.findUserById(storedToken.userId);
+        if(!user) {
+            throw new ConflictError("User not found.");
+        }
+
+        await AuthRepository.deleteRefreshToken(refreshToken);
+
+        const tokens = buildAuthTokens({
+            id: user.id,
+            email: user.email,
+            role: user.role
+        });
+
+        return tokens;
     }
 
     static async registerRecruiter(
