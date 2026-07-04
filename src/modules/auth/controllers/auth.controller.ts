@@ -42,7 +42,6 @@ export class AuthController {
                 sameSite: "strict",
                 maxAge: 30 * 24 * 60 * 60 * 1000,
             })
-
             const { tokens, ...loginWithoutTokens } = login;
 
             res.status(HTTP_STATUS.OK).json(
@@ -50,6 +49,47 @@ export class AuthController {
             );
         }
     );
+
+    static logout = asyncHandler(
+        async (req: Request, res: Response) =>{
+            
+            const refreshToken = req.cookies.refreshToken;
+            await AuthService.logout(refreshToken);
+            res.clearCookie("refreshToken");
+            res.clearCookie("accessToken");
+            
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.LOGOUT_SUCCESS, null)
+            );
+        }
+    )
+
+    static logoutAllDevices = asyncHandler(
+        async (req: Request, res: Response) =>{
+            
+            const userId = req.user?.id;
+            await AuthService.logoutAllDevices(userId);
+            res.clearCookie("refreshToken");
+            res.clearCookie("accessToken");
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.LOGOUT_SUCCESS, null)
+            );
+        }
+    )
+
+    static logoutAllDevicesByEmail = asyncHandler(
+        async (req:Request, res: Response) =>{
+            
+            await AuthService.logoutAllDevicesByEmail(req.body);
+            
+            res.clearCookie("refreshToken");
+            res.clearCookie("accessToken");
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.LOGOUT_SUCCESS, null)
+            );
+        }
+    )
 
     static refreshToken = asyncHandler(
         async(req: Request, res: Response) =>{

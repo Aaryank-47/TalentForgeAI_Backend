@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { AuthController } from "../controllers/auth.controller.js";
-import { registerCandidateDto, registerRecruiterDto, loginDto } from "../validators/auth.validator.js";
+import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
+import { registerCandidateDto, registerRecruiterDto, loginDto, logoutAllDevicesDto } from "../validators/auth.validator.js";
 
 const router = Router();
 
@@ -26,6 +27,23 @@ router.post(
 router.post(
     "/new-refresh-token",
     AuthController.refreshToken
+);
+
+router.post(
+    "/logout",
+    AuthController.logout
+);
+
+router.post(
+    "/logout/all-devices",
+    authMiddleware,
+    AuthController.logoutAllDevices
+)
+
+router.post(
+    "/deviceLimit/logout/all-devices",
+    validate(logoutAllDevicesDto, "body"),
+    AuthController.logoutAllDevicesByEmail
 )
 
 export default router;

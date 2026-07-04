@@ -12,6 +12,8 @@ import { UserRole, AccountStatus } from "../../../common/enums/all_enums.js"
 import type { AuthTokens } from "../interfaces/auth.interface.js"
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
+import { NotFoundError } from "../../../common/errors/NotFoundError.js";
+import type { LogoutAllDevicesDto } from "../dto/Candidate.dto.js";
 
 
 const isUniqueConstraintError = (error: unknown): boolean => {
@@ -92,6 +94,12 @@ export class AuthService {
                 break;
         }
 
+        const loggedInDevicesCount = await AuthRepository.calcLoggedinDevices(user.id);
+        console.log("loggedInDevicesCount", loggedInDevicesCount);
+        if (loggedInDevicesCount >= AUTH_CONSTANTS.Device_Limit) {
+            throw new ConflictError(`You have reached the maximum number of logged-in devices (${AUTH_CONSTANTS.Device_Limit}). Please log out from another device before logging in again.`);
+        }
+
         const tokens = buildAuthTokens({
             id: user.id,
             email: user.email,
@@ -160,6 +168,49 @@ export class AuthService {
 
         return tokens;
     }
+
+    static async logout(
+        refreshToken: string
+    ):Promise<void>{
+        const storedToken = await AuthRepository.findRefreshToken(refreshToken);
+        if(!storedToken){
+            throw new ConflictError("Refresh token not found.");
+        }
+        await AuthRepository.deleteRefreshToken(refreshToken);
+
+        return;
+    }
+
+    static async logoutAllDevices(
+        userId: string
+    ): Promise<void> {
+        const user = await AuthRepository.findUserById(userId);
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+
+        await AuthRepository.deleteAllRefreshTokensForUser(userId);
+        return;
+    }
+
+    static async logoutAllDevicesByEmail(
+        payload: LogoutAllDevicesDto
+    ):Promise<void>{
+        const user = await AuthRepository.findLoginUserByEmail(payload.email);
+        if(!user){
+            throw new NotFoundError("User not found.");
+        }
+
+        const isPassowrdValid = await bcrypt.compare(payload.password, user.password);
+
+        if (!isPassowrdValid) {
+            throw new UnauthorizedError("Invalid email or password.");
+        }
+
+        await AuthRepository.deleteAllRefreshTokensForUser(user.id);
+        return; 
+    }
+
 
     static async registerRecruiter(
         payload: RegisterRecruiterDto

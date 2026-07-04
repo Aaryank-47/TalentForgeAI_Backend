@@ -146,16 +146,27 @@ export class AuthRepository {
 
     }
 
-    static async verifyRefeshToken(token: string): Promise<{ userId: string; expiresAt: Date } | null> {
-        const refreshToken = await prisma.refreshToken.findUnique({
-            where: { token },
-            select: {
-                userId: true,
-                expiresAt: true,
+
+    static async calcLoggedinDevices(userId: string) {
+        const user = await AuthRepository.findUserById(userId);
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+
+        const count = await prisma.refreshToken.count({
+            where: {
+                userId: userId
             }
         });
+        return count;
+    }
 
-        return refreshToken;
+    static async deleteAllRefreshTokensForUser(userId: string) {
+        return prisma.refreshToken.deleteMany({
+            where: {
+                userId
+            }
+        });
     }
 
     static async createCandidateRegistration(

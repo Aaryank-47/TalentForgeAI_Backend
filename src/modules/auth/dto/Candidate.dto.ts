@@ -15,3 +15,10 @@ export const loginDto = z.object({
 });
 
 export type LoginDto = z.infer<typeof loginDto>;
+
+export const logoutAllDevicesDto = z.object({
+    email: emailValidator,
+    password: passwordValidator
+});
+
+export type LogoutAllDevicesDto = z.infer<typeof logoutAllDevicesDto>;
