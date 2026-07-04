@@ -14,6 +14,7 @@ import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import type { LogoutAllDevicesDto } from "../dto/Candidate.dto.js";
+import type { ProfileResult } from "../interfaces/auth.interface.js";
 
 
 const isUniqueConstraintError = (error: unknown): boolean => {
@@ -209,6 +210,23 @@ export class AuthService {
 
         await AuthRepository.deleteAllRefreshTokensForUser(user.id);
         return; 
+    }
+
+    static async getMe(
+        userId: string
+    ): Promise<ProfileResult> {
+        const user = await AuthRepository.findUserById(userId);
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+
+        const userRole = user.role;
+        
+
+        return {
+            user,
+            profile: null
+        };
     }
 
 

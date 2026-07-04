@@ -2,7 +2,7 @@ import { AccountStatus, UserRole } from "@prisma/client";
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 // import type { CandidateProfileView } from "../../candidate/interfaces/candidate.interface.js";
-import type { CandidateRegistrationView } from "../interfaces/auth.interface.js"
+import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js"
 import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 
@@ -33,6 +33,34 @@ const candidateSelect = {
     createdAt: true,
     updatedAt: true,
 } as const;
+
+const candidateProfileSelect = {
+    id: true,
+    userId: true,
+    fullName: true,
+    phone: true,
+    profilePicture: true,
+    headline: true,
+    bio: true,
+    gender: true,
+    experienceLevel: true,
+    currentLocation: true,
+    preferredLocation: true,
+    currentCompany: true,
+    currentDesignation: true,
+    totalExperience: true,
+    expectedSalary: true,
+    currentSalary: true,
+    noticePeriod: true,
+    linkedinUrl: true,
+    githubUrl: true,
+    portfolioUrl: true,
+    websiteUrl: true,
+    isOpenToWork: true,
+    profileCompleted: true,
+    createdAt: true,
+    updatedAt: true,
+};
 
 const companySelect = {
     id: true,
@@ -109,6 +137,37 @@ export class AuthRepository {
         });
     }
 
+    static async findUserById(userId: string): Promise<AuthUserView | null> {
+        return prisma.user.findUnique({
+            where: { id: userId },
+            select: userSelect,
+        });
+    }
+
+    static async findProfileByUserId(
+        userId: string
+    ): Promise<ProfileViewResult> {
+
+        const profile = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                candidate: {
+                    select: candidateProfileSelect
+                },
+                recruiter: {
+                    select: recruiterSelect
+                }
+            }
+        });
+
+        if (!profile) {
+            throw new NotFoundError("User not found.");
+        }
+
+        return {
+            profile: profile.candidate ?? profile.recruiter ?? null
+        };
+    }
 
     static async updateUserLastLogin(userId: string, lastLoginAt: Date) {
         return prisma.user.update({
@@ -119,12 +178,6 @@ export class AuthRepository {
         })
     }
 
-    static async findUserById(userId: string): Promise<AuthUserView | null> {
-        return prisma.user.findUnique({
-            where: { id: userId },
-            select: userSelect,
-        });
-    }
 
     static async findRefreshToken(token: string) {
         return prisma.refreshToken.findUnique({

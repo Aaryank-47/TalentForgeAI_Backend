@@ -91,6 +91,17 @@ export class AuthController {
         }
     )
 
+    static getMe = asyncHandler(
+        async (req: Request, res: Response) =>{
+            const userId = req.user?.id;
+            const user = await AuthService.getMe(userId);
+            
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.SUCCESS, user)
+            );
+        }
+    )
+
     static refreshToken = asyncHandler(
         async(req: Request, res: Response) =>{
             const refreshToken = await AuthService.newRefreshToken(req.cookies.refreshToken);

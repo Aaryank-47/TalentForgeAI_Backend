@@ -127,6 +127,15 @@ export interface RegisterCandidateResult {
 export interface RegisterRecruiterResult {
     user: AuthUserView;
     company: RecruiterCompanyView;
-    recruiter: RecruiterProfileView;
+    recruiter: RecruiterProfileView;    
     tokens: AuthTokens;
+}
+
+export interface ProfileResult {
+    user: AuthUserView;
+    profile: CandidateProfileView | RecruiterProfileView | null;
+}
+
+export interface ProfileViewResult {
+    profile: CandidateProfileView | RecruiterProfileView | null;
 }

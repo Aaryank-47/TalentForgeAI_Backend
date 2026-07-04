@@ -46,4 +46,10 @@ router.post(
     AuthController.logoutAllDevicesByEmail
 )
 
+router.get(
+    "/me",
+    authMiddleware,
+    AuthController.getMe
+)
+
 export default router;
