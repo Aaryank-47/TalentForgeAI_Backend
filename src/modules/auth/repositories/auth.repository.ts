@@ -144,6 +144,16 @@ export class AuthRepository {
         });
     }
 
+    static async findUserWithPasswordById(userId: string) {
+    return prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            password: true,
+        },
+    });
+}
+
     static async findProfileByUserId(
         userId: string
     ): Promise<ProfileViewResult> {
@@ -178,6 +188,14 @@ export class AuthRepository {
         })
     }
 
+    static async updateUserPassword(userId: string, newPassword: string) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+                password: newPassword,
+            }
+        })
+    }
 
     static async findRefreshToken(token: string) {
         return prisma.refreshToken.findUnique({

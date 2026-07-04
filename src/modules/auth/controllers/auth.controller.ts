@@ -111,4 +111,16 @@ export class AuthController {
             );
         }
     )
+
+    static changePassword = asyncHandler(
+        async(req: Request, res: Response) =>{
+            const userId = req.user?.id
+
+            await AuthService.changePassword(userId, req.body.oldPassword, req.body.newPassword);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.SUCCESS, null)
+            );
+        }
+    )
 }

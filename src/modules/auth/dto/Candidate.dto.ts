@@ -22,3 +22,10 @@ export const logoutAllDevicesDto = z.object({
 });
 
 export type LogoutAllDevicesDto = z.infer<typeof logoutAllDevicesDto>;
+
+export const changePasswordDto = z.object({
+    oldPassword: passwordValidator,
+    newPassword: passwordValidator
+});
+
+export type ChangePasswordDto = z.infer<typeof changePasswordDto>;

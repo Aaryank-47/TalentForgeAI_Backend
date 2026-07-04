@@ -2,7 +2,7 @@ import { Router } from "express";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { AuthController } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
-import { registerCandidateDto, registerRecruiterDto, loginDto, logoutAllDevicesDto } from "../validators/auth.validator.js";
+import { registerCandidateDto, registerRecruiterDto, loginDto, logoutAllDevicesDto, changePasswordDto } from "../validators/auth.validator.js";
 
 const router = Router();
 
@@ -50,6 +50,13 @@ router.get(
     "/me",
     authMiddleware,
     AuthController.getMe
+)
+
+router.post(
+    "/change/password",
+    authMiddleware,
+    validate(changePasswordDto, "body"),
+    AuthController.changePassword
 )
 
 export default router;

@@ -228,6 +228,33 @@ export class AuthService {
         };
     }
 
+    static async changePassword(
+        userId: string,
+        oldPassword: string,
+        newPassword: string
+    ): Promise<void> {
+        const user = await AuthRepository.findUserWithPasswordById(userId);
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+
+        const isPassowrdValid = await bcrypt.compare(oldPassword, user.password);
+
+        if (!isPassowrdValid) {
+            throw new UnauthorizedError("Invalid old password.");
+        }
+
+        const hashedPassword = await bcrypt.hash(
+            newPassword,
+            AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS
+        );
+
+        await AuthRepository.updateUserPassword(userId, hashedPassword);
+
+        return; 
+    }
+    
+
 
     static async registerRecruiter(
         payload: RegisterRecruiterDto
