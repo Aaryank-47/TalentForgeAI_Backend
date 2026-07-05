@@ -49,3 +49,16 @@ export const resetPasswordDto = z.object({
 });
 
 export type ResetPasswordDto = z.infer<typeof resetPasswordDto>;
+
+export const verifyEmailDto = z.object({
+    email: emailValidator,
+    otp: z.string().length(6, "OTP must be 6 digits"),
+});
+
+export type VerifyEmailDto = z.infer<typeof verifyEmailDto>;
+
+export const resendVerificationDto = z.object({
+    email: emailValidator,
+});
+
+export type ResendVerificationDto = z.infer<typeof resendVerificationDto>;

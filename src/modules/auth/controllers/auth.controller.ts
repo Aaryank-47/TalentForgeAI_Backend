@@ -153,4 +153,24 @@ export class AuthController {
             );
         }
     )
+
+    static verifyEmail = asyncHandler(
+        async (req: Request, res: Response) => {
+            await AuthService.verifyEmail(req.body);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.EMAIL_VERIFY_SUCCESS, null)
+            );
+        }
+    )
+
+    static resendVerificationEmail = asyncHandler(
+        async (req: Request, res: Response) => {
+            await AuthService.resendVerificationEmail(req.body);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.VERIFICATION_EMAIL_SENT, null)
+            );
+        }
+    )
 }

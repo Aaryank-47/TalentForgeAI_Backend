@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
-import type { RegisterCandidateDto, VerifyOtpDto } from "../dto/Candidate.dto.js";
+import type { RegisterCandidateDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
 import type { RegisterRecruiterDto } from "../dto/registerRecruiter.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
@@ -19,6 +19,7 @@ import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
 import {env} from "../../../config/env.js";
 import { getResetPasswordTokenExpiresAt} from "../utils/auth.utils.js"
+import { MESSAGE } from "../../../common/constants/messages.js";
 
 
 
@@ -408,5 +409,74 @@ export class AuthService {
 
             throw error;
         }
+    }
+
+    static async verifyEmail(
+        payload: VerifyEmailDto
+    ): Promise<void> {
+        const user = await AuthRepository.findUserByEmail(payload.email);
+        if (!user) {
+            throw new NotFoundError(MESSAGE.USER_NOT_FOUND);
+        }
+
+        const storedOtp = await AuthRepository.findOTPByUserId(user.id);
+        if (!storedOtp?.otp || !storedOtp?.otpExpiresAt) {
+            throw new NotFoundError("OTP not found. Please request a new OTP.");
+        }
+
+        if (storedOtp.otpExpiresAt < new Date()) {
+            await AuthRepository.deleteOtpForUser(user.id);
+            throw new UnauthorizedError("OTP has expired. Please request a new OTP.");
+        }
+
+        const isOtpValid = await bcrypt.compare(payload.otp, storedOtp.otp);
+        if (!isOtpValid) {
+            throw new UnauthorizedError("Invalid OTP. Please try again.");
+        }
+
+        await AuthRepository.deleteOtpForUser(user.id);
+        await AuthRepository.markEmailVerified(user.id);
+    }
+
+    static async resendVerificationEmail(
+        payload: ResendVerificationDto
+    ): Promise<void> {
+        const user = await AuthRepository.findUserByEmail(payload.email);
+        if (!user) {
+            throw new NotFoundError(MESSAGE.USER_NOT_FOUND);
+        }
+
+        if (user.isEmailVerified) {
+            throw new ConflictError(MESSAGE.EMAIL_ALREADY_VERIFIED);
+        }
+
+        await AuthRepository.deleteOtpForUser(user.id);
+
+        const otp = genrateOTP();
+        const hashedOtp = await bcrypt.hash(
+            otp,
+            AUTH_CONSTANTS.OTP_HASH_SALT_ROUNDS
+        );
+
+        await AuthRepository.saveOTP(
+            user.id,
+            hashedOtp,
+            new Date(Date.now() + AUTH_CONSTANTS.EMAIL_VERIFICATION_OTP_EXPIRY)
+        );
+
+        const profile = await AuthRepository.findProfileByUserId(user.id);
+        let name = "User";
+        if (profile.profile && "fullName" in profile.profile) {
+            name = profile.profile.fullName;
+        } else if (profile.profile && "firstName" in profile.profile) {
+            name = profile.profile.firstName;
+        }
+
+        const template = emailTemplates.verifyEmailOtpTemplate(otp, name);
+
+        await EmailService.sendEmail({
+            to: user.email,
+            ...template
+        });
     }
 }

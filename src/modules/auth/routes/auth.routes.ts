@@ -10,7 +10,9 @@ import {
     changePasswordDto,
     forgotPasswordDto,
     verifyOtpDto,
-    resetPasswordDto
+    resetPasswordDto,
+    verifyEmailDto,
+    resendVerificationDto
 } from "../validators/auth.validator.js";
 
 const router = Router();
@@ -78,6 +80,18 @@ router.post(
     "/verify/otp",
     validate(verifyOtpDto, "body"),
     AuthController.verifyOtp
+)
+
+router.post(
+    "/verify-email",
+    validate(verifyEmailDto, "body"),
+    AuthController.verifyEmail
+)
+
+router.post(
+    "/resend-verification",
+    validate(resendVerificationDto, "body"),
+    AuthController.resendVerificationEmail
 )
 
 export default router;

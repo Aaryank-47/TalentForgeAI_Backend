@@ -24,11 +24,13 @@ export class emailTemplates {
             html: `
                 <h1>Verify Your Email</h1>
                 <p>Hi ${name},</p>
-                <p>Welcome to our platform! Please use the following OTP to verify your email address:</p>
+                <p>Welcome to TalentForge.</p>
+                <p>Use the following OTP to verify your email:</p>
                 <h2>${otp}</h2>
-                <p>If you did not create an account, please ignore this email.</p>
+                <p>This OTP expires in 5 minutes.</p>
+                <p>If you didn't create this account, ignore this email.</p>
             `,
-            text: `Hi ${name}, Welcome to our platform! Please use the following OTP to verify your email address: ${otp}. If you did not create an account, please ignore this email.`,
+            text: `Hi ${name}, Welcome to TalentForge. Use the following OTP to verify your email: ${otp}. This OTP expires in 5 minutes. If you didn't create this account, ignore this email.`,
         };
     }
 }
