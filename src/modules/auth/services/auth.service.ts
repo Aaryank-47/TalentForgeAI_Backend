@@ -250,6 +250,7 @@ export class AuthService {
         );
 
         await AuthRepository.updateUserPassword(userId, hashedPassword);
+        await AuthRepository.deleteAllRefreshTokensForUser(user.id);
 
         return; 
     }
