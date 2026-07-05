@@ -143,4 +143,14 @@ export class AuthController {
             );
         }
     )
+
+    static resetPassword = asyncHandler(
+        async(req: Request, res: Response) =>{
+            await AuthService.resetPassword(req.body.token, req.body.newPassword);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.SUCCESS, null)
+            );
+        }
+    )
 }

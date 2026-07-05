@@ -146,14 +146,14 @@ export class AuthRepository {
     }
 
     static async findUserWithPasswordById(userId: string) {
-    return prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-            id: true,
-            password: true,
-        },
-    });
-}
+        return prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                password: true,
+            },
+        });
+    }
 
     static async findProfileByUserId(
         userId: string
@@ -242,7 +242,7 @@ export class AuthRepository {
     }
 
     static async saveOTP(
-        userId: string, 
+        userId: string,
         otp: string,
         otpExpiresAt: Date
     ) {
@@ -250,7 +250,7 @@ export class AuthRepository {
             where: {
                 id: userId
             },
-            data:{
+            data: {
                 otp: otp,
                 otpExpiresAt: otpExpiresAt
             }
@@ -274,7 +274,7 @@ export class AuthRepository {
             where: {
                 id: userId
             },
-            data:{ 
+            data: {
                 otp: null,
                 otpExpiresAt: null
             }
@@ -282,7 +282,7 @@ export class AuthRepository {
     }
 
     static async saveResetPasswordToken(
-        userId: string, 
+        userId: string,
         resetPasswordToken: string,
         resetPasswordTokenExpiresAt: Date
     ) {
@@ -292,10 +292,44 @@ export class AuthRepository {
             where: {
                 id: userId
             },
-            data:{
+            data: {
                 resetPasswordToken: resetPasswordToken,
                 resetPasswordTokenExpiresAt: resetPasswordTokenExpiresAt
             }
+        });
+    }
+
+    static async findResetPasswordTokenByUserId(userId: string) {
+        return prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                resetPasswordToken: true,
+                resetPasswordTokenExpiresAt: true
+            }
+        });
+    }
+
+    static async deleteResetPasswordTokenForUser(userId: string) {
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                resetPasswordToken: null,
+                resetPasswordTokenExpiresAt: null
+            }
+        })
+    }
+
+    static async updateNewPasswordForUser(
+        userId: string,
+        newPassword: string
+    ): Promise<void> {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: newPassword },
         });
     }
 

@@ -9,7 +9,8 @@ import {
     logoutAllDevicesDto,
     changePasswordDto,
     forgotPasswordDto,
-    verifyOtpDto
+    verifyOtpDto,
+    resetPasswordDto
 } from "../validators/auth.validator.js";
 
 const router = Router();
@@ -80,3 +81,9 @@ router.post(
 )
 
 export default router;
+
+router.post(
+    "/reset/password",
+    validate(resetPasswordDto, "body"),
+    AuthController.resetPassword
+)

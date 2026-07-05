@@ -51,4 +51,11 @@ export class JwtHelper {
             } as SignOptions
         )
     }
+
+    static verifyResetPasswordToken(token: string): JwtPayload {
+        return jwt.verify(
+            token,
+            env.jwt.resetPasswordSecret as Secret
+        ) as JwtPayload
+    }
 }

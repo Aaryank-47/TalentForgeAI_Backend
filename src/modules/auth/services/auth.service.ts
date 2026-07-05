@@ -333,6 +333,36 @@ export class AuthService {
         return resetPasswordToken;
     }
 
+    static async resetPassword(
+        resetPasswordToken: string,
+        newPassword: string
+    ):Promise<void>{
+        const decodedToken = JwtHelper.verifyResetPasswordToken(resetPasswordToken);
+        if(!decodedToken){
+            throw new UnauthorizedError("Invalid reset password token.");
+        }
+
+        const storedToken = await AuthRepository.findResetPasswordTokenByUserId(decodedToken.id);
+        if(!storedToken || storedToken.resetPasswordToken !== resetPasswordToken){
+            throw new UnauthorizedError("Reset password token not found.");
+        }
+
+        if(getResetPasswordTokenExpiresAt(resetPasswordToken) < new Date()){
+            await AuthRepository.deleteResetPasswordTokenForUser(decodedToken.id);
+            throw new UnauthorizedError("Reset password token has expired.");
+        }
+
+        const hanshNewPassword = await bcrypt.hash(
+            newPassword,
+            AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS
+        );
+
+        await AuthRepository.updateUserPassword(decodedToken.id, hanshNewPassword);
+        await AuthRepository.deleteResetPasswordTokenForUser(decodedToken.id);
+        await AuthRepository.deleteAllRefreshTokensForUser(decodedToken.id);
+        
+        return;
+    }
 
     static async registerRecruiter(
         payload: RegisterRecruiterDto

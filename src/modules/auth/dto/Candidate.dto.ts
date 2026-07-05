@@ -42,3 +42,10 @@ export const verifyOtpDto = z.object({
 })
 
 export type VerifyOtpDto = z.infer<typeof verifyOtpDto>;
+
+export const resetPasswordDto = z.object({
+    token: z.string().min(1, "Reset password token is required"),
+    newPassword: passwordValidator
+});
+
+export type ResetPasswordDto = z.infer<typeof resetPasswordDto>;
