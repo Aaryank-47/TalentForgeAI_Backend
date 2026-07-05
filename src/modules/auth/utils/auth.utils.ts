@@ -48,3 +48,8 @@ export const createUniqueSlugSeed = (value: string): string => {
 
     return baseSlug.length > 0 ? baseSlug : randomUUID().replace(/-/g, "");
 };
+
+export const genrateOTP = (): string => {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    return otp.toString();
+}

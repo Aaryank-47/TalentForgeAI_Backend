@@ -124,6 +124,7 @@ const loginUserSelect = {
 
 export class AuthRepository {
     static async findUserByEmail(email: string): Promise<AuthUserView | null> {
+        console.log("Finding user by email inside auth repository:", email);
         return prisma.user.findUnique({
             where: { email },
             select: userSelect,
@@ -236,6 +237,22 @@ export class AuthRepository {
         return prisma.refreshToken.deleteMany({
             where: {
                 userId
+            }
+        });
+    }
+
+    static async saveOTP(
+        userId: string, 
+        otp: string,
+        otpExpiresAt: Date
+    ) {
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data:{
+                otp: otp,
+                otpExpiresAt: otpExpiresAt
             }
         });
     }

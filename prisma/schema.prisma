@@ -48,6 +48,8 @@ model User {
   id              String         @id @default(cuid())
   email           String         @unique
   password        String
+  otp             String?
+  otpExpiresAt    DateTime?
   role            UserRole
   status          AccountStatus  @default(PENDING)
   isEmailVerified Boolean        @default(false)

@@ -29,3 +29,9 @@ export const changePasswordDto = z.object({
 });
 
 export type ChangePasswordDto = z.infer<typeof changePasswordDto>;
+
+export const forgotPasswordDto = z.object({
+    email: emailValidator
+})
+
+export type ForgotPasswordDto = z.infer<typeof forgotPasswordDto>;

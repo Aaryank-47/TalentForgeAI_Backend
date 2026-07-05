@@ -5,7 +5,7 @@ import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
 import type { RegisterCandidateDto } from "../dto/Candidate.dto.js";
 import type { RegisterRecruiterDto } from "../dto/registerRecruiter.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
-import { buildAuthTokens, getRefreshTokenExpiresAt } from "../utils/auth.utils.js";
+import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
 import type { RegisterCandidateResult, RegisterRecruiterResult, LoginResult, CandidateLoginProfileView, RecruiterLoginProfileView } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js"
 import { UserRole, AccountStatus } from "../../../common/enums/all_enums.js"
@@ -13,8 +13,11 @@ import type { AuthTokens } from "../interfaces/auth.interface.js"
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-import type { LogoutAllDevicesDto } from "../dto/Candidate.dto.js";
+import type { LogoutAllDevicesDto, ForgotPasswordDto } from "../dto/Candidate.dto.js";
 import type { ProfileResult } from "../interfaces/auth.interface.js";
+import { emailTemplates } from "../../../common/email/email.templates.js";
+import { EmailService } from "../../../common/email/email.service.js";
+
 
 
 const isUniqueConstraintError = (error: unknown): boolean => {
@@ -255,6 +258,37 @@ export class AuthService {
         return; 
     }
     
+
+    static async forgotPassword(
+        email: string
+    ):Promise<void>{
+        console.log("Forgot Password Request inside service:", email);
+        console.log("Email inside service:", email);
+        const user = await AuthRepository.findUserByEmail(email);
+        if(!user){
+            throw new NotFoundError("User not found.");
+        }
+        
+        const otp = genrateOTP();
+        const hashOtp = await bcrypt.hash(
+            otp,
+            AUTH_CONSTANTS.OTP_HASH_SALT_ROUNDS
+        )
+
+        await AuthRepository.saveOTP(
+            user.id,
+            hashOtp,
+            new Date(Date.now() + AUTH_CONSTANTS.OTP_EXPIRY)
+        );
+
+        // Here you would typically send the OTP to the user's email
+        const template = await emailTemplates.forgotPasswordOtpTemplate(otp);
+
+        await EmailService.sendEmail({
+            to: user.email,
+            ...template
+        })
+    }
 
 
     static async registerRecruiter(
