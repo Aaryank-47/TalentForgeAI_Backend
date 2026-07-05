@@ -6,7 +6,6 @@ export interface AuthTokenPayload {
     id: string;
     email: string;
     role: UserRole;
-    companyId?: string | undefined;
 }
 
 export interface AuthTokens {
@@ -104,18 +103,7 @@ export interface RegisterRecruiterInput {
     password: string;
     firstName: string;
     lastName: string;
-    phone?: string | undefined;
-    designation?: string | undefined;
-    department?: string | undefined;
-    profilePicture?: string | undefined;
-    linkedinUrl?: string | undefined;
-    isPrimaryRecruiter?: boolean | undefined;
-    canCreateJobs?: boolean | undefined;
-    canEditJobs?: boolean | undefined;
-    canDeleteJobs?: boolean | undefined;
-    canScheduleInterview?: boolean | undefined;
-    companyId?: string | undefined;
-    company?: RecruiterCompanyInput | undefined;
+    companyId: string;
 }
 
 export interface RegisterCandidateResult {
@@ -125,6 +113,20 @@ export interface RegisterCandidateResult {
 }
 
 export interface RegisterRecruiterResult {
+    user: AuthUserView;
+    recruiter: RecruiterProfileView;
+    tokens: AuthTokens;
+}
+
+export interface RegisterCompanyOwnerInput {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    company: RecruiterCompanyInput;
+}
+
+export interface RegisterCompanyOwnerResult {
     user: AuthUserView;
     company: RecruiterCompanyView;
     recruiter: RecruiterProfileView;

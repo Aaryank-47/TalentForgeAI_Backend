@@ -20,7 +20,6 @@ export const buildTokenPayload = (payload: AuthTokenPayload): AuthTokenPayload =
         id: payload.id,
         email: payload.email,
         role: payload.role,
-        ...(payload.companyId ? { companyId: payload.companyId } : {}),
     };
 };
 

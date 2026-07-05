@@ -5,6 +5,7 @@ import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import {
     registerCandidateDto,
     registerRecruiterDto,
+    registerCompanyOwnerDto,
     loginDto,
     logoutAllDevicesDto,
     changePasswordDto,
@@ -27,6 +28,12 @@ router.post(
     "/register/recruiter",
     validate(registerRecruiterDto, "body"),
     AuthController.registerRecruiter
+);
+
+router.post(
+    "/register/company-owner",
+    validate(registerCompanyOwnerDto, "body"),
+    AuthController.registerCompanyOwner
 );
 
 router.post(

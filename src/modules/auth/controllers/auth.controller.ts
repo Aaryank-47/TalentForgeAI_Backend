@@ -173,4 +173,14 @@ export class AuthController {
             );
         }
     )
+
+    static registerCompanyOwner = asyncHandler(
+        async (req: Request, res: Response) => {
+            const registration = await AuthService.registerCompanyOwner(req.body);
+
+            res.status(HTTP_STATUS.CREATED).json(
+                new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration)
+            );
+        }
+    );
 }

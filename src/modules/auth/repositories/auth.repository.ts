@@ -9,6 +9,7 @@ import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 import type {
     RegisterCandidateInput,
     RegisterRecruiterInput,
+    RegisterCompanyOwnerInput,
     AuthUserView,
 } from "../interfaces/auth.interface.js";
 
@@ -412,53 +413,12 @@ export class AuthRepository {
 
     static async createRecruiterRegistration(
         data: RegisterRecruiterInput
-    ): Promise<{
-        user: AuthUserView;
-        company: RecruiterCompanyView;
-        recruiter: RecruiterProfileView;
-    }> {
+    ): Promise<{ user: AuthUserView; recruiter: RecruiterProfileView }> {
         return prisma.$transaction(async (tx) => {
-            let company: RecruiterCompanyView | null = null;
-
-            if (data.companyId) {
-                company = await tx.company.findUnique({
-                    where: { id: data.companyId },
-                    select: companySelect,
-                });
-
-                if (!company) {
-                    throw new NotFoundError("Company not found.");
-                }
-            } else if (data.company) {
-                const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.name);
-                let slug = baseSlug;
-                let suffix = 1;
-
-                while (await tx.company.findUnique({ where: { slug } })) {
-                    slug = `${baseSlug}-${suffix}`;
-                    suffix += 1;
-                }
-
-                company = await tx.company.create({
-                    data: {
-                        name: data.company.name,
-                        slug,
-                        email: nullableString(data.company.email),
-                        phone: nullableString(data.company.phone),
-                        website: nullableString(data.company.website),
-                        logo: nullableString(data.company.logo),
-                        coverImage: nullableString(data.company.coverImage),
-                        description: nullableString(data.company.description),
-                        industry: nullableString(data.company.industry),
-                        companySize: nullableString(data.company.companySize),
-                        foundedYear: nullableNumber(data.company.foundedYear),
-                        headquarters: nullableString(data.company.headquarters),
-                        linkedinUrl: nullableString(data.company.linkedinUrl),
-                        twitterUrl: nullableString(data.company.twitterUrl),
-                    },
-                    select: companySelect,
-                });
-            }
+            const company = await tx.company.findUnique({
+                where: { id: data.companyId },
+                select: { id: true },
+            });
 
             if (!company) {
                 throw new NotFoundError("Company not found.");
@@ -478,29 +438,72 @@ export class AuthRepository {
             const recruiter = await tx.recruiter.create({
                 data: {
                     userId: user.id,
+                    companyId: data.companyId,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                },
+                select: recruiterSelect,
+            });
+
+            return { user, recruiter };
+        });
+    }
+
+    static async createCompanyOwnerRegistration(
+        data: RegisterCompanyOwnerInput
+    ): Promise<{
+        user: AuthUserView;
+        company: RecruiterCompanyView;
+        recruiter: RecruiterProfileView;
+    }> {
+        return prisma.$transaction(async (tx) => {
+            const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.name);
+            let slug = baseSlug;
+            let suffix = 1;
+
+            while (await tx.company.findUnique({ where: { slug } })) {
+                slug = `${baseSlug}-${suffix}`;
+                suffix += 1;
+            }
+
+            const company = await tx.company.create({
+                data: {
+                    name: data.company.name,
+                    slug,
+                    email: nullableString(data.company.email),
+                    phone: nullableString(data.company.phone),
+                    website: nullableString(data.company.website),
+                    logo: nullableString(data.company.logo),
+                    coverImage: nullableString(data.company.coverImage),
+                    description: nullableString(data.company.description),
+                    industry: nullableString(data.company.industry),
+                    companySize: nullableString(data.company.companySize),
+                    foundedYear: nullableNumber(data.company.foundedYear),
+                    headquarters: nullableString(data.company.headquarters),
+                    linkedinUrl: nullableString(data.company.linkedinUrl),
+                    twitterUrl: nullableString(data.company.twitterUrl),
+                },
+                select: companySelect,
+            });
+
+            const user = await tx.user.create({
+                data: {
+                    email: data.email,
+                    password: data.password,
+                    role: UserRole.COMPANY_OWNER,
+                    status: AccountStatus.ACTIVE,
+                    isEmailVerified: false,
+                },
+                select: userSelect,
+            });
+
+            const recruiter = await tx.recruiter.create({
+                data: {
+                    userId: user.id,
                     companyId: company.id,
                     firstName: data.firstName,
                     lastName: data.lastName,
-                    phone: nullableString(data.phone),
-                    designation: nullableString(data.designation),
-                    department: nullableString(data.department),
-                    profilePicture: nullableString(data.profilePicture),
-                    linkedinUrl: nullableString(data.linkedinUrl),
-                    ...(data.isPrimaryRecruiter !== undefined
-                        ? { isPrimaryRecruiter: data.isPrimaryRecruiter }
-                        : {}),
-                    ...(data.canCreateJobs !== undefined
-                        ? { canCreateJobs: data.canCreateJobs }
-                        : {}),
-                    ...(data.canEditJobs !== undefined
-                        ? { canEditJobs: data.canEditJobs }
-                        : {}),
-                    ...(data.canDeleteJobs !== undefined
-                        ? { canDeleteJobs: data.canDeleteJobs }
-                        : {}),
-                    ...(data.canScheduleInterview !== undefined
-                        ? { canScheduleInterview: data.canScheduleInterview }
-                        : {}),
+                    isPrimaryRecruiter: true,
                 },
                 select: recruiterSelect,
             });

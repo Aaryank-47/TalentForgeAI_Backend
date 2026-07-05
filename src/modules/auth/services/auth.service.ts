@@ -4,9 +4,10 @@ import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
 import type { RegisterCandidateDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
 import type { RegisterRecruiterDto } from "../dto/registerRecruiter.dto.js";
+import type { RegisterCompanyOwnerDto } from "../dto/registerCompanyOwner.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
-import type { RegisterCandidateResult, RegisterRecruiterResult, LoginResult, CandidateLoginProfileView, RecruiterLoginProfileView } from "../interfaces/auth.interface.js";
+import type { RegisterCandidateResult, RegisterRecruiterResult, RegisterCompanyOwnerResult, LoginResult, CandidateLoginProfileView, RecruiterLoginProfileView } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js"
 import { UserRole, AccountStatus } from "../../../common/enums/all_enums.js"
 import type { AuthTokens } from "../interfaces/auth.interface.js"
@@ -111,7 +112,6 @@ export class AuthService {
             id: user.id,
             email: user.email,
             role: user.role,
-            companyId: user.recruiter?.companyId,
         });
 
         await AuthRepository.saveRefreshToken({
@@ -389,7 +389,51 @@ export class AuthService {
                 id: registration.user.id,
                 email: registration.user.email,
                 role: registration.user.role,
-                companyId: registration.company.id,
+            });
+
+            await AuthRepository.saveRefreshToken({
+                token: tokens.refreshToken,
+                userId: registration.user.id,
+                expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+            });
+
+            return {
+                ...registration,
+                tokens,
+            };
+        } catch (error) {
+            if (isUniqueConstraintError(error)) {
+                throw new ConflictError("An account with this email already exists.");
+            }
+
+            throw error;
+        }
+    }
+
+    static async registerCompanyOwner(
+        payload: RegisterCompanyOwnerDto
+    ): Promise<RegisterCompanyOwnerResult> {
+        const existingUser = await AuthRepository.findUserByEmail(payload.email);
+
+        if (existingUser) {
+            throw new ConflictError("An account with this email already exists.");
+        }
+
+        const hashedPassword = await bcrypt.hash(
+            payload.password,
+            AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS
+        );
+
+        try {
+            const registration = await AuthRepository.createCompanyOwnerRegistration({
+                ...payload,
+                password: hashedPassword,
+            });
+
+            const tokens = buildAuthTokens({
+                id: registration.user.id,
+                email: registration.user.email,
+                role: registration.user.role,
             });
 
             await AuthRepository.saveRefreshToken({
