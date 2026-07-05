@@ -50,6 +50,8 @@ model User {
   password        String
   otp             String?
   otpExpiresAt    DateTime?
+  resetPasswordToken String?
+  resetPasswordTokenExpiresAt DateTime?
   role            UserRole
   status          AccountStatus  @default(PENDING)
   isEmailVerified Boolean        @default(false)

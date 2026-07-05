@@ -35,3 +35,10 @@ export const forgotPasswordDto = z.object({
 })
 
 export type ForgotPasswordDto = z.infer<typeof forgotPasswordDto>;
+
+export const verifyOtpDto = z.object({
+    email: emailValidator,
+    otp: z.string().length(6, "OTP must be 6 digits"),
+})
+
+export type VerifyOtpDto = z.infer<typeof verifyOtpDto>;

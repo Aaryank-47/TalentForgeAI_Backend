@@ -124,7 +124,7 @@ const loginUserSelect = {
 
 export class AuthRepository {
     static async findUserByEmail(email: string): Promise<AuthUserView | null> {
-        console.log("Finding user by email inside auth repository:", email);
+        // console.log("Finding user by email inside auth repository:", email);
         return prisma.user.findUnique({
             where: { email },
             select: userSelect,
@@ -256,6 +256,49 @@ export class AuthRepository {
             }
         });
     }
+
+    static async findOTPByUserId(userId: string) {
+        return prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                otp: true,
+                otpExpiresAt: true
+            }
+        });
+    }
+
+    static async deleteOtpForUser(userId: string) {
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data:{ 
+                otp: null,
+                otpExpiresAt: null
+            }
+        });
+    }
+
+    static async saveResetPasswordToken(
+        userId: string, 
+        resetPasswordToken: string,
+        resetPasswordTokenExpiresAt: Date
+    ) {
+
+        // console.log("Saving reset password token for user:", userId, "Token:", resetPasswordToken, "Expires At:", resetPasswordTokenExpiresAt);
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data:{
+                resetPasswordToken: resetPasswordToken,
+                resetPasswordTokenExpiresAt: resetPasswordTokenExpiresAt
+            }
+        });
+    }
+
 
     static async createCandidateRegistration(
         data: RegisterCandidateInput

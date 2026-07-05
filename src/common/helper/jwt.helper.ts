@@ -41,4 +41,14 @@ export class JwtHelper {
     static decodeToken(token: string): JwtPayload {
         return jwt.decode (token) as JwtPayload
     }
+
+    static generateResetPasswordToken(payload: JwtPayload): string {
+        return jwt.sign(
+            payload,
+            env.jwt.resetPasswordSecret as Secret,
+            { 
+                expiresIn: env.jwt.resetPasswordExpiresIn
+            } as SignOptions
+        )
+    }
 }

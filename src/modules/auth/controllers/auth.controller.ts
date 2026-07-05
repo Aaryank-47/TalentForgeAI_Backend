@@ -126,12 +126,20 @@ export class AuthController {
 
     static forgotPassword = asyncHandler(
         async(req: Request, res: Response) =>{
-            console.log("Forgot Password Request inside controller:", req.body);
-            console.log("Email inside controller:", req.body.email);
             await AuthService.forgotPassword(req.body.email);
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, MESSAGE.SUCCESS, null)
+            );
+        }
+    )
+
+    static verifyOtp = asyncHandler(
+        async(req: Request, res: Response) =>{
+            const resetPasswordToken = await AuthService.verifyOtp(req.body);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.SUCCESS, resetPasswordToken)
             );
         }
     )

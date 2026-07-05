@@ -15,6 +15,8 @@ const envSchema = z.object({
     JWT_REFRESH_EXPIRES_IN: z.string(),
     GMAIL_USER: z.string().min(1),
     GMAIL_PASS: z.string().min(1),
+    RESET_PASSWORD_SECRET: z.string().min(1),
+    RESET_PASSWORD_EXPIRES_IN: z.string(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -38,6 +40,8 @@ export const env = {
         refreshSecret: parsedEnv.data.JWT_REFRESH_SECRET,
         accessExpiresIn: parsedEnv.data.JWT_ACCESS_EXPIRES_IN,
         refreshExpiresIn: parsedEnv.data.JWT_REFRESH_EXPIRES_IN,
+        resetPasswordSecret: parsedEnv.data.RESET_PASSWORD_SECRET,
+        resetPasswordExpiresIn: parsedEnv.data.RESET_PASSWORD_EXPIRES_IN,
     },
     gmail: {
         user: parsedEnv.data.GMAIL_USER,

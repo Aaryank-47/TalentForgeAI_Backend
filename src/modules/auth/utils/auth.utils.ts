@@ -43,6 +43,16 @@ export const getRefreshTokenExpiresAt = (refreshToken: string): Date => {
     return new Date(decodedToken.exp * 1000);
 };
 
+export const getResetPasswordTokenExpiresAt = (token: string): Date => {
+    const decoded = JwtHelper.decodeToken(token) as DecodedJwtPayload;
+
+    if (!decoded.exp) {
+        throw new Error("Unable to determine token expiry.");
+    }
+
+    return new Date(decoded.exp * 1000);
+};
+
 export const createUniqueSlugSeed = (value: string): string => {
     const baseSlug = slugifyText(value);
 

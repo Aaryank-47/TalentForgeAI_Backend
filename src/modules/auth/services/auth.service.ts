@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
-import type { RegisterCandidateDto } from "../dto/Candidate.dto.js";
+import type { RegisterCandidateDto, VerifyOtpDto } from "../dto/Candidate.dto.js";
 import type { RegisterRecruiterDto } from "../dto/registerRecruiter.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
@@ -17,6 +17,8 @@ import type { LogoutAllDevicesDto, ForgotPasswordDto } from "../dto/Candidate.dt
 import type { ProfileResult } from "../interfaces/auth.interface.js";
 import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
+import {env} from "../../../config/env.js";
+import { getResetPasswordTokenExpiresAt} from "../utils/auth.utils.js"
 
 
 
@@ -99,7 +101,7 @@ export class AuthService {
         }
 
         const loggedInDevicesCount = await AuthRepository.calcLoggedinDevices(user.id);
-        console.log("loggedInDevicesCount", loggedInDevicesCount);
+        // console.log("loggedInDevicesCount", loggedInDevicesCount);
         if (loggedInDevicesCount >= AUTH_CONSTANTS.Device_Limit) {
             throw new ConflictError(`You have reached the maximum number of logged-in devices (${AUTH_CONSTANTS.Device_Limit}). Please log out from another device before logging in again.`);
         }
@@ -262,14 +264,13 @@ export class AuthService {
     static async forgotPassword(
         email: string
     ):Promise<void>{
-        console.log("Forgot Password Request inside service:", email);
-        console.log("Email inside service:", email);
         const user = await AuthRepository.findUserByEmail(email);
         if(!user){
             throw new NotFoundError("User not found.");
         }
         
         const otp = genrateOTP();
+        console.log("Generated OTP:", otp);
         const hashOtp = await bcrypt.hash(
             otp,
             AUTH_CONSTANTS.OTP_HASH_SALT_ROUNDS
@@ -281,13 +282,55 @@ export class AuthService {
             new Date(Date.now() + AUTH_CONSTANTS.OTP_EXPIRY)
         );
 
-        // Here you would typically send the OTP to the user's email
         const template = await emailTemplates.forgotPasswordOtpTemplate(otp);
 
         await EmailService.sendEmail({
             to: user.email,
             ...template
         })
+
+        return;
+    }
+
+    static async verifyOtp(
+        payload: VerifyOtpDto
+    ):Promise<string>{
+        const user = await AuthRepository.findUserByEmail(payload.email);
+        if(!user){
+            throw new NotFoundError("User not found.");
+        }
+
+        const storedOtp = await AuthRepository.findOTPByUserId(user.id);
+        if(!storedOtp?.otp || !storedOtp?.otpExpiresAt) {
+            throw new NotFoundError("OTP not found. Please request a new OTP.");
+        }
+
+        if(storedOtp.otpExpiresAt < new Date()){
+            await AuthRepository.deleteOtpForUser(user.id);
+            throw new UnauthorizedError("OTP has expired. Please request a new OTP.");
+        }
+
+        const isOtpValid = await bcrypt.compare(payload.otp, storedOtp.otp);
+        if(!isOtpValid){
+            throw new UnauthorizedError("Invalid OTP. Please try again.");
+        }   
+
+        await AuthRepository.deleteOtpForUser(user.id);
+
+        const resetPasswordToken = JwtHelper.generateResetPasswordToken({
+            id: user.id,
+            email: user.email,
+            role: user.role
+        });
+        
+        await AuthRepository.saveResetPasswordToken(
+            user.id,
+            resetPasswordToken,
+            getResetPasswordTokenExpiresAt(resetPasswordToken)
+        );
+
+
+        return resetPasswordToken;
     }
 
 

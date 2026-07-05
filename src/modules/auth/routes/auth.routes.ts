@@ -2,7 +2,15 @@ import { Router } from "express";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { AuthController } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
-import { registerCandidateDto, registerRecruiterDto, loginDto, logoutAllDevicesDto, changePasswordDto, forgotPasswordDto } from "../validators/auth.validator.js";
+import {
+    registerCandidateDto,
+    registerRecruiterDto,
+    loginDto,
+    logoutAllDevicesDto,
+    changePasswordDto,
+    forgotPasswordDto,
+    verifyOtpDto
+} from "../validators/auth.validator.js";
 
 const router = Router();
 
@@ -63,6 +71,12 @@ router.post(
     "/forgot/password",
     validate(forgotPasswordDto, "body"),
     AuthController.forgotPassword
+)
+
+router.post(
+    "/verify/otp",
+    validate(verifyOtpDto, "body"),
+    AuthController.verifyOtp
 )
 
 export default router;
