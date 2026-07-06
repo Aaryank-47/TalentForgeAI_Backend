@@ -10,6 +10,8 @@ import compression from 'compression';
 import { requestLogger } from './common/middleware/requestLogger.middleware.js'
 import { notFoundMiddleware } from './common/middleware/notFound.middleware.js'
 import { errorMiddleware } from './common/middleware/error.middleware.js';
+import { globalRateLimiter } from "./common/middleware/rateLimit.middleware.js";
+
 
 const app: Application = express();
 
@@ -21,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(requestLogger);
 app.use(morgan("dev"));
-
+app.use(globalRateLimiter);
 
 app.get('/', (req: Request, res: Response) => {
     res.json({
