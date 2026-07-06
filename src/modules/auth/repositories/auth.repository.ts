@@ -5,6 +5,10 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js"
 import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
+import { userSelect, loginUserSelect } from "../../../common/prisma.select/user.select.js"
+import { candidateSelect, candidateProfileSelect } from "../../../common/prisma.select/candidate.select.js"
+import { companySelect } from "../../../common/prisma.select/company.select.js"
+import { recruiterSelect } from "../../../common/prisma.select/recruiter.select.js"
 
 import type {
     RegisterCandidateInput,
@@ -16,112 +20,6 @@ import type {
 const nullableString = (value: string | undefined): string | null => value ?? null;
 const nullableNumber = (value: number | undefined): number | null => value ?? null;
 
-const userSelect = {
-    id: true,
-    email: true,
-    role: true,
-    status: true,
-    isEmailVerified: true,
-    lastLoginAt: true,
-    createdAt: true,
-    updatedAt: true,
-} as const;
-
-const candidateSelect = {
-    id: true,
-    userId: true,
-    fullName: true,
-    createdAt: true,
-    updatedAt: true,
-} as const;
-
-const candidateProfileSelect = {
-    id: true,
-    userId: true,
-    fullName: true,
-    phone: true,
-    profilePicture: true,
-    headline: true,
-    bio: true,
-    gender: true,
-    experienceLevel: true,
-    currentLocation: true,
-    preferredLocation: true,
-    currentCompany: true,
-    currentDesignation: true,
-    totalExperience: true,
-    expectedSalary: true,
-    currentSalary: true,
-    noticePeriod: true,
-    linkedinUrl: true,
-    githubUrl: true,
-    portfolioUrl: true,
-    websiteUrl: true,
-    isOpenToWork: true,
-    profileCompleted: true,
-    createdAt: true,
-    updatedAt: true,
-};
-
-const companySelect = {
-    id: true,
-    name: true,
-    slug: true,
-    email: true,
-    phone: true,
-    website: true,
-    logo: true,
-    coverImage: true,
-    description: true,
-    industry: true,
-    companySize: true,
-    foundedYear: true,
-    headquarters: true,
-    linkedinUrl: true,
-    twitterUrl: true,
-    isVerified: true,
-    createdAt: true,
-    updatedAt: true,
-} as const;
-
-const recruiterSelect = {
-    id: true,
-    userId: true,
-    companyId: true,
-    firstName: true,
-    lastName: true,
-    phone: true,
-    designation: true,
-    department: true,
-    profilePicture: true,
-    linkedinUrl: true,
-    isPrimaryRecruiter: true,
-    canCreateJobs: true,
-    canEditJobs: true,
-    canDeleteJobs: true,
-    canScheduleInterview: true,
-    isActive: true,
-    createdAt: true,
-    updatedAt: true,
-} as const;
-
-const loginUserSelect = {
-    id: true,
-    email: true,
-    password: true,
-    role: true,
-    status: true,
-    isEmailVerified: true,
-    lastLoginAt: true,
-    createdAt: true,
-    updatedAt: true,
-    candidate: {
-        select: candidateSelect
-    },
-    recruiter: {
-        select: recruiterSelect
-    },
-} as const;
 
 export class AuthRepository {
     static async findUserByEmail(email: string): Promise<AuthUserView | null> {
