@@ -17,6 +17,9 @@ const envSchema = z.object({
     GMAIL_PASS: z.string().min(1),
     RESET_PASSWORD_SECRET: z.string().min(1),
     RESET_PASSWORD_EXPIRES_IN: z.string(),
+    CLOUDINARY_API_KEY: z.string().min(1),
+    CLOUDINARY_API_SECRET: z.string().min(1),
+    CLOUDINARY_CLOUD_NAME: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -46,6 +49,11 @@ export const env = {
     gmail: {
         user: parsedEnv.data.GMAIL_USER,
         pass: parsedEnv.data.GMAIL_PASS,
+    },
+    cloudinary: {
+        apiKey: parsedEnv.data.CLOUDINARY_API_KEY,
+        apiSecret: parsedEnv.data.CLOUDINARY_API_SECRET,
+        cloudName: parsedEnv.data.CLOUDINARY_CLOUD_NAME,    
     }
 } as const;
 
