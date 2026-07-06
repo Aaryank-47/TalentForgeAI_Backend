@@ -1,5 +1,5 @@
-import cloudinary from './cloudinary.js';
-import type { DeleteFileOptions, DeleteResult } from './upload.interface.js';
+import cloudinary from '../uploads/cloudinary.js';
+import type { DeleteFileOptions, DeleteResult } from '../uploads/upload.interface.js';
 
 
 export const deleteFileFromCloudinary = async (

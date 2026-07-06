@@ -1,10 +1,10 @@
-import cloudinary from './cloudinary.js';
+import cloudinary from '../uploads/cloudinary.js';
 import type { UploadApiResponse, UploadApiOptions } from 'cloudinary';
 import {
   CLOUDINARY_FOLDER,
   RESOURCE_TYPE_MAP,
-} from './upload.constants.js';
-import type { UploadedFileResult, UploadOptions } from './upload.interface.js';
+} from '../constants/upload.constants.js';
+import type { UploadedFileResult, UploadOptions } from '../uploads/upload.interface.js';
 
 export const uploadFileToCloudinary = (
   file: Express.Multer.File,

@@ -8,15 +8,15 @@ export { upload, uploadSingleFile, uploadMultipleFiles, uploadFields } from './m
 export {
   uploadFileToCloudinary,
   uploadMultipleFilesToCloudinary,
-} from './upload.helper.js';
+} from '../helper/upload.helper.js';
 
 export {
   deleteFileFromCloudinary,
   deleteMultipleFilesFromCloudinary,
-} from './delete.helper.js';
+} from '../helper/delete.helper.js';
 
 // Types
 export * from './upload.interface.js';
 
 // Constants
-export * from './upload.constants.js';
+export * from '../constants/upload.constants.js';

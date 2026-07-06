@@ -1,6 +1,6 @@
 import multer from "multer";
 import type { Request } from "express";
-import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "./upload.constants.js";
+import { ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from "../constants/upload.constants.js";
 
 const storage = multer.memoryStorage();
 
