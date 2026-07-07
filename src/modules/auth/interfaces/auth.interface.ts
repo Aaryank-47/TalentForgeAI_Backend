@@ -1,4 +1,4 @@
-import type { AccountStatus, ExperienceLevel, Gender, UserRole } from "@prisma/client";
+import type { AccountStatus, UserRole } from "@prisma/client";
 import type { CandidateProfileView } from "../../candidate/interfaces/candidate.interface.js";
 import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
 

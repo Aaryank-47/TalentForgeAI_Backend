@@ -1,7 +1,6 @@
 import { AccountStatus, UserRole } from "@prisma/client";
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-// import type { CandidateProfileView } from "../../candidate/interfaces/candidate.interface.js";
 import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js"
 import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";

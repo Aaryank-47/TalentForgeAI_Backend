@@ -9,16 +9,15 @@ import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
 import type { RegisterCandidateResult, RegisterRecruiterResult, RegisterCompanyOwnerResult, LoginResult, CandidateLoginProfileView, RecruiterLoginProfileView } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js"
-import { UserRole, AccountStatus } from "../../../common/enums/all_enums.js"
+import { AccountStatus } from "../../../common/enums/all_enums.js"
 import type { AuthTokens } from "../interfaces/auth.interface.js"
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-import type { LogoutAllDevicesDto, ForgotPasswordDto } from "../dto/Candidate.dto.js";
+import type { LogoutAllDevicesDto } from "../dto/Candidate.dto.js";
 import type { ProfileResult } from "../interfaces/auth.interface.js";
 import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
-import {env} from "../../../config/env.js";
 import { getResetPasswordTokenExpiresAt} from "../utils/auth.utils.js"
 import { MESSAGE } from "../../../common/constants/messages.js";
 
