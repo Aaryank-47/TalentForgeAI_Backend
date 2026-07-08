@@ -1,5 +1,5 @@
 import { candidateSelect } from "./candidate.select.js"
-import { recruiterSelect } from "./recruiter.select.js"
+import { employerSelect } from "./employer.select.js"
 
 export const userSelect = {
     id: true,
@@ -25,7 +25,7 @@ export const loginUserSelect = {
     candidate: {
         select: candidateSelect
     },
-    recruiter: {
-        select: recruiterSelect
+    employer: {
+        select: employerSelect
     },
 } as const;

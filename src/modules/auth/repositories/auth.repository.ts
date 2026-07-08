@@ -1,17 +1,17 @@
-import { AccountStatus, UserRole } from "@prisma/client";
+import { AccountStatus, UserRole, CompanyMemberRole } from "@prisma/client";
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js"
-import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
+import type { EmployerCompanyInput, EmployerCompanyView, EmployerProfileView } from "../../employer/interfaces/employer.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 import { userSelect, loginUserSelect } from "../../../common/prisma.select/user.select.js"
 import { candidateSelect, candidateProfileSelect } from "../../../common/prisma.select/candidate.select.js"
 import { companySelect } from "../../../common/prisma.select/company.select.js"
-import { recruiterSelect } from "../../../common/prisma.select/recruiter.select.js"
+import { employerSelect } from "../../../common/prisma.select/employer.select.js"
 
 import type {
     RegisterCandidateInput,
-    RegisterRecruiterInput,
+    RegisterEmployerInput,
     RegisterCompanyOwnerInput,
     AuthUserView,
 } from "../interfaces/auth.interface.js";
@@ -63,8 +63,8 @@ export class AuthRepository {
                 candidate: {
                     select: candidateProfileSelect
                 },
-                recruiter: {
-                    select: recruiterSelect
+                employer: {
+                    select: employerSelect
                 }
             }
         });
@@ -74,7 +74,7 @@ export class AuthRepository {
         }
 
         return {
-            profile: profile.candidate ?? profile.recruiter ?? null
+            profile: profile.candidate ?? profile.employer ?? null
         };
     }
 
@@ -266,7 +266,7 @@ export class AuthRepository {
         });
     }
 
-    static async findCompanyById(companyId: string): Promise<RecruiterCompanyView | null> {
+    static async findCompanyById(companyId: string): Promise<EmployerCompanyView | null> {
         return prisma.company.findUnique({
             where: { id: companyId },
             select: companySelect,
@@ -274,8 +274,8 @@ export class AuthRepository {
     }
 
     static async createCompany(
-        companyInput: RecruiterCompanyInput
-    ): Promise<RecruiterCompanyView> {
+        companyInput: EmployerCompanyInput
+    ): Promise<EmployerCompanyView> {
         return prisma.$transaction(async (tx) => {
             const baseSlug = createUniqueSlugSeed(companyInput.slug ?? companyInput.name);
             let slug = baseSlug;
@@ -308,9 +308,9 @@ export class AuthRepository {
         });
     }
 
-    static async createRecruiterRegistration(
-        data: RegisterRecruiterInput
-    ): Promise<{ user: AuthUserView; recruiter: RecruiterProfileView }> {
+    static async createEmployerRegistration(
+        data: RegisterEmployerInput
+    ): Promise<{ user: AuthUserView; employer: EmployerProfileView }> {
         return prisma.$transaction(async (tx) => {
             const company = await tx.company.findUnique({
                 where: { id: data.companyId },
@@ -325,24 +325,30 @@ export class AuthRepository {
                 data: {
                     email: data.email,
                     password: data.password,
-                    role: UserRole.RECRUITER,
+                    role: UserRole.EMPLOYER,
                     status: AccountStatus.ACTIVE,
                     isEmailVerified: false,
                 },
                 select: userSelect,
             });
 
-            const recruiter = await tx.recruiter.create({
+            const employer = await tx.employer.create({
+                data: {
+                    userId: user.id,
+                    fullName: data.fullName,
+                },
+                select: employerSelect,
+            });
+
+            await tx.companyMember.create({
                 data: {
                     userId: user.id,
                     companyId: data.companyId,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                },
-                select: recruiterSelect,
+                    role: CompanyMemberRole.RECRUITER,
+                }
             });
 
-            return { user, recruiter };
+            return { user, employer };
         });
     }
 
@@ -350,8 +356,8 @@ export class AuthRepository {
         data: RegisterCompanyOwnerInput
     ): Promise<{
         user: AuthUserView;
-        company: RecruiterCompanyView;
-        recruiter: RecruiterProfileView;
+        company: EmployerCompanyView;
+        employer: EmployerProfileView;
     }> {
         return prisma.$transaction(async (tx) => {
             const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.name);
@@ -387,25 +393,30 @@ export class AuthRepository {
                 data: {
                     email: data.email,
                     password: data.password,
-                    role: UserRole.COMPANY_OWNER,
+                    role: UserRole.EMPLOYER,
                     status: AccountStatus.ACTIVE,
                     isEmailVerified: false,
                 },
                 select: userSelect,
             });
 
-            const recruiter = await tx.recruiter.create({
+            const employer = await tx.employer.create({
+                data: {
+                    userId: user.id,
+                    fullName: data.fullName,
+                },
+                select: employerSelect,
+            });
+
+            await tx.companyMember.create({
                 data: {
                     userId: user.id,
                     companyId: company.id,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    isPrimaryRecruiter: true,
-                },
-                select: recruiterSelect,
+                    role: CompanyMemberRole.OWNER,
+                }
             });
 
-            return { user, company, recruiter };
+            return { user, company, employer };
         });
     }
 

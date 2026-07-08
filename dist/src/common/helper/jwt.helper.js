@@ -20,5 +20,13 @@ export class JwtHelper {
     static decodeToken(token) {
         return jwt.decode(token);
     }
+    static generateResetPasswordToken(payload) {
+        return jwt.sign(payload, env.jwt.resetPasswordSecret, {
+            expiresIn: env.jwt.resetPasswordExpiresIn
+        });
+    }
+    static verifyResetPasswordToken(token) {
+        return jwt.verify(token, env.jwt.resetPasswordSecret);
+    }
 }
 //# sourceMappingURL=jwt.helper.js.map

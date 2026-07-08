@@ -1,0 +1,1 @@
+{"version":3,"file":"registerEmployer.dto.d.ts","sourceRoot":"","sources":["../../../../../src/modules/auth/dto/registerEmployer.dto.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAGxB,eAAO,MAAM,mBAAmB;;;;;iBAK9B,CAAC;AAEH,MAAM,MAAM,mBAAmB,GAAG,CAAC,CAAC,KAAK,CAAC,OAAO,mBAAmB,CAAC,CAAC"}

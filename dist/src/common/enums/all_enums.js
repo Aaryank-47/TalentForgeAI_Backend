@@ -2,6 +2,7 @@ export var UserRole;
 (function (UserRole) {
     UserRole["CANDIDATE"] = "CANDIDATE";
     UserRole["RECRUITER"] = "RECRUITER";
+    UserRole["COMPANY_OWNER"] = "COMPANY_OWNER";
     UserRole["HIRING_MANAGER"] = "HIRING_MANAGER";
     UserRole["ADMIN"] = "ADMIN";
     UserRole["SUPER_ADMIN"] = "SUPER_ADMIN";

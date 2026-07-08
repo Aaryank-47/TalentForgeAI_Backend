@@ -6,7 +6,12 @@ export const MESSAGE = {
     // Authentication
     LOGIN_SUCCESS: "Login successful.",
     LOGOUT_SUCCESS: "Logout successful.",
-    REGISTER_SUCCESS: "Registration successful.",
+    REGISTER_SUCCESS: "Registration successful. Please verify your email.",
+    // Email Verification
+    EMAIL_VERIFY_SUCCESS: "Email verified successfully.",
+    EMAIL_ALREADY_VERIFIED: "Email already verified.",
+    EMAIL_NOT_VERIFIED: "Please verify your email before logging in.",
+    VERIFICATION_EMAIL_SENT: "Verification email sent successfully.",
     INVALID_CREDENTIALS: "Invalid email or password.",
     UNAUTHORIZED: "Unauthorized access.",
     ACCESS_DENIED: "Access denied.",

@@ -1,3 +1,4 @@
-export { registerCandidateDto } from "../dto/registerCandidate.dto.js";
-export { registerRecruiterDto } from "../dto/registerRecruiter.dto.js";
+export { registerCandidateDto, loginDto, logoutAllDevicesDto, changePasswordDto, forgotPasswordDto, verifyOtpDto, resetPasswordDto, verifyEmailDto, resendVerificationDto } from "../dto/Candidate.dto.js";
+export { registerEmployerDto } from "../dto/registerEmployer.dto.js";
+export { registerCompanyOwnerDto } from "../dto/registerCompanyOwner.dto.js";
 //# sourceMappingURL=auth.validator.js.map

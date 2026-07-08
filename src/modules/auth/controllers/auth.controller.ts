@@ -16,9 +16,9 @@ export class AuthController {
         }
     );
 
-    static registerRecruiter = asyncHandler(
+    static registerEmployer = asyncHandler(
         async (req: Request, res: Response) => {
-            const registration = await AuthService.registerRecruiter(req.body);
+            const registration = await AuthService.registerEmployer(req.body);
 
             res.status(HTTP_STATUS.CREATED).json(
                 new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration)

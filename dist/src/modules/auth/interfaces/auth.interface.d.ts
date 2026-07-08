@@ -1,11 +1,10 @@
-import type { AccountStatus, ExperienceLevel, Gender, UserRole } from "@prisma/client";
+import type { AccountStatus, UserRole } from "@prisma/client";
 import type { CandidateProfileView } from "../../candidate/interfaces/candidate.interface.js";
-import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
+import type { EmployerCompanyInput, EmployerCompanyView, EmployerProfileView } from "../../employer/interfaces/employer.interface.js";
 export interface AuthTokenPayload {
     id: string;
     email: string;
     role: UserRole;
-    companyId?: string | undefined;
 }
 export interface AuthTokens {
     accessToken: string;
@@ -24,55 +23,92 @@ export interface AuthUserView {
 export interface RegisterCandidateInput {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
-    phone?: string | undefined;
-    profilePicture?: string | undefined;
-    headline?: string | undefined;
-    bio?: string | undefined;
-    gender?: Gender | undefined;
-    experienceLevel?: ExperienceLevel | undefined;
-    currentLocation?: string | undefined;
-    preferredLocation?: string | undefined;
-    currentCompany?: string | undefined;
-    currentDesignation?: string | undefined;
-    totalExperience?: number | undefined;
-    expectedSalary?: number | undefined;
-    currentSalary?: number | undefined;
-    noticePeriod?: number | undefined;
-    linkedinUrl?: string | undefined;
-    githubUrl?: string | undefined;
-    portfolioUrl?: string | undefined;
-    websiteUrl?: string | undefined;
-    isOpenToWork?: boolean | undefined;
+    fullName: string;
 }
-export interface RegisterRecruiterInput {
+export interface CandidateRegistrationView {
+    id: string;
+    userId: string;
+    fullName: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface LoginCandidateInput {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
-    phone?: string | undefined;
-    designation?: string | undefined;
-    department?: string | undefined;
-    profilePicture?: string | undefined;
-    linkedinUrl?: string | undefined;
-    isPrimaryRecruiter?: boolean | undefined;
-    canCreateJobs?: boolean | undefined;
-    canEditJobs?: boolean | undefined;
-    canDeleteJobs?: boolean | undefined;
-    canScheduleInterview?: boolean | undefined;
-    companyId?: string | undefined;
-    company?: RecruiterCompanyInput | undefined;
+}
+export interface CandidateLoginView {
+    id: string;
+    userId: string;
+    fullName: string;
+    email: string;
+    createdAt: Date;
+    updatedAt: Date;
+    accessToken: string;
+    lastLoginAt: Date | null;
+}
+export interface EmployerLoginView {
+    id: string;
+    userId: string;
+    fullName: string;
+}
+export interface CandidateLoginProfileView {
+    id: string;
+    userId: string;
+    fullName: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface EmployerLoginProfileView {
+    id: string;
+    userId: string;
+    fullName: string;
+    phone: string | null;
+    designation: string | null;
+    department: string | null;
+    profilePicture: string | null;
+    linkedinUrl: string | null;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface LoginResult {
+    user: AuthUserView;
+    profile: CandidateLoginProfileView | EmployerLoginProfileView | null;
+    tokens: AuthTokens;
+}
+export interface RegisterEmployerInput {
+    email: string;
+    password: string;
+    fullName: string;
+    companyId: string;
 }
 export interface RegisterCandidateResult {
     user: AuthUserView;
-    candidate: CandidateProfileView;
+    candidate: CandidateRegistrationView;
     tokens: AuthTokens;
 }
-export interface RegisterRecruiterResult {
+export interface RegisterEmployerResult {
     user: AuthUserView;
-    company: RecruiterCompanyView;
-    recruiter: RecruiterProfileView;
+    employer: EmployerProfileView;
     tokens: AuthTokens;
+}
+export interface RegisterCompanyOwnerInput {
+    email: string;
+    password: string;
+    fullName: string;
+    company: EmployerCompanyInput;
+}
+export interface RegisterCompanyOwnerResult {
+    user: AuthUserView;
+    company: EmployerCompanyView;
+    employer: EmployerProfileView;
+    tokens: AuthTokens;
+}
+export interface ProfileResult {
+    user: AuthUserView;
+    profile: CandidateProfileView | EmployerProfileView | null;
+}
+export interface ProfileViewResult {
+    profile: CandidateProfileView | EmployerProfileView | null;
 }
 //# sourceMappingURL=auth.interface.d.ts.map

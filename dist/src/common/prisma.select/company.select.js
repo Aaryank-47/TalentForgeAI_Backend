@@ -1,0 +1,21 @@
+export const companySelect = {
+    id: true,
+    name: true,
+    slug: true,
+    email: true,
+    phone: true,
+    website: true,
+    logo: true,
+    coverImage: true,
+    description: true,
+    industry: true,
+    companySize: true,
+    foundedYear: true,
+    headquarters: true,
+    linkedinUrl: true,
+    twitterUrl: true,
+    isVerified: true,
+    createdAt: true,
+    updatedAt: true,
+};
+//# sourceMappingURL=company.select.js.map

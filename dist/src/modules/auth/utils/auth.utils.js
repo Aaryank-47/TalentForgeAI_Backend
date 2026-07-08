@@ -12,7 +12,6 @@ export const buildTokenPayload = (payload) => {
         id: payload.id,
         email: payload.email,
         role: payload.role,
-        ...(payload.companyId ? { companyId: payload.companyId } : {}),
     };
 };
 export const buildAuthTokens = (payload) => {
@@ -29,8 +28,19 @@ export const getRefreshTokenExpiresAt = (refreshToken) => {
     }
     return new Date(decodedToken.exp * 1000);
 };
+export const getResetPasswordTokenExpiresAt = (token) => {
+    const decoded = JwtHelper.decodeToken(token);
+    if (!decoded.exp) {
+        throw new Error("Unable to determine token expiry.");
+    }
+    return new Date(decoded.exp * 1000);
+};
 export const createUniqueSlugSeed = (value) => {
     const baseSlug = slugifyText(value);
     return baseSlug.length > 0 ? baseSlug : randomUUID().replace(/-/g, "");
+};
+export const genrateOTP = () => {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    return otp.toString();
 };
 //# sourceMappingURL=auth.utils.js.map

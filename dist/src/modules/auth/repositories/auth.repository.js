@@ -1,92 +1,190 @@
-import { AccountStatus, UserRole } from "@prisma/client";
+import { AccountStatus, UserRole, CompanyMemberRole } from "@prisma/client";
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
+import { userSelect, loginUserSelect } from "../../../common/prisma.select/user.select.js";
+import { candidateSelect, candidateProfileSelect } from "../../../common/prisma.select/candidate.select.js";
+import { companySelect } from "../../../common/prisma.select/company.select.js";
+import { employerSelect } from "../../../common/prisma.select/employer.select.js";
 const nullableString = (value) => value ?? null;
 const nullableNumber = (value) => value ?? null;
-const userSelect = {
-    id: true,
-    email: true,
-    role: true,
-    status: true,
-    isEmailVerified: true,
-    lastLoginAt: true,
-    createdAt: true,
-    updatedAt: true,
-};
-const candidateSelect = {
-    id: true,
-    userId: true,
-    firstName: true,
-    lastName: true,
-    phone: true,
-    profilePicture: true,
-    headline: true,
-    bio: true,
-    gender: true,
-    experienceLevel: true,
-    currentLocation: true,
-    preferredLocation: true,
-    currentCompany: true,
-    currentDesignation: true,
-    totalExperience: true,
-    expectedSalary: true,
-    currentSalary: true,
-    noticePeriod: true,
-    linkedinUrl: true,
-    githubUrl: true,
-    portfolioUrl: true,
-    websiteUrl: true,
-    isOpenToWork: true,
-    profileCompleted: true,
-    createdAt: true,
-    updatedAt: true,
-};
-const companySelect = {
-    id: true,
-    name: true,
-    slug: true,
-    email: true,
-    phone: true,
-    website: true,
-    logo: true,
-    coverImage: true,
-    description: true,
-    industry: true,
-    companySize: true,
-    foundedYear: true,
-    headquarters: true,
-    linkedinUrl: true,
-    twitterUrl: true,
-    isVerified: true,
-    createdAt: true,
-    updatedAt: true,
-};
-const recruiterSelect = {
-    id: true,
-    userId: true,
-    companyId: true,
-    firstName: true,
-    lastName: true,
-    phone: true,
-    designation: true,
-    department: true,
-    profilePicture: true,
-    linkedinUrl: true,
-    isPrimaryRecruiter: true,
-    canCreateJobs: true,
-    canEditJobs: true,
-    canDeleteJobs: true,
-    canScheduleInterview: true,
-    isActive: true,
-    createdAt: true,
-    updatedAt: true,
-};
 export class AuthRepository {
     static async findUserByEmail(email) {
+        // console.log("Finding user by email inside auth repository:", email);
         return prisma.user.findUnique({
             where: { email },
             select: userSelect,
+        });
+    }
+    static async findLoginUserByEmail(email) {
+        return prisma.user.findUnique({
+            where: { email },
+            select: loginUserSelect,
+        });
+    }
+    static async findUserById(userId) {
+        return prisma.user.findUnique({
+            where: { id: userId },
+            select: userSelect,
+        });
+    }
+    static async findUserWithPasswordById(userId) {
+        return prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                password: true,
+            },
+        });
+    }
+    static async findProfileByUserId(userId) {
+        const profile = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                candidate: {
+                    select: candidateProfileSelect
+                },
+                employer: {
+                    select: employerSelect
+                }
+            }
+        });
+        if (!profile) {
+            throw new NotFoundError("User not found.");
+        }
+        return {
+            profile: profile.candidate ?? profile.employer ?? null
+        };
+    }
+    static async updateUserLastLogin(userId, lastLoginAt) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+                lastLoginAt: lastLoginAt,
+            }
+        });
+    }
+    static async updateUserPassword(userId, newPassword) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+                password: newPassword,
+            }
+        });
+    }
+    static async findRefreshToken(token) {
+        return prisma.refreshToken.findUnique({
+            where: { token },
+            select: {
+                token: true,
+                userId: true,
+                expiresAt: true,
+            }
+        });
+    }
+    static async deleteRefreshToken(token) {
+        return prisma.refreshToken.delete({
+            where: {
+                token
+            }
+        });
+    }
+    static async calcLoggedinDevices(userId) {
+        const user = await AuthRepository.findUserById(userId);
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+        const count = await prisma.refreshToken.count({
+            where: {
+                userId: userId
+            }
+        });
+        return count;
+    }
+    static async deleteAllRefreshTokensForUser(userId) {
+        return prisma.refreshToken.deleteMany({
+            where: {
+                userId
+            }
+        });
+    }
+    static async saveOTP(userId, otp, otpExpiresAt) {
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                otp: otp,
+                otpExpiresAt: otpExpiresAt
+            }
+        });
+    }
+    static async findOTPByUserId(userId) {
+        return prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                otp: true,
+                otpExpiresAt: true
+            }
+        });
+    }
+    static async deleteOtpForUser(userId) {
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                otp: null,
+                otpExpiresAt: null
+            }
+        });
+    }
+    static async markEmailVerified(userId) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: { isEmailVerified: true },
+        });
+    }
+    static async saveResetPasswordToken(userId, resetPasswordToken, resetPasswordTokenExpiresAt) {
+        // console.log("Saving reset password token for user:", userId, "Token:", resetPasswordToken, "Expires At:", resetPasswordTokenExpiresAt);
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                resetPasswordToken: resetPasswordToken,
+                resetPasswordTokenExpiresAt: resetPasswordTokenExpiresAt
+            }
+        });
+    }
+    static async findResetPasswordTokenByUserId(userId) {
+        return prisma.user.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                resetPasswordToken: true,
+                resetPasswordTokenExpiresAt: true
+            }
+        });
+    }
+    static async deleteResetPasswordTokenForUser(userId) {
+        return prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                resetPasswordToken: null,
+                resetPasswordTokenExpiresAt: null
+            }
+        });
+    }
+    static async updateNewPasswordForUser(userId, newPassword) {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: newPassword },
         });
     }
     static async createCandidateRegistration(data) {
@@ -104,29 +202,7 @@ export class AuthRepository {
             const candidate = await tx.candidate.create({
                 data: {
                     userId: user.id,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    phone: nullableString(data.phone),
-                    profilePicture: nullableString(data.profilePicture),
-                    headline: nullableString(data.headline),
-                    bio: nullableString(data.bio),
-                    gender: data.gender ?? null,
-                    experienceLevel: data.experienceLevel ?? null,
-                    currentLocation: nullableString(data.currentLocation),
-                    preferredLocation: nullableString(data.preferredLocation),
-                    currentCompany: nullableString(data.currentCompany),
-                    currentDesignation: nullableString(data.currentDesignation),
-                    totalExperience: nullableNumber(data.totalExperience),
-                    expectedSalary: nullableNumber(data.expectedSalary),
-                    currentSalary: nullableNumber(data.currentSalary),
-                    noticePeriod: nullableNumber(data.noticePeriod),
-                    linkedinUrl: nullableString(data.linkedinUrl),
-                    githubUrl: nullableString(data.githubUrl),
-                    portfolioUrl: nullableString(data.portfolioUrl),
-                    websiteUrl: nullableString(data.websiteUrl),
-                    ...(data.isOpenToWork !== undefined
-                        ? { isOpenToWork: data.isOpenToWork }
-                        : {}),
+                    fullName: data.fullName
                 },
                 select: candidateSelect,
             });
@@ -169,46 +245,12 @@ export class AuthRepository {
             });
         });
     }
-    static async createRecruiterRegistration(data) {
+    static async createEmployerRegistration(data) {
         return prisma.$transaction(async (tx) => {
-            let company = null;
-            if (data.companyId) {
-                company = await tx.company.findUnique({
-                    where: { id: data.companyId },
-                    select: companySelect,
-                });
-                if (!company) {
-                    throw new NotFoundError("Company not found.");
-                }
-            }
-            else if (data.company) {
-                const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.name);
-                let slug = baseSlug;
-                let suffix = 1;
-                while (await tx.company.findUnique({ where: { slug } })) {
-                    slug = `${baseSlug}-${suffix}`;
-                    suffix += 1;
-                }
-                company = await tx.company.create({
-                    data: {
-                        name: data.company.name,
-                        slug,
-                        email: nullableString(data.company.email),
-                        phone: nullableString(data.company.phone),
-                        website: nullableString(data.company.website),
-                        logo: nullableString(data.company.logo),
-                        coverImage: nullableString(data.company.coverImage),
-                        description: nullableString(data.company.description),
-                        industry: nullableString(data.company.industry),
-                        companySize: nullableString(data.company.companySize),
-                        foundedYear: nullableNumber(data.company.foundedYear),
-                        headquarters: nullableString(data.company.headquarters),
-                        linkedinUrl: nullableString(data.company.linkedinUrl),
-                        twitterUrl: nullableString(data.company.twitterUrl),
-                    },
-                    select: companySelect,
-                });
-            }
+            const company = await tx.company.findUnique({
+                where: { id: data.companyId },
+                select: { id: true },
+            });
             if (!company) {
                 throw new NotFoundError("Company not found.");
             }
@@ -216,42 +258,82 @@ export class AuthRepository {
                 data: {
                     email: data.email,
                     password: data.password,
-                    role: UserRole.RECRUITER,
+                    role: UserRole.EMPLOYER,
                     status: AccountStatus.ACTIVE,
                     isEmailVerified: false,
                 },
                 select: userSelect,
             });
-            const recruiter = await tx.recruiter.create({
+            const employer = await tx.employer.create({
+                data: {
+                    userId: user.id,
+                    fullName: data.fullName,
+                },
+                select: employerSelect,
+            });
+            await tx.companyMember.create({
+                data: {
+                    userId: user.id,
+                    companyId: data.companyId,
+                    role: CompanyMemberRole.RECRUITER,
+                }
+            });
+            return { user, employer };
+        });
+    }
+    static async createCompanyOwnerRegistration(data) {
+        return prisma.$transaction(async (tx) => {
+            const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.name);
+            let slug = baseSlug;
+            let suffix = 1;
+            while (await tx.company.findUnique({ where: { slug } })) {
+                slug = `${baseSlug}-${suffix}`;
+                suffix += 1;
+            }
+            const company = await tx.company.create({
+                data: {
+                    name: data.company.name,
+                    slug,
+                    email: nullableString(data.company.email),
+                    phone: nullableString(data.company.phone),
+                    website: nullableString(data.company.website),
+                    logo: nullableString(data.company.logo),
+                    coverImage: nullableString(data.company.coverImage),
+                    description: nullableString(data.company.description),
+                    industry: nullableString(data.company.industry),
+                    companySize: nullableString(data.company.companySize),
+                    foundedYear: nullableNumber(data.company.foundedYear),
+                    headquarters: nullableString(data.company.headquarters),
+                    linkedinUrl: nullableString(data.company.linkedinUrl),
+                    twitterUrl: nullableString(data.company.twitterUrl),
+                },
+                select: companySelect,
+            });
+            const user = await tx.user.create({
+                data: {
+                    email: data.email,
+                    password: data.password,
+                    role: UserRole.EMPLOYER,
+                    status: AccountStatus.ACTIVE,
+                    isEmailVerified: false,
+                },
+                select: userSelect,
+            });
+            const employer = await tx.employer.create({
+                data: {
+                    userId: user.id,
+                    fullName: data.fullName,
+                },
+                select: employerSelect,
+            });
+            await tx.companyMember.create({
                 data: {
                     userId: user.id,
                     companyId: company.id,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    phone: nullableString(data.phone),
-                    designation: nullableString(data.designation),
-                    department: nullableString(data.department),
-                    profilePicture: nullableString(data.profilePicture),
-                    linkedinUrl: nullableString(data.linkedinUrl),
-                    ...(data.isPrimaryRecruiter !== undefined
-                        ? { isPrimaryRecruiter: data.isPrimaryRecruiter }
-                        : {}),
-                    ...(data.canCreateJobs !== undefined
-                        ? { canCreateJobs: data.canCreateJobs }
-                        : {}),
-                    ...(data.canEditJobs !== undefined
-                        ? { canEditJobs: data.canEditJobs }
-                        : {}),
-                    ...(data.canDeleteJobs !== undefined
-                        ? { canDeleteJobs: data.canDeleteJobs }
-                        : {}),
-                    ...(data.canScheduleInterview !== undefined
-                        ? { canScheduleInterview: data.canScheduleInterview }
-                        : {}),
-                },
-                select: recruiterSelect,
+                    role: CompanyMemberRole.OWNER,
+                }
             });
-            return { user, company, recruiter };
+            return { user, company, employer };
         });
     }
     static async saveRefreshToken(data) {

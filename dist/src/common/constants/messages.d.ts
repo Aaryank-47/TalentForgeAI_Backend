@@ -4,7 +4,11 @@ export declare const MESSAGE: {
     readonly ROUTE_NOT_FOUND: "Route not found.";
     readonly LOGIN_SUCCESS: "Login successful.";
     readonly LOGOUT_SUCCESS: "Logout successful.";
-    readonly REGISTER_SUCCESS: "Registration successful.";
+    readonly REGISTER_SUCCESS: "Registration successful. Please verify your email.";
+    readonly EMAIL_VERIFY_SUCCESS: "Email verified successfully.";
+    readonly EMAIL_ALREADY_VERIFIED: "Email already verified.";
+    readonly EMAIL_NOT_VERIFIED: "Please verify your email before logging in.";
+    readonly VERIFICATION_EMAIL_SENT: "Verification email sent successfully.";
     readonly INVALID_CREDENTIALS: "Invalid email or password.";
     readonly UNAUTHORIZED: "Unauthorized access.";
     readonly ACCESS_DENIED: "Access denied.";

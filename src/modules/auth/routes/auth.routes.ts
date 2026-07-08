@@ -4,7 +4,7 @@ import { AuthController } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import {
     registerCandidateDto,
-    registerRecruiterDto,
+    registerEmployerDto,
     registerCompanyOwnerDto,
     loginDto,
     logoutAllDevicesDto,
@@ -34,10 +34,10 @@ router.post(
 );
 
 router.post(
-    "/register/recruiter",
+    "/register/employer",
     registerRateLimiter,
-    validate(registerRecruiterDto, "body"),
-    AuthController.registerRecruiter
+    validate(registerEmployerDto, "body"),
+    AuthController.registerEmployer
 );
 
 router.post(

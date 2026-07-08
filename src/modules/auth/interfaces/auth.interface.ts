@@ -1,6 +1,6 @@
 import type { AccountStatus, UserRole } from "@prisma/client";
 import type { CandidateProfileView } from "../../candidate/interfaces/candidate.interface.js";
-import type { RecruiterCompanyInput, RecruiterCompanyView, RecruiterProfileView } from "../../recruiter/interfaces/recruiter.interface.js";
+import type { EmployerCompanyInput, EmployerCompanyView, EmployerProfileView } from "../../employer/interfaces/employer.interface.js";
 
 export interface AuthTokenPayload {
     id: string;
@@ -54,12 +54,10 @@ export interface CandidateLoginView {
     lastLoginAt: Date | null;
 }
 
-export interface RecruiterLoginView {
+export interface EmployerLoginView {
     id: string;
     userId: string;
-    companyId: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
 }
 
 export interface CandidateLoginProfileView {
@@ -70,22 +68,15 @@ export interface CandidateLoginProfileView {
     updatedAt: Date;
 }
 
-export interface RecruiterLoginProfileView {
+export interface EmployerLoginProfileView {
     id: string;
     userId: string;
-    companyId: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     phone: string | null;
     designation: string | null;
     department: string | null;
     profilePicture: string | null;
     linkedinUrl: string | null;
-    isPrimaryRecruiter: boolean;
-    canCreateJobs: boolean;
-    canEditJobs: boolean;
-    canDeleteJobs: boolean;
-    canScheduleInterview: boolean;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -93,16 +84,15 @@ export interface RecruiterLoginProfileView {
 
 export interface LoginResult {
     user: AuthUserView;
-    profile: CandidateLoginProfileView | RecruiterLoginProfileView | null;
+    profile: CandidateLoginProfileView | EmployerLoginProfileView | null;
     tokens: AuthTokens;
 }
 
 
-export interface RegisterRecruiterInput {
+export interface RegisterEmployerInput {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     companyId: string;
 }
 
@@ -112,32 +102,31 @@ export interface RegisterCandidateResult {
     tokens: AuthTokens;
 }
 
-export interface RegisterRecruiterResult {
+export interface RegisterEmployerResult {
     user: AuthUserView;
-    recruiter: RecruiterProfileView;
+    employer: EmployerProfileView;
     tokens: AuthTokens;
 }
 
 export interface RegisterCompanyOwnerInput {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
-    company: RecruiterCompanyInput;
+    fullName: string;
+    company: EmployerCompanyInput;
 }
 
 export interface RegisterCompanyOwnerResult {
     user: AuthUserView;
-    company: RecruiterCompanyView;
-    recruiter: RecruiterProfileView;
+    company: EmployerCompanyView;
+    employer: EmployerProfileView;
     tokens: AuthTokens;
 }
 
 export interface ProfileResult {
     user: AuthUserView;
-    profile: CandidateProfileView | RecruiterProfileView | null;
+    profile: CandidateProfileView | EmployerProfileView | null;
 }
 
 export interface ProfileViewResult {
-    profile: CandidateProfileView | RecruiterProfileView | null;
+    profile: CandidateProfileView | EmployerProfileView | null;
 }

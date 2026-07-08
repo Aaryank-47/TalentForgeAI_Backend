@@ -3,6 +3,7 @@ import { HTTP_STATUS } from '../constants/httpStatus.js';
 import { MESSAGE } from '../constants/messages.js';
 export const errorMiddleware = (err, req, res, next) => {
     if (err instanceof ApiError) {
+        console.error("ApiError: ", err);
         res.status(err.statusCode).json({
             success: false,
             message: err.message,
@@ -10,7 +11,7 @@ export const errorMiddleware = (err, req, res, next) => {
         });
         return;
     }
-    console.error(err);
+    console.error("Unexpected error:  ", err);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: MESSAGE.SERVER_ERROR,
