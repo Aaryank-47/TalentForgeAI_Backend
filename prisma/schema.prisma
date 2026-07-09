@@ -25,6 +25,14 @@ enum CompanyMemberRole {
   HIRING_MANAGER
 }
 
+enum CompanyMemberStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+  LEFT
+  REMOVED
+}
+
 enum CompanyStatus {
   DRAFT
   ACTIVE
@@ -183,14 +191,15 @@ model Company {
 }
 
 model CompanyMember {
-  id        String            @id @default(cuid())
+  id        String              @id @default(cuid())
   userId    String
   companyId String
   role      CompanyMemberRole
-  joinedAt  DateTime          @default(now())
-  isActive  Boolean           @default(true)
-  user      User              @relation(fields: [userId], references: [id])
-  company   Company           @relation(fields: [companyId], references: [id])
+  joinedAt  DateTime            @default(now())
+  status    CompanyMemberStatus @default(ACTIVE)
+  invitedBy String?
+  user      User                @relation(fields: [userId], references: [id])
+  company   Company             @relation(fields: [companyId], references: [id])
 
   @@unique([userId, companyId])
   @@index([companyId])
