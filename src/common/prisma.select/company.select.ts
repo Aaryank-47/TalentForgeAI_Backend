@@ -1,9 +1,9 @@
 export const companySelect = {
     id: true,
-    name: true,
+    companyName: true,
     slug: true,
-    email: true,
-    phone: true,
+    companyEmail: true,
+    phoneNumber: true,
     website: true,
     logo: true,
     coverImage: true,

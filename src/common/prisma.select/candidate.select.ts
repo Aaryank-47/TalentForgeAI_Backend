@@ -1,3 +1,5 @@
+import type { phoneNumberValidator } from "../validators/validators.js";
+
 export const candidateSelect = {
     id: true,
     userId: true,
@@ -10,7 +12,7 @@ export const candidateProfileSelect = {
     id: true,
     userId: true,
     fullName: true,
-    phone: true,
+    phoneNumber: true,
     profilePicture: true,
     headline: true,
     bio: true,

@@ -6,7 +6,7 @@ export const companyOwnerCompanyDto = z.object({
     name: z.string().trim().min(1, "Company name is required").max(150),
     slug: z.string().trim().min(1).max(180).optional(),
     email: emailValidator,
-    phone: requiredText,
+    phoneNumber: requiredText,
     website: requiredUrl,
     logo: requiredUrl,
     coverImage: requiredUrl,

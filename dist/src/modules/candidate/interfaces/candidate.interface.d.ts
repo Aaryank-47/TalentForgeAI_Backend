@@ -3,7 +3,7 @@ export interface CandidateProfileView {
     id: string;
     userId: string;
     fullName: string;
-    phone: string | null;
+    phoneNumber: string | null;
     profilePicture: string | null;
     headline: string | null;
     bio: string | null;

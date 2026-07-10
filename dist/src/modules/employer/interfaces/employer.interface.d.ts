@@ -2,7 +2,7 @@ export interface EmployerCompanyInput {
     name: string;
     slug?: string | undefined;
     email?: string | undefined;
-    phone?: string | undefined;
+    phoneNumber?: string | undefined;
     website?: string | undefined;
     logo?: string | undefined;
     coverImage?: string | undefined;
@@ -19,7 +19,7 @@ export interface EmployerCompanyView {
     name: string;
     slug: string;
     email: string | null;
-    phone: string | null;
+    phoneNumber: string | null;
     website: string | null;
     logo: string | null;
     coverImage: string | null;
@@ -38,7 +38,7 @@ export interface EmployerProfileView {
     id: string;
     userId: string;
     fullName: string;
-    phone: string | null;
+    phoneNumber: string | null;
     designation: string | null;
     department: string | null;
     profilePicture: string | null;

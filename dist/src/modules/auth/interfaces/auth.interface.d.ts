@@ -62,7 +62,7 @@ export interface EmployerLoginProfileView {
     id: string;
     userId: string;
     fullName: string;
-    phone: string | null;
+    phoneNumber: string | null;
     designation: string | null;
     department: string | null;
     profilePicture: string | null;

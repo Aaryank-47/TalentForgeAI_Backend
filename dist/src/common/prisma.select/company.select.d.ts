@@ -3,7 +3,7 @@ export declare const companySelect: {
     readonly name: true;
     readonly slug: true;
     readonly email: true;
-    readonly phone: true;
+    readonly phoneNumber: true;
     readonly website: true;
     readonly logo: true;
     readonly coverImage: true;

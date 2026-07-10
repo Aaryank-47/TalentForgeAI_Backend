@@ -5,6 +5,9 @@ CREATE TYPE "UserRole" AS ENUM ('CANDIDATE', 'EMPLOYER', 'ADMIN', 'SUPER_ADMIN')
 CREATE TYPE "CompanyMemberRole" AS ENUM ('OWNER', 'ADMIN', 'RECRUITER', 'HIRING_MANAGER');
 
 -- CreateEnum
+CREATE TYPE "CompanyMemberStatus" AS ENUM ('INVITED', 'ACTIVE', 'SUSPENDED', 'LEFT', 'REMOVED');
+
+-- CreateEnum
 CREATE TYPE "CompanyStatus" AS ENUM ('DRAFT', 'ACTIVE', 'INACTIVE', 'SUSPENDED');
 
 -- CreateEnum
@@ -104,7 +107,7 @@ CREATE TABLE "Employer" (
 -- CreateTable
 CREATE TABLE "Company" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "companyName" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "email" TEXT,
     "phone" TEXT,
@@ -138,7 +141,8 @@ CREATE TABLE "CompanyMember" (
     "companyId" TEXT NOT NULL,
     "role" "CompanyMemberRole" NOT NULL,
     "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "status" "CompanyMemberStatus" NOT NULL DEFAULT 'ACTIVE',
+    "invitedBy" TEXT,
 
     CONSTRAINT "CompanyMember_pkey" PRIMARY KEY ("id")
 );

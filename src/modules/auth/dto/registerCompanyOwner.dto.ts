@@ -1,30 +1,44 @@
 import { z } from "zod";
-import { emailValidator, passwordValidator } from "../../../common/validators/validators.js";
+import {
+    emailValidator,
+    companyNameValidator,
+    passwordValidator,
+    companyPhoneNumberValidator,
+    companyWebsiteValidator,
+    companyLogoValidator,
+    companyCoverImageValidator,
+    companyDescriptionValidator,
+    companyIndustryValidator,
+    companySizeValidator,
+    foundedYearValidator,
+    headquartersValidator,
+    companyLinkedInUrlValidator,
+    twitterUrlValidator,
+    employerFullNameValidator
+} from "../../../common/validators/validators.js";
 
-const requiredText = z.string().trim().min(1).max(255);
-const requiredUrl = z.string().trim().url("Please enter a valid URL");
 
 export const companyOwnerCompanyDto = z.object({
-    name: z.string().trim().min(1, "Company name is required").max(150),
+    companyName: companyNameValidator,
     slug: z.string().trim().min(1).max(180).optional(),
     email: emailValidator,
-    phone: requiredText,
-    website: requiredUrl,
-    logo: requiredUrl,
-    coverImage: requiredUrl,
-    description: z.string().trim().min(1, "Company description is required").max(2000),
-    industry: requiredText,
-    companySize: requiredText,
-    foundedYear: z.number().int().min(1800).max(new Date().getFullYear()),
-    headquarters: requiredText,
-    linkedinUrl: requiredUrl,
-    twitterUrl: requiredUrl,
+    phoneNumber: companyPhoneNumberValidator,
+    website: companyWebsiteValidator,
+    logo: companyLogoValidator,
+    coverImage: companyCoverImageValidator,
+    description: companyDescriptionValidator,
+    industry: companyIndustryValidator,
+    companySize: companySizeValidator,
+    foundedYear: foundedYearValidator,
+    headquarters: headquartersValidator,
+    linkedinUrl: companyLinkedInUrlValidator,
+    twitterUrl: twitterUrlValidator,
 });
 
 export const registerCompanyOwnerDto = z.object({
     email: emailValidator,
     password: passwordValidator,
-    fullName: z.string().trim().min(1, "Full name is required").max(150),
+    fullName: employerFullNameValidator,
     company: companyOwnerCompanyDto,
 });
 

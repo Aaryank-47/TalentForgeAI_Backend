@@ -9,7 +9,7 @@ export const candidateProfileSelect = {
     id: true,
     userId: true,
     fullName: true,
-    phone: true,
+    phoneNumber: true,
     profilePicture: true,
     headline: true,
     bio: true,

@@ -1,8 +1,8 @@
-import { AccountStatus, UserRole, CompanyMemberRole } from "@prisma/client";
+import { AccountStatus, UserRole, CompanyMemberRole, type Prisma } from "@prisma/client";
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js"
-import type { EmployerCompanyInput, EmployerCompanyView, EmployerProfileView } from "../../employer/interfaces/employer.interface.js";
+import type { EmployerCompanyInput } from "../../employer/interfaces/employer.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 import { userSelect, loginUserSelect } from "../../../common/prisma.select/user.select.js"
 import { candidateSelect, candidateProfileSelect } from "../../../common/prisma.select/candidate.select.js"
@@ -266,7 +266,9 @@ export class AuthRepository {
         });
     }
 
-    static async findCompanyById(companyId: string): Promise<EmployerCompanyView | null> {
+    static async findCompanyById(
+        companyId: string
+    ): Promise<Prisma.CompanyGetPayload<{ select: typeof companySelect }> | null> {
         return prisma.company.findUnique({
             where: { id: companyId },
             select: companySelect,
@@ -275,9 +277,9 @@ export class AuthRepository {
 
     static async createCompany(
         companyInput: EmployerCompanyInput
-    ): Promise<EmployerCompanyView> {
+    ): Promise<Prisma.CompanyGetPayload<{ select: typeof companySelect }>> {
         return prisma.$transaction(async (tx) => {
-            const baseSlug = createUniqueSlugSeed(companyInput.slug ?? companyInput.name);
+            const baseSlug = createUniqueSlugSeed(companyInput.slug ?? companyInput.companyName);
             let slug = baseSlug;
             let suffix = 1;
 
@@ -288,10 +290,10 @@ export class AuthRepository {
 
             return tx.company.create({
                 data: {
-                    name: companyInput.name,
+                    companyName: companyInput.companyName,
                     slug,
-                    email: nullableString(companyInput.email),
-                    phone: nullableString(companyInput.phone),
+                    companyEmail: nullableString(companyInput.email),
+                    phoneNumber: nullableString(companyInput.phoneNumber),
                     website: nullableString(companyInput.website),
                     logo: nullableString(companyInput.logo),
                     coverImage: nullableString(companyInput.coverImage),
@@ -310,7 +312,7 @@ export class AuthRepository {
 
     static async createEmployerRegistration(
         data: RegisterEmployerInput
-    ): Promise<{ user: AuthUserView; employer: EmployerProfileView }> {
+    ): Promise<{ user: AuthUserView; employer: Prisma.EmployerGetPayload<{ select: typeof employerSelect }> }> {
         return prisma.$transaction(async (tx) => {
             const company = await tx.company.findUnique({
                 where: { id: data.companyId },
@@ -356,11 +358,11 @@ export class AuthRepository {
         data: RegisterCompanyOwnerInput
     ): Promise<{
         user: AuthUserView;
-        company: EmployerCompanyView;
-        employer: EmployerProfileView;
+        company: Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
+        employer: Prisma.EmployerGetPayload<{ select: typeof employerSelect }>;
     }> {
         return prisma.$transaction(async (tx) => {
-            const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.name);
+            const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.companyName);
             let slug = baseSlug;
             let suffix = 1;
 
@@ -371,10 +373,10 @@ export class AuthRepository {
 
             const company = await tx.company.create({
                 data: {
-                    name: data.company.name,
+                    companyName: data.company.companyName,
                     slug,
-                    email: nullableString(data.company.email),
-                    phone: nullableString(data.company.phone),
+                    companyEmail: nullableString(data.company.email),
+                    phoneNumber: nullableString(data.company.phoneNumber),
                     website: nullableString(data.company.website),
                     logo: nullableString(data.company.logo),
                     coverImage: nullableString(data.company.coverImage),

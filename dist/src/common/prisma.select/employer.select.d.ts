@@ -2,7 +2,7 @@ export declare const employerSelect: {
     readonly id: true;
     readonly userId: true;
     readonly fullName: true;
-    readonly phone: true;
+    readonly phoneNumber: true;
     readonly designation: true;
     readonly department: true;
     readonly profilePicture: true;

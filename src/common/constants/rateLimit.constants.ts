@@ -6,7 +6,7 @@ export const RATE_LIMIT = {
 
     REGISTER: {
         WINDOW_MS: 60 * 60 * 1000,
-        MAX_REQUESTS: 5,
+        MAX_REQUESTS: 500,
     },
 
     FORGOT_PASSWORD: {

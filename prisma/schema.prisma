@@ -116,7 +116,7 @@ model Candidate {
   userId             String                @unique
   user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName           String
-  phone              String?
+  phoneNumber        String?
   profilePicture     String?
   headline           String?
   bio                String?
@@ -150,7 +150,7 @@ model Employer {
   userId         String   @unique
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName       String
-  phone          String?
+  phoneNumber    String?
   designation    String?
   department     String?
   profilePicture String?
@@ -163,10 +163,10 @@ model Employer {
 
 model Company {
   id                String            @id @default(cuid())
-  name              String
+  companyName       String
   slug              String            @unique
-  email             String?
-  phone             String?
+  companyEmail      String?
+  phoneNumber       String?
   website           String?
   logo              String?
   coverImage        String?
@@ -211,7 +211,7 @@ model Admin {
   userId         String    @unique
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName       String
-  phone          String?
+  phoneNumber    String?
   profilePicture String?
   designation    String?
   department     String?

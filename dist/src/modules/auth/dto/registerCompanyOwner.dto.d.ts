@@ -3,7 +3,7 @@ export declare const companyOwnerCompanyDto: z.ZodObject<{
     name: z.ZodString;
     slug: z.ZodOptional<z.ZodString>;
     email: z.ZodEmail;
-    phone: z.ZodString;
+    phoneNumber: z.ZodString;
     website: z.ZodString;
     logo: z.ZodString;
     coverImage: z.ZodString;
@@ -23,7 +23,7 @@ export declare const registerCompanyOwnerDto: z.ZodObject<{
         name: z.ZodString;
         slug: z.ZodOptional<z.ZodString>;
         email: z.ZodEmail;
-        phone: z.ZodString;
+        phoneNumber: z.ZodString;
         website: z.ZodString;
         logo: z.ZodString;
         coverImage: z.ZodString;

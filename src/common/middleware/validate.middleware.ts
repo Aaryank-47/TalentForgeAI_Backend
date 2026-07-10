@@ -18,6 +18,7 @@ export const validate = (
             next();
         } catch (error) {
             if (error instanceof ZodError) {
+                console.error('Validation Error:', error);
                 throw new ValidationError(
                     "Validation Failed",
                     z.treeifyError(error)

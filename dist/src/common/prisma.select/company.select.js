@@ -3,7 +3,7 @@ export const companySelect = {
     name: true,
     slug: true,
     email: true,
-    phone: true,
+    phoneNumber: true,
     website: true,
     logo: true,
     coverImage: true,

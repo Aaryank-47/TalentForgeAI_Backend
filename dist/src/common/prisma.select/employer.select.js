@@ -2,7 +2,7 @@ export const employerSelect = {
     id: true,
     userId: true,
     fullName: true,
-    phone: true,
+    phoneNumber: true,
     designation: true,
     department: true,
     profilePicture: true,

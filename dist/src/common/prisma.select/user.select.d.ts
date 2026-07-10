@@ -32,7 +32,7 @@ export declare const loginUserSelect: {
             readonly id: true;
             readonly userId: true;
             readonly fullName: true;
-            readonly phone: true;
+            readonly phoneNumber: true;
             readonly designation: true;
             readonly department: true;
             readonly profilePicture: true;

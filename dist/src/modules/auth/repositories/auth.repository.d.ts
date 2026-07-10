@@ -22,7 +22,7 @@ export declare class AuthRepository {
         } | null;
         employer: {
             fullName: string;
-            phone: string | null;
+            phoneNumber: string | null;
             linkedinUrl: string | null;
             id: string;
             createdAt: Date;
