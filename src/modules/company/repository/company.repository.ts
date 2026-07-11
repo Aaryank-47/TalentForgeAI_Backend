@@ -15,6 +15,22 @@ export class CompanyRepository {
         });
     }
 
+    static async getMyCompanies(
+        userId: string
+    ): Promise<CompanyView[]> {
+        return prisma.company.findMany({
+            where: {
+                companyMembers: {
+                    some: {
+                        userId,
+                        status: CompanyMemberStatus.ACTIVE,
+                    },
+                },
+            },
+            select: companySelect,
+        });
+    }
+
     static async createCompany(
         input: CreateCompanyInput
     ): Promise<CompanyView> {

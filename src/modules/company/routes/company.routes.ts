@@ -15,4 +15,11 @@ router.post(
     CompanyController.createCompany
 );
 
+router.get(
+    "/my",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    CompanyController.getMyCompanies
+)
+
 export default router;

@@ -36,4 +36,16 @@ export class CompanyService {
 
         return newCompany;
     }
+
+    static async getMyCompanies(
+        userId: string
+    ): Promise<CompanyView[]> {
+        const user = await AuthRepository.findUserById(userId);
+        if (!user) {
+            throw new NotFoundError("Authenticated user not found.");
+        }
+
+        const companies = await CompanyRepository.getMyCompanies(userId);
+        return companies;
+    }   
 }

@@ -20,4 +20,18 @@ export class CompanyController {
             });
         }
     );
+
+    static getMyCompanies = asyncHandler(
+        async ( req: Request, res: Response) =>{
+            const userId = req.user.id;
+
+            const companies = await CompanyService.getMyCompanies(userId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANIES_FETCHED,
+                data: companies,
+            });
+        }
+    )
 }
