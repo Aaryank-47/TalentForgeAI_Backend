@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import type { CreateCompanyDto, CompanyIdParamDto } from "../dto/company.dto.js";
+import type { CreateCompanyDto, CompanyIdParamDto, UpdateCompanyDto } from "../dto/company.dto.js";
 import { CompanyService } from "../services/company.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
@@ -47,6 +47,25 @@ export class CompanyController {
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: MESSAGE.COMPANY_DETAILS_FETCHED,
+                data: company,
+            });
+        }
+    )
+
+    static updateCompanyProfile = asyncHandler(
+        async (
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        ) => {
+            const companyId = req.params.companyId;
+            const userId = req.user.id;
+            const dto = req.body as UpdateCompanyDto;
+
+            const company = await CompanyService.updateCompanyProfile(companyId, userId, dto);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_UPDATED,
                 data: company,
             });
         }

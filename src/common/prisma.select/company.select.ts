@@ -14,6 +14,7 @@ export const companySelect = {
     headquarters: true,
     linkedinUrl: true,
     twitterUrl: true,
+    profileCompletion: true,
     isVerified: true,
     createdAt: true,
     updatedAt: true,

@@ -6,3 +6,19 @@ export interface CreateCompanyInput {
     website?: string | undefined;
     phoneNumber?: string | undefined;
 }
+
+export interface UpdateCompanyInput {
+    companyEmail?: string;
+    website?: string;
+    phoneNumber?: string;
+    logo?: string;
+    coverImage?: string;
+    description?: string;
+    industry?: string;
+    companySize?: string;
+    foundedYear?: number;
+    headquarters?: string;
+    linkedinUrl?: string;
+    twitterUrl?: string;
+    profileCompletion?: number;
+}

@@ -1,10 +1,14 @@
-import type { CreateCompanyDto } from "../dto/company.dto.js";
+import type { CreateCompanyDto, UpdateCompanyDto } from "../dto/company.dto.js";
 import type { CompanyView } from "../repository/company.repository.js";
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import { CompanyRepository } from "../repository/company.repository.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
+import { calculateProfileCompletion, omitUndefined } from "../utils/company.utils.js";
+import { CompanyMemberRole } from "@prisma/client";
+
 
 export class CompanyService {
     static async createCompany(
@@ -51,11 +55,43 @@ export class CompanyService {
 
     static async getCompanyDetails(
         companyId: string
-    ): Promise<CompanyView>{
+    ): Promise<CompanyView> {
         const company = await CompanyRepository.findCompanyById(companyId);
         if (!company) {
             throw new NotFoundError("Company not found.");
         }
         return company;
+    }
+
+    static async updateCompanyProfile(
+        companyId: string,
+        userId: string,
+        dto: UpdateCompanyDto
+    ): Promise<CompanyView> {
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        if (
+            !member ||
+            (member.role !== CompanyMemberRole.OWNER && member.role !== CompanyMemberRole.ADMIN)
+        ) {
+            throw new ForbiddenError("You do not have permission to update this company.");
+        }
+
+        const merged = { ...company, ...dto };
+        const profileCompletion = calculateProfileCompletion(merged as any);
+
+        const updated = await CompanyRepository.updateCompanyProfile(
+            companyId,
+            omitUndefined({
+                ...dto,
+                profileCompletion,
+            })
+        );
+
+        return updated;
     }
 }
