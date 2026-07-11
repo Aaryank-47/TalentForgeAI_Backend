@@ -15,7 +15,7 @@ export const passwordValidator = z
         "Password must contain uppercase, lowercase, number and special character."
     );
 
-export const uuidValidator = z.uuid("Please enter a valid UUID");
+export const uuidValidator = z.string().cuid("Please enter a valid UUID");
 
 export const otpValidator = z
     .string()

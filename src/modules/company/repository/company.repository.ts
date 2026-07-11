@@ -15,21 +15,6 @@ export class CompanyRepository {
         });
     }
 
-    static async getMyCompanies(
-        userId: string
-    ): Promise<CompanyView[]> {
-        return prisma.company.findMany({
-            where: {
-                companyMembers: {
-                    some: {
-                        userId,
-                        status: CompanyMemberStatus.ACTIVE,
-                    },
-                },
-            },
-            select: companySelect,
-        });
-    }
 
     static async createCompany(
         input: CreateCompanyInput
@@ -56,6 +41,31 @@ export class CompanyRepository {
             });
 
             return company;
+        });
+    }
+
+    static async getMyCompanies(
+        userId: string
+    ): Promise<CompanyView[]> {
+        return prisma.company.findMany({
+            where: {
+                companyMembers: {
+                    some: {
+                        userId,
+                        status: CompanyMemberStatus.ACTIVE,
+                    },
+                },
+            },
+            select: companySelect,
+        });
+    }
+
+    static async findCompanyById(
+        companyId: string
+    ): Promise<CompanyView | null> {
+        return prisma.company.findUnique({
+            where: { id: companyId },
+            select: companySelect,
         });
     }
 }

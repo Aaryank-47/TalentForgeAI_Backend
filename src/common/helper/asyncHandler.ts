@@ -1,10 +1,26 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import type {
+    Request,
+    Response,
+    NextFunction,
+    RequestHandler,
+} from "express";
 
-export const asyncHandler =
-    (handler: RequestHandler): RequestHandler =>
-        (req: Request, res: Response, next: NextFunction) => {
-            Promise
-                .resolve(handler(req, res, next))
-                .catch(next);
+import type { ParsedQs } from "qs";
 
-        };
+export function asyncHandler<
+    P = Record<string, string>,
+    ResBody = any,
+    ReqBody = any,
+    ReqQuery = ParsedQs,
+    Locals extends Record<string, any> = Record<string, any>,
+>(
+    handler: (
+        req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
+        res: Response<ResBody, Locals>,
+        next: NextFunction
+    ) => Promise<unknown>
+): RequestHandler<P, ResBody, ReqBody, ReqQuery, Locals> {
+    return (req, res, next) => {
+        Promise.resolve(handler(req, res, next)).catch(next);
+    };
+}

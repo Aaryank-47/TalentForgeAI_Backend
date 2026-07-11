@@ -47,5 +47,15 @@ export class CompanyService {
 
         const companies = await CompanyRepository.getMyCompanies(userId);
         return companies;
-    }   
+    }
+
+    static async getCompanyDetails(
+        companyId: string
+    ): Promise<CompanyView>{
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+        return company;
+    }
 }

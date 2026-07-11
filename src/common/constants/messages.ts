@@ -33,6 +33,7 @@ export const MESSAGE = {
     VALIDATION_FAILED: "Validation failed.",
 
     // Company
+    COMPANY_DETAILS_FETCHED: "Company details fetched successfully.",
     COMPANIES_FETCHED: "Companies fetched successfully.",
     COMPANY_CREATED: "Company created successfully.",
     COMPANY_UPDATED: "Company updated successfully.",

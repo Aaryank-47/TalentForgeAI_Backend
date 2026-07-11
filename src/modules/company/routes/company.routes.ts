@@ -2,7 +2,7 @@ import { Router } from "express";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
-import { createCompanyDto } from "../validators/company.validators.js";
+import { createCompanyDto, companyIdParamDto } from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
 
 const router = Router();
@@ -20,6 +20,14 @@ router.get(
     authMiddleware,
     authorize("EMPLOYER"),
     CompanyController.getMyCompanies
+)
+
+router.get(
+    "/:companyId",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(companyIdParamDto, "params"),
+    CompanyController.getCompanyDetails
 )
 
 export default router;

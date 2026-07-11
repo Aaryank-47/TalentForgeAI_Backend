@@ -4,6 +4,7 @@ import {
     companyEmailValidator,
     companyWebsiteValidator,
     companyPhoneNumberValidator,
+    companyIdValidator
 } from "../../../common/validators/validators.js";
 
 export const createCompanyDto = z.object({
@@ -14,3 +15,9 @@ export const createCompanyDto = z.object({
 });
 
 export type CreateCompanyDto = z.infer<typeof createCompanyDto>;
+
+export const companyIdParamDto = z.object({
+    companyId: companyIdValidator,
+});
+
+export type CompanyIdParamDto = z.infer<typeof companyIdParamDto>;
