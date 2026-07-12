@@ -7,7 +7,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
 import { calculateProfileCompletion, omitUndefined } from "../utils/company.utils.js";
-import { CompanyMemberRole } from "@prisma/client";
+import { CompanyMemberRole, UserRole } from "@prisma/client";
 
 
 export class CompanyService {
@@ -93,5 +93,38 @@ export class CompanyService {
         );
 
         return updated;
+    }
+
+    static async deleteCompany(
+        companyId: string,
+        userId: string
+    ): Promise<void> {
+        const user = await AuthRepository.findUserById(userId);
+        if (!user) {
+            throw new NotFoundError("Authenticated user not found.");
+        }
+        if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.EMPLOYER) {
+            throw new ForbiddenError("You do not have permission to delete this company.");
+        }
+
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+
+        if (company.deletedAt) {
+            throw new ConflictError("Company is already deleted.");
+        }
+
+        // Admins and Super Admins can bypass the membership check
+        if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
+            const membership = await CompanyRepository.membership(companyId, userId);
+            
+            if (!membership || (membership.role !== CompanyMemberRole.OWNER && membership.role !== CompanyMemberRole.ADMIN)) {
+                throw new ForbiddenError("You do not have permission to delete this company.");
+            }
+        }
+
+        await CompanyRepository.deleteCompany(companyId, userId);
     }
 }

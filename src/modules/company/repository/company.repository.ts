@@ -1,7 +1,7 @@
 import prisma from "../../../config/database.js";
 import { companySelect } from "../../../common/prisma.select/company.select.js";
-import { CompanyMemberRole, CompanyMemberStatus, type Prisma } from "@prisma/client";
-import type { CreateCompanyInput, UpdateCompanyInput } from "../interfaces/company.interface.js";
+import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus ,type Prisma } from "@prisma/client";
+import type { CreateCompanyInput, UpdateCompanyInput, CompanyMemberList } from "../interfaces/company.interface.js";
 import type { Company } from "@prisma/client";
 
 export type CompanyView = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
@@ -98,5 +98,41 @@ export class CompanyRepository {
         return prisma.company.findUnique({
             where: { id: companyId },
         });
+    }
+
+    static async membership(
+        companyId: string,
+        userId: string,
+    ): Promise<CompanyMemberList | null> {
+        const member = await prisma.companyMember.findFirst({
+            where: {
+                companyId,
+                userId,
+                role: CompanyMemberRole.OWNER
+            }
+        });
+
+        return member
+            ? {
+                ...member,
+                invitedBy: member.invitedBy ?? "",
+            }
+            : null;
+    }
+    static async deleteCompany(
+        companyId: string,
+        userId: string
+    ): Promise<CompanyView> {
+        return prisma.company.update({
+            where: {
+                id: companyId
+            },
+            data: {
+                deletedAt: new Date(),
+                deletedBy: userId,
+                status: CompanyStatus.SUSPENDED
+            },
+            select: companySelect,
+        })
     }
 }

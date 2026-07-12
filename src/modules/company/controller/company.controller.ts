@@ -70,4 +70,21 @@ export class CompanyController {
             });
         }
     )
+
+    static deleteCompanyProfile = asyncHandler(
+        async (
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        ) => {
+            const companyId = req.params.companyId;
+            const userId = req.user.id;
+
+            await CompanyService.deleteCompany(companyId, userId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_DELETED,
+            });
+        }
+    )
 }

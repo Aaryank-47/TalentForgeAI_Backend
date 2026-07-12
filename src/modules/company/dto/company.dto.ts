@@ -14,6 +14,7 @@ import {
     headquartersValidator,
     companyLinkedInUrlValidator,
     twitterUrlValidator,
+    userIdValidator
 } from "../../../common/validators/validators.js";
 
 export const createCompanyDto = z.object({
@@ -50,3 +51,10 @@ export const updateCompanyDto = z.object({
 );
 
 export type UpdateCompanyDto = z.infer<typeof updateCompanyDto>;
+
+export const deleteCompanyDto = z.object({
+    companyId: companyIdValidator,
+    userId:userIdValidator
+})
+
+export type DeleteCompanyDto = z.infer<typeof deleteCompanyDto>;

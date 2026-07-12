@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 // user
+export const uuidValidator = z.string().cuid("Please enter a valid UUID");
+
+export const userIdValidator = uuidValidator;
+
 export const emailValidator = z
     .email("Please enter a valid email address")
     .trim()
@@ -15,7 +19,6 @@ export const passwordValidator = z
         "Password must contain uppercase, lowercase, number and special character."
     );
 
-export const uuidValidator = z.string().cuid("Please enter a valid UUID");
 
 export const otpValidator = z
     .string()

@@ -186,6 +186,7 @@ model Company {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   deletedAt         DateTime?
+  deletedBy         String?
   jobs              Job[]
   companyMembers    CompanyMember[]
 }

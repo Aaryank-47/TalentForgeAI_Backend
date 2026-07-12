@@ -1,3 +1,5 @@
+import { CompanyMemberRole, CompanyMemberStatus } from "@prisma/client";
+
 export interface CreateCompanyInput {
     userId: string;
     companyName: string;
@@ -21,4 +23,15 @@ export interface UpdateCompanyInput {
     linkedinUrl?: string;
     twitterUrl?: string;
     profileCompletion?: number;
+}
+
+
+export interface CompanyMemberList {
+    id: string
+    userId: string
+    role: CompanyMemberRole
+    status: CompanyMemberStatus
+    companyId: string
+    joinedAt: Date
+    invitedBy: string
 }

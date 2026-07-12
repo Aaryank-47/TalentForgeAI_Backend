@@ -39,4 +39,12 @@ router.patch(
     CompanyController.updateCompanyProfile
 )
 
+router.delete(
+    "/delete/:companyId",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(companyIdParamDto, "params"),
+    CompanyController.deleteCompanyProfile
+)
+
 export default router;
