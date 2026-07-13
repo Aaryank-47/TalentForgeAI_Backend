@@ -104,11 +104,9 @@ export class CompanyRepository {
         companyId: string,
         userId: string,
     ): Promise<CompanyMemberList | null> {
-        const member = await prisma.companyMember.findFirst({
+        const member = await prisma.companyMember.findUnique({
             where: {
-                companyId,
-                userId,
-                role: CompanyMemberRole.OWNER
+                userId_companyId: { userId, companyId }
             }
         });
 
@@ -134,5 +132,22 @@ export class CompanyRepository {
             },
             select: companySelect,
         })
+    }
+
+    static async createInvitedMember(data: {
+        userId: string;
+        companyId: string;
+        role: CompanyMemberRole;
+        invitedBy: string;
+    }) {
+        return prisma.companyMember.create({
+            data: {
+                userId: data.userId,
+                companyId: data.companyId,
+                role: data.role,
+                status: CompanyMemberStatus.INVITED,
+                invitedBy: data.invitedBy,
+            },
+        });
     }
 }

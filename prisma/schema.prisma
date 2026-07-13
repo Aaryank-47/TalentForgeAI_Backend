@@ -192,15 +192,18 @@ model Company {
 }
 
 model CompanyMember {
-  id        String              @id @default(cuid())
-  userId    String
-  companyId String
-  role      CompanyMemberRole
-  joinedAt  DateTime            @default(now())
-  status    CompanyMemberStatus @default(ACTIVE)
-  invitedBy String?
-  user      User                @relation(fields: [userId], references: [id])
-  company   Company             @relation(fields: [companyId], references: [id])
+  id              String              @id @default(cuid())
+  userId          String
+  companyId       String
+  role            CompanyMemberRole
+  joinedAt        DateTime            @default(now())
+  status          CompanyMemberStatus @default(ACTIVE)
+  invitationToken String?             @unique
+  invitedAt       DateTime?
+  expiresAt       DateTime?
+  invitedBy       String?
+  user            User                @relation(fields: [userId], references: [id])
+  company         Company             @relation(fields: [companyId], references: [id])
 
   @@unique([userId, companyId])
   @@index([companyId])

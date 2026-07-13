@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CompanyMemberRole } from "@prisma/client";
 import {
     companyNameValidator,
     companyEmailValidator,
@@ -58,3 +59,11 @@ export const deleteCompanyDto = z.object({
 })
 
 export type DeleteCompanyDto = z.infer<typeof deleteCompanyDto>;
+
+export const sendInvitationDto = z.object({
+    inviterId: userIdValidator,
+    inviteeEmail: companyEmailValidator,
+    role: z.nativeEnum(CompanyMemberRole).optional().default(CompanyMemberRole.RECRUITER)
+})
+
+export type SendInvitationDto = z.infer<typeof sendInvitationDto>;

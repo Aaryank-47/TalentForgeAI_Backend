@@ -7,7 +7,11 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
 import { calculateProfileCompletion, omitUndefined } from "../utils/company.utils.js";
-import { CompanyMemberRole, UserRole } from "@prisma/client";
+import { CompanyMemberRole, UserRole, CompanyMemberStatus } from "@prisma/client";
+import { emailTemplates } from "../../../common/email/email.templates.js"
+import { EmailService } from "../../../common/email/email.service.js";
+import { InvitationTokenHelper } from "../utils/invitationToken.util.js";
+import {env} from "../../../config/env.js"
 
 
 export class CompanyService {
@@ -119,12 +123,162 @@ export class CompanyService {
         // Admins and Super Admins can bypass the membership check
         if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
             const membership = await CompanyRepository.membership(companyId, userId);
-            
-            if (!membership || (membership.role !== CompanyMemberRole.OWNER && membership.role !== CompanyMemberRole.ADMIN)) {
+
+            if (!membership    || (membership.role !== CompanyMemberRole.OWNER && membership.role !== CompanyMemberRole.ADMIN)) {
                 throw new ForbiddenError("You do not have permission to delete this company.");
             }
         }
 
         await CompanyRepository.deleteCompany(companyId, userId);
     }
+
+    static async sendInvitation(
+        companyId: string,
+        inviterId: string,
+        inviteeEmail: string,
+        role: CompanyMemberRole
+    ): Promise<void> {
+        
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+
+
+        const inviter = await AuthRepository.findProfileByUserId(inviterId);
+        if (!inviter || !inviter.profile) {
+            throw new NotFoundError("Inviter profile not found.");
+        }
+
+        const inviterMembership = await CompanyRepository.membership(
+            companyId,
+            inviterId
+        );
+
+        if (!inviterMembership || (inviterMembership.role !== CompanyMemberRole.OWNER && inviterMembership.role !== CompanyMemberRole.ADMIN)) {
+            throw new ForbiddenError("You do not have permission to send invitations for this company.");
+        }
+
+        const invitee = await AuthRepository.findUserByEmail(inviteeEmail);
+
+        const token = InvitationTokenHelper.generateToken({
+            companyId,
+            inviteeEmail,
+            invitedBy: inviterId,
+            role,
+        });
+
+        if (invitee) {
+            if (invitee.id === inviterId) {
+                throw new ConflictError(
+                    "You cannot invite yourself to the company."
+                );
+            }
+
+            const existingMembership = await CompanyRepository.membership(
+                companyId,
+                invitee.id
+            );
+
+            if (existingMembership) {
+                if (existingMembership.status === CompanyMemberStatus.INVITED) {
+                    throw new ConflictError(
+                        "An invitation has already been sent to this user."
+                    );
+                }
+                throw new ConflictError(
+                    "The user is already a member of this company."
+                );
+            }
+
+            await CompanyRepository.createInvitedMember({
+                userId: invitee.id,
+                companyId,
+                role,
+                invitedBy: inviterId,
+            });
+
+            const invitationLink = `${env.app.frontendUrl}/invitations/accept?token=${token}`;
+            // console.log("invitationLink : ",invitationLink);
+            const emailTemplate = emailTemplates.existingUserInvitationTemplate(
+                company.companyName,
+                inviter.profile.fullName,
+                role,
+                invitationLink
+            );
+
+            await EmailService.sendEmail({
+                to: inviteeEmail,
+                ...emailTemplate,
+            });
+        } else {
+            const registerLink = `${process.env.FRONTEND_URL}/register?invite=${token}`;
+            const emailTemplate = emailTemplates.newUserInvitationTemplate(
+                company.companyName,
+                inviter.profile.fullName,
+                role,
+                registerLink
+            );
+
+            await EmailService.sendEmail({
+                to: inviteeEmail,
+                ...emailTemplate,
+            });
+        }
+    }
 }
+
+
+
+
+
+// static async sendInvitation(
+//         companyId: string,
+//         inviterId: string,
+//         inviteeEmail: string
+//     ): Promise<void> {
+//         const company = await CompanyRepository.getRawCompanyById(companyId);
+//         if (!company) {
+//             throw new NotFoundError("Company not found.");
+//         }
+
+//         const inviter = await AuthRepository.findProfileByUserId(inviterId);
+//         if (!inviter || !inviter.profile) {
+//             throw new NotFoundError("Inviter profile not found.");
+//         }
+
+//         const invitee = await AuthRepository.findUserByEmail(inviteeEmail);
+//         if (!invitee) {
+//             throw new NotFoundError("Invitee not found.");
+//         }
+
+//         if (invitee.id === inviterId) {
+//             throw new ConflictError("You cannot invite yourself to the company.");
+//         }
+
+//         const inviterMembership = await CompanyRepository.membership(companyId, inviterId);
+//         if (!inviterMembership || (inviterMembership.role !== CompanyMemberRole.OWNER && inviterMembership.role !== CompanyMemberRole.ADMIN)) {
+//             throw new ForbiddenError("You do not have permission to send invitations for this company.");
+//         }
+
+//         const existingMembership = await CompanyRepository.membership(companyId, invitee.id);
+//         if (existingMembership) {
+//             throw new ConflictError("The user is already a member of this company.");
+//         }
+
+//         const sendInvitationMailTemplate = emailTemplates.sendInvitationTemplate(
+//             company.companyName,
+//             inviter.profile.fullName,
+//             inviterMembership.role,
+//             inviteeEmail
+//         );
+
+//         await EmailService.sendEmail({
+//             to: inviteeEmail,
+//             ...sendInvitationMailTemplate
+//         });
+//     }

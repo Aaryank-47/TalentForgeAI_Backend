@@ -39,6 +39,7 @@ export const MESSAGE = {
     COMPANY_UPDATED: "Company updated successfully.",
     COMPANY_NOT_FOUND: "Company not found.",
     COMPANY_DELETED: "Company deleted successfully.",
+    COMPANY_INVITATION_SENT: "Company invitation sent successfully.",
 
     // Job
     JOB_CREATED: "Job created successfully.",

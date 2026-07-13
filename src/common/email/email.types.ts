@@ -3,10 +3,12 @@ export interface EmailOptions {
     subject: string;
     html: string;
     text?: string;
+    unsubscribeLink?: string;
 }
 
 export interface EmailTemplate {
     subject: string;
     html: string;
     text?: string;
+    unsubscribeLink?: string;
 }

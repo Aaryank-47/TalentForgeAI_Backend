@@ -35,3 +35,12 @@ export interface CompanyMemberList {
     joinedAt: Date
     invitedBy: string
 }
+
+export interface InvitationTokenPayload {
+    companyId: string;
+    inviteeEmail: string;
+    invitedBy: string;
+    role: CompanyMemberRole;
+    issuedAt?: number | undefined;
+    expiration?: number | undefined;
+}

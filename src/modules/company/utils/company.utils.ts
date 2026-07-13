@@ -31,3 +31,5 @@ export function omitUndefined<T extends object>(obj: T) {
         [K in keyof T as T[K] extends undefined ? never : K]: Exclude<T[K], undefined>;
     };
 }
+
+export const invitationTokenGeneration = crypto.randomUUID();
