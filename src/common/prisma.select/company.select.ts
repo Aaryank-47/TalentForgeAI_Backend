@@ -20,3 +20,28 @@ export const companySelect = {
     createdAt: true,
     updatedAt: true,
 } as const;
+
+export const companyMemberSelect = {
+    id: true,
+    userId: true,
+    companyId: true,
+    role: true,
+    status: true,
+    joinedAt: true,
+    invitedBy: true,
+    user: {
+        select: {
+            email: true,
+            employer: {
+                select: {
+                    fullName: true,
+                },
+            },
+            candidate: {
+                select: {
+                    fullName: true,
+                },
+            },
+        },
+    },
+} as const;

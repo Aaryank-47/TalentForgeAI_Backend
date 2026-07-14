@@ -12,7 +12,7 @@ import { emailTemplates } from "../../../common/email/email.templates.js"
 import { EmailService } from "../../../common/email/email.service.js";
 import { InvitationTokenHelper } from "../utils/invitationToken.util.js";
 import { env } from "../../../config/env.js";
-import type { InvitationResponse } from "../interfaces/company.interface.js";
+import type { InvitationResponse, CompanyMemberDetails } from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 
 export class CompanyService {
@@ -352,6 +352,22 @@ export class CompanyService {
                 status: CompanyMemberStatus.REMOVED,
             }
         );
+    }
+
+    static async listAllCompanyMembers(
+        companyId: string
+    ):Promise<CompanyMemberDetails[]>{
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+
+        const members = await CompanyRepository.listAllMembers(companyId);
+
+        return members; 
     }
 }
 

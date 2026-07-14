@@ -1,7 +1,7 @@
 import prisma from "../../../config/database.js";
-import { companySelect } from "../../../common/prisma.select/company.select.js";
+import { companySelect, companyMemberSelect } from "../../../common/prisma.select/company.select.js";
 import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus, type Prisma } from "@prisma/client";
-import type { CreateCompanyInput, UpdateCompanyInput, CompanyMemberList } from "../interfaces/company.interface.js";
+import type { CreateCompanyInput, UpdateCompanyInput, CompanyMemberList, CompanyMemberDetails } from "../interfaces/company.interface.js";
 import type { Company } from "@prisma/client";
 
 export type CompanyView = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
@@ -139,7 +139,7 @@ export class CompanyRepository {
         companyId: string;
         role: CompanyMemberRole;
         invitedBy: string;
-    }) {
+    }): Promise<CompanyMemberList> {
         return prisma.companyMember.create({
             data: {
                 userId: data.userId,
@@ -154,12 +154,23 @@ export class CompanyRepository {
     static async updateMembership(
         membershipId: string,
         data: Prisma.CompanyMemberUpdateInput
-    ) {
+    ): Promise<CompanyMemberList> {
         return prisma.companyMember.update({
             where: {
                 id: membershipId,
             },
             data,
         });
+    }
+
+    static async listAllMembers(
+        companyId: string
+    ): Promise<CompanyMemberDetails[]> {
+        return prisma.companyMember.findMany({
+            where: {
+                companyId: companyId
+            },
+            select: companyMemberSelect
+        })
     }
 }

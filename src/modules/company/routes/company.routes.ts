@@ -75,4 +75,11 @@ router.post("/invitation/:action/:token",
     CompanyController.acceptOrRejectInvitation
 )
 
+router.get("/members/:companyId",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(companyIdParamDto,"params"),
+    CompanyController.listAllCompanyMembers
+)
+
 export default router;

@@ -143,4 +143,18 @@ export class CompanyController {
             });
         }
     )
+
+    static listAllCompanyMembers = asyncHandler(
+        async(req:Request<CompanyIdParamDto>,res:Response)=>{
+            const companyId = req.params.companyId;
+
+            const members = await CompanyService.listAllCompanyMembers(companyId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_MEMBERS_FETCHED,
+                data: members,
+            });
+        }
+    )
 }

@@ -34,7 +34,19 @@ export interface CompanyMemberList {
     status: CompanyMemberStatus
     companyId: string
     joinedAt: Date
-    invitedBy: string
+    invitedBy: string | null
+}
+
+export interface CompanyMemberDetails extends CompanyMemberList {
+    user: {
+        email: string;
+        candidate: {
+            fullName: string;
+        } | null;
+        employer: {
+            fullName: string;
+        } | null;
+    };
 }
 
 export interface InvitationTokenPayload {
