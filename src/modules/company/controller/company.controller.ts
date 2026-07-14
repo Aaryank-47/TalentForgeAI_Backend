@@ -5,7 +5,9 @@ import type {
     UpdateCompanyDto,
     SendInvitationDto,
     GetCompanyInvitationTokenDto,
-    AcceptOrRejectInvitationDto
+    AcceptOrRejectInvitationDto,
+    UpdateCompanyMemberRoleDto,
+    DeleteCompanyDto
 } from "../dto/company.dto.js";
 import { CompanyService } from "../services/company.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
@@ -145,7 +147,7 @@ export class CompanyController {
     )
 
     static listAllCompanyMembers = asyncHandler(
-        async(req:Request<CompanyIdParamDto>,res:Response)=>{
+        async (req: Request<CompanyIdParamDto>, res: Response) => {
             const companyId = req.params.companyId;
 
             const members = await CompanyService.listAllCompanyMembers(companyId);
@@ -154,6 +156,20 @@ export class CompanyController {
                 success: true,
                 message: MESSAGE.COMPANY_MEMBERS_FETCHED,
                 data: members,
+            });
+        }
+    )
+
+    static updateCompanyMemberRole = asyncHandler(
+        async (req: Request<UpdateCompanyMemberRoleDto & DeleteCompanyDto>, res: Response) => {
+            const { role } = req.body;
+            const {companyId, userId} = req.params;
+
+            const updatedMember = await CompanyService.updateCompanyMemberRole(companyId, userId, role);
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_MEMBER_ROLE_UPDATED,
+                data: updatedMember,
             });
         }
     )

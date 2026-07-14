@@ -4,8 +4,15 @@ declare global {
     namespace Express {
         interface Request {
             user: AuthTokenPayload;
-        }
+            companyMember?: {
+                id: string;
+                userId: string;
+                companyId: string;
+                role: CompanyMemberRole;
+                status: CompanyMemberStatus;
+            };
+        };
     }
 }
 
-export {};
+export { };

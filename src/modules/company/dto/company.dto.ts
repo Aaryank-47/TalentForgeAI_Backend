@@ -83,3 +83,9 @@ export const acceptOrRejectInvitationDto = z.object({
 })
 
 export type AcceptOrRejectInvitationDto = z.infer<typeof acceptOrRejectInvitationDto>;
+
+export const updateCompanyMemberRoleDto = z.object({
+    role: z.nativeEnum(CompanyMemberRole)
+})
+
+export type UpdateCompanyMemberRoleDto = z.infer<typeof updateCompanyMemberRoleDto>

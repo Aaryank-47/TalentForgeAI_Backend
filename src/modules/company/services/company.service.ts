@@ -12,7 +12,7 @@ import { emailTemplates } from "../../../common/email/email.templates.js"
 import { EmailService } from "../../../common/email/email.service.js";
 import { InvitationTokenHelper } from "../utils/invitationToken.util.js";
 import { env } from "../../../config/env.js";
-import type { InvitationResponse, CompanyMemberDetails } from "../interfaces/company.interface.js";
+import type { InvitationResponse, CompanyMemberDetails, CompanyMemberList } from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 
 export class CompanyService {
@@ -121,7 +121,6 @@ export class CompanyService {
             throw new ConflictError("Company is already deleted.");
         }
 
-        // Admins and Super Admins can bypass the membership check
         if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
             const membership = await CompanyRepository.membership(companyId, userId);
 
@@ -368,6 +367,29 @@ export class CompanyService {
         const members = await CompanyRepository.listAllMembers(companyId);
 
         return members; 
+    }
+
+    static async updateCompanyMemberRole(
+        companyId: string,
+        userId: string,
+        role: CompanyMemberRole
+    ):Promise<CompanyMemberList>{
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+
+        const member = await CompanyRepository.membership(companyId, userId);
+        if (!member) {
+            throw new NotFoundError("Member not found.");
+        }
+
+        const updatedMember = await CompanyRepository.updateMembership(member.id, { role });
+
+        return updatedMember;
     }
 }
 

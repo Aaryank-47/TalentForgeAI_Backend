@@ -109,6 +109,7 @@ export class CompanyRepository {
                 userId_companyId: { userId, companyId }
             }
         });
+        console.log("member : ", member);
 
         return member
             ? {
@@ -117,6 +118,7 @@ export class CompanyRepository {
             }
             : null;
     }
+    
     static async deleteCompany(
         companyId: string,
         userId: string

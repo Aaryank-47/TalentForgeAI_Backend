@@ -8,9 +8,14 @@ import {
     updateCompanyDto, 
     sendInvitationDto,
     getCompanyInvitationTokenDto,
-    acceptOrRejectInvitationDto
+    acceptOrRejectInvitationDto,
+    updateCompanyMemberRoleDto
 } from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
+import {loadCompanyMembership} from "../../../common/middleware/loadCompanyMembership.js";
+import { authorizedCompanyMember } from "../../../common/middleware/allowCompanyRoles.js";
+import { deleteCompanyDto } from "../dto/company.dto.js";
+
 
 const router = Router();
 
@@ -81,5 +86,19 @@ router.get("/members/:companyId",
     validate(companyIdParamDto,"params"),
     CompanyController.listAllCompanyMembers
 )
+
+router.patch(
+    "/:companyId/members/:userId/role",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    loadCompanyMembership,
+    authorizedCompanyMember(
+        "OWNER",
+        "ADMIN"
+    ),
+    validate(deleteCompanyDto, "params"),
+    validate(updateCompanyMemberRoleDto, "body"),
+    CompanyController.updateCompanyMemberRole
+);
 
 export default router;
