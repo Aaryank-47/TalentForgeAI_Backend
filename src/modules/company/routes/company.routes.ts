@@ -7,7 +7,8 @@ import {
     companyIdParamDto, 
     updateCompanyDto, 
     sendInvitationDto,
-    getCompanyInvitationTokenDto
+    getCompanyInvitationTokenDto,
+    acceptOrRejectInvitationDto
 } from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
 
@@ -66,6 +67,12 @@ router.get("/invitation/:token",
     authMiddleware,
     validate(getCompanyInvitationTokenDto,"params"),
     CompanyController.getInvitation
+)
+
+router.post("/invitation/:action/:token",
+    authMiddleware,
+    validate(acceptOrRejectInvitationDto,"params"),
+    CompanyController.acceptOrRejectInvitation
 )
 
 export default router;

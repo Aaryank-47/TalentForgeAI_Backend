@@ -74,3 +74,12 @@ export const getCompanyInvitationTokenDto = z.object({
 })
 
 export type GetCompanyInvitationTokenDto = z.infer<typeof getCompanyInvitationTokenDto>;
+
+export const acceptOrRejectInvitationDto = z.object({
+    token: companyInvitationToken,
+    action: z.string().trim().toLowerCase().refine(action => ["accept","reject"].includes(action), {
+        message: "Action must be 'accept' or 'reject'"
+    })
+})
+
+export type AcceptOrRejectInvitationDto = z.infer<typeof acceptOrRejectInvitationDto>;

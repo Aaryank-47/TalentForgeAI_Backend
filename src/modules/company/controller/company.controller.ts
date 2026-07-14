@@ -4,7 +4,8 @@ import type {
     CompanyIdParamDto,
     UpdateCompanyDto,
     SendInvitationDto,
-    GetCompanyInvitationTokenDto
+    GetCompanyInvitationTokenDto,
+    AcceptOrRejectInvitationDto
 } from "../dto/company.dto.js";
 import { CompanyService } from "../services/company.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
@@ -127,4 +128,19 @@ export class CompanyController {
             });
         }
     );
+
+    static acceptOrRejectInvitation = asyncHandler(
+        async (req: Request<AcceptOrRejectInvitationDto>, res: Response) => {
+
+            const { action, token } = req.params;
+            const userId = req.user.id;
+            const invitation = await CompanyService.acceptOrRejectInvitation(token, userId, action);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_INVITATION_ACCEPTED,
+                data: invitation
+            });
+        }
+    )
 }

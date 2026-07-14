@@ -1,6 +1,6 @@
 import prisma from "../../../config/database.js";
 import { companySelect } from "../../../common/prisma.select/company.select.js";
-import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus ,type Prisma } from "@prisma/client";
+import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus, type Prisma } from "@prisma/client";
 import type { CreateCompanyInput, UpdateCompanyInput, CompanyMemberList } from "../interfaces/company.interface.js";
 import type { Company } from "@prisma/client";
 
@@ -148,6 +148,18 @@ export class CompanyRepository {
                 status: CompanyMemberStatus.INVITED,
                 invitedBy: data.invitedBy,
             },
+        });
+    }
+
+    static async updateMembership(
+        membershipId: string,
+        data: Prisma.CompanyMemberUpdateInput
+    ) {
+        return prisma.companyMember.update({
+            where: {
+                id: membershipId,
+            },
+            data,
         });
     }
 }

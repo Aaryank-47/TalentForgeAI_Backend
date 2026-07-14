@@ -12,7 +12,8 @@ import { emailTemplates } from "../../../common/email/email.templates.js"
 import { EmailService } from "../../../common/email/email.service.js";
 import { InvitationTokenHelper } from "../utils/invitationToken.util.js";
 import { env } from "../../../config/env.js";
-import type { InvitationResponse } from "../interfaces/company.interface.js"
+import type { InvitationResponse } from "../interfaces/company.interface.js";
+import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 
 export class CompanyService {
     static async createCompany(
@@ -249,42 +250,6 @@ export class CompanyService {
             );
         }
 
-        const invitee = await AuthRepository.findUserByEmail(
-            payload.inviteeEmail
-        );
-        if (invitee) {
-
-            const membership = await CompanyRepository.membership(
-                payload.companyId,
-                invitee.id
-            );
-
-            if (membership) {
-
-                switch (membership.status) {
-
-                    case CompanyMemberStatus.ACTIVE:
-                        throw new ConflictError(
-                            "You are already a member of this company."
-                        );
-
-                    case CompanyMemberStatus.SUSPENDED:
-                        throw new ConflictError(
-                            "Your company membership is suspended."
-                        );
-
-                    case CompanyMemberStatus.INVITED:
-                        break;
-
-                    case CompanyMemberStatus.LEFT:
-                        break;
-
-                    case CompanyMemberStatus.REMOVED:
-                        break;
-                }
-            }
-        }
-
         return {
             companyId: company.id,
             companyName: company.companyName,
@@ -296,6 +261,97 @@ export class CompanyService {
                 ? new Date(payload.expiration * 1000)
                 : null
         };
+    }
+
+    static async acceptOrRejectInvitation(
+        token: string,
+        userId: string,
+        action: string
+    ): Promise<void> {
+
+        const payload = InvitationTokenHelper.verifyToken(token);
+        const company = await CompanyRepository.findCompanyById(
+            payload.companyId
+        );
+
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+
+        if (company.deletedAt) {
+            throw new ConflictError(
+                "This company is no longer accepting invitations."
+            );
+        }
+
+        const invitee = await AuthRepository.findUserById(userId);
+
+        if (!invitee) {
+            throw new UnauthorizedError("Authenticated user not found.");
+        }
+
+        if (invitee.email !== payload.inviteeEmail) {
+            throw new ForbiddenError(
+                "This invitation does not belong to your account."
+            );
+        }
+
+        const membership = await CompanyRepository.membership(
+            payload.companyId,
+            userId
+        );
+
+        if (!membership) {
+            throw new NotFoundError(
+                "Invitation record not found."
+            );
+        }
+
+        switch (membership.status) {
+
+            case CompanyMemberStatus.ACTIVE:
+                throw new ConflictError(
+                    "You are already a member of this company."
+                );
+
+            case CompanyMemberStatus.SUSPENDED:
+                throw new ConflictError(
+                    "Your membership has been suspended."
+                );
+
+            case CompanyMemberStatus.LEFT:
+                throw new ConflictError(
+                    "This invitation is no longer valid."
+                );
+
+            case CompanyMemberStatus.REMOVED:
+                throw new ConflictError(
+                    "This invitation has already been rejected."
+                );
+
+            case CompanyMemberStatus.INVITED:
+                break;
+        }
+
+        if (action === "accept") {
+
+            await CompanyRepository.updateMembership(
+                membership.id,
+                {
+                    status: CompanyMemberStatus.ACTIVE,
+                    joinedAt: new Date(),
+                }
+            );
+
+            return;
+        }
+
+        await CompanyRepository.updateMembership(
+            membership.id,
+            {
+                status: CompanyMemberStatus.REMOVED,
+            }
+        );
     }
 }
 
