@@ -2,5 +2,6 @@ export {
     createCompanyDto,
     companyIdParamDto,
     updateCompanyDto,
-    sendInvitationDto
+    sendInvitationDto,
+    getCompanyInvitationTokenDto
 } from "../dto/company.dto.js";

@@ -16,6 +16,7 @@ export const companySelect = {
     twitterUrl: true,
     profileCompletion: true,
     isVerified: true,
+    deletedAt: true,
     createdAt: true,
     updatedAt: true,
 } as const;

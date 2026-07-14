@@ -15,7 +15,8 @@ import {
     headquartersValidator,
     companyLinkedInUrlValidator,
     twitterUrlValidator,
-    userIdValidator
+    userIdValidator,
+    companyInvitationToken
 } from "../../../common/validators/validators.js";
 
 export const createCompanyDto = z.object({
@@ -67,3 +68,9 @@ export const sendInvitationDto = z.object({
 })
 
 export type SendInvitationDto = z.infer<typeof sendInvitationDto>;
+
+export const getCompanyInvitationTokenDto = z.object({
+    token: companyInvitationToken
+})
+
+export type GetCompanyInvitationTokenDto = z.infer<typeof getCompanyInvitationTokenDto>;

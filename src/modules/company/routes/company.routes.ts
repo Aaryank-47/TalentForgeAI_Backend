@@ -2,7 +2,13 @@ import { Router } from "express";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
-import { createCompanyDto, companyIdParamDto, updateCompanyDto, sendInvitationDto } from "../validators/company.validators.js";
+import { 
+    createCompanyDto, 
+    companyIdParamDto, 
+    updateCompanyDto, 
+    sendInvitationDto,
+    getCompanyInvitationTokenDto
+} from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
 
 const router = Router();
@@ -54,6 +60,12 @@ router.post(
     validate(companyIdParamDto, "params"),
     validate(sendInvitationDto, "body"),
     CompanyController.sendInvitation
+)
+
+router.get("/invitation/:token",
+    authMiddleware,
+    validate(getCompanyInvitationTokenDto,"params"),
+    CompanyController.getInvitation
 )
 
 export default router;

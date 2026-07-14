@@ -6,29 +6,29 @@ export const uuidValidator = z.string().cuid("Please enter a valid UUID");
 export const userIdValidator = uuidValidator;
 
 export const emailValidator = z
-    .email("Please enter a valid email address")
-    .trim()
-    .toLowerCase();
+  .email("Please enter a valid email address")
+  .trim()
+  .toLowerCase();
 
 export const passwordValidator = z
-    .string()
-    .min(8, "Password must be at least 8 characters long")
-    .max(64, "Password must be at most 64 characters long")
-    .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_+\-=[\]{};':"\\|,.<>/?]).+$/,
-        "Password must contain uppercase, lowercase, number and special character."
-    );
+  .string()
+  .min(8, "Password must be at least 8 characters long")
+  .max(64, "Password must be at most 64 characters long")
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()_+\-=[\]{};':"\\|,.<>/?]).+$/,
+    "Password must contain uppercase, lowercase, number and special character."
+  );
 
 
 export const otpValidator = z
-    .string()
-    .length(6, "OTP must be 6 digits")
-    .regex(/^\d+$/, "OTP must contain only digits");
+  .string()
+  .length(6, "OTP must be 6 digits")
+  .regex(/^\d+$/, "OTP must contain only digits");
 
 export const resetPasswordTokenValidator = z
-    .string()
-    .min(1, "Reset password token is required")
-    .trim();
+  .string()
+  .min(1, "Reset password token is required")
+  .trim();
 
 
 // Candidate
@@ -198,6 +198,11 @@ export const companyWebsiteValidator = z
   .trim()
   .url("Please enter a valid website URL")
   .optional();
+
+export const companyInvitationToken = z
+  .string()
+  .trim()
+  .min(1, "Invitation token is required.")
 
 export const companyLogoValidator = z
   .string()

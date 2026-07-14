@@ -23,6 +23,7 @@ export interface UpdateCompanyInput {
     linkedinUrl?: string;
     twitterUrl?: string;
     profileCompletion?: number;
+    deletedAt?:Date|null;
 }
 
 
@@ -43,4 +44,14 @@ export interface InvitationTokenPayload {
     role: CompanyMemberRole;
     issuedAt?: number | undefined;
     expiration?: number | undefined;
+}
+
+export interface InvitationResponse {
+    companyId: string;
+    companyName: string;
+    companyLogo: string | null;
+    companyEmail: string | null;
+    role: CompanyMemberRole;
+    inviteeEmail: string;
+    expiresAt: Date | null;
 }

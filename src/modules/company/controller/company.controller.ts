@@ -1,5 +1,11 @@
 import type { Request, Response } from "express";
-import type { CreateCompanyDto, CompanyIdParamDto, UpdateCompanyDto, SendInvitationDto } from "../dto/company.dto.js";
+import type {
+    CreateCompanyDto,
+    CompanyIdParamDto,
+    UpdateCompanyDto,
+    SendInvitationDto,
+    GetCompanyInvitationTokenDto
+} from "../dto/company.dto.js";
 import { CompanyService } from "../services/company.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
@@ -89,19 +95,36 @@ export class CompanyController {
     )
 
     static sendInvitation = asyncHandler(
-        async(
+        async (
             req: Request<SendInvitationDto & CompanyIdParamDto>,
             res: Response
         ) => {
             const { companyId } = req.params;
             const { inviterId, inviteeEmail, role } = req.body;
 
-            await CompanyService.sendInvitation(companyId, inviterId, inviteeEmail, role);
-    
+            const token = await CompanyService.sendInvitation(companyId, inviterId, inviteeEmail, role);
+
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: MESSAGE.COMPANY_INVITATION_SENT,
+                data: token
             });
         }
     )
+
+    static getInvitation = asyncHandler(
+        async (req: Request<GetCompanyInvitationTokenDto>, res: Response) => {
+
+            const { token } = req.params;
+
+            const invitation =
+                await CompanyService.getInvitation(token);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_INVITATION_FETCHED,
+                data: invitation
+            });
+        }
+    );
 }
