@@ -1,7 +1,7 @@
 import prisma from "../../../config/database.js";
 import { companySelect, companyMemberSelect } from "../../../common/prisma.select/company.select.js";
 import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus, type Prisma } from "@prisma/client";
-import type { CreateCompanyInput, UpdateCompanyInput, CompanyMemberList, CompanyMemberDetails } from "../interfaces/company.interface.js";
+import type { CreateCompanyInput, UpdateCompanyInput, CompanyMemberList, CompanyMemberDetails, RemoveCompanyMembersResponse } from "../interfaces/company.interface.js";
 import type { Company } from "@prisma/client";
 
 export type CompanyView = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
@@ -118,7 +118,7 @@ export class CompanyRepository {
             }
             : null;
     }
-    
+
     static async deleteCompany(
         companyId: string,
         userId: string
@@ -174,5 +174,46 @@ export class CompanyRepository {
             },
             select: companyMemberSelect
         })
+    }
+
+    static async removeMember(
+        companyId: string,
+        userIds: string[]
+    ): Promise<RemoveCompanyMembersResponse> {
+        const members = await prisma.companyMember.findMany({
+            where: {
+                companyId,
+                userId: {
+                    in: userIds
+                }
+            }
+        });
+        const deleteResult = await prisma.companyMember.deleteMany({
+            where: {
+                companyId,
+                userId: {
+                    in: userIds
+                }
+            }
+        });
+
+        return {
+            removedCount: deleteResult.count,
+            removedMembers: members
+        };
+    }
+
+    static async findMembersByUserIds(
+        companyId: string,
+        userIds: string[]
+    ): Promise<CompanyMemberList[]> {
+        return prisma.companyMember.findMany({
+            where: {
+                companyId,
+                userId: {
+                    in: userIds
+                }
+            }
+        });
     }
 }

@@ -67,3 +67,8 @@ export interface InvitationResponse {
     inviteeEmail: string;
     expiresAt: Date | null;
 }
+
+export interface RemoveCompanyMembersResponse {
+    removedCount: number;
+    removedMembers: CompanyMemberList[];
+}

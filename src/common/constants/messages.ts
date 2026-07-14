@@ -44,6 +44,7 @@ export const MESSAGE = {
     COMPANY_INVITATION_ACCEPTED: "Company invitation accepted successfully.",
     COMPANY_MEMBERS_FETCHED: "Company members fetched successfully.",
     COMPANY_MEMBER_ROLE_UPDATED:"Role Updated Successfully",
+    COMPANY_MEMBER_REMOVED:"Removed Company Member",
 
     // Job
     JOB_CREATED: "Job created successfully.",

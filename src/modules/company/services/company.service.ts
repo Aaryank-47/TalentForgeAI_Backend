@@ -12,7 +12,12 @@ import { emailTemplates } from "../../../common/email/email.templates.js"
 import { EmailService } from "../../../common/email/email.service.js";
 import { InvitationTokenHelper } from "../utils/invitationToken.util.js";
 import { env } from "../../../config/env.js";
-import type { InvitationResponse, CompanyMemberDetails, CompanyMemberList } from "../interfaces/company.interface.js";
+import type {
+    InvitationResponse,
+    CompanyMemberDetails,
+    CompanyMemberList,
+    RemoveCompanyMembersResponse
+} from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 
 export class CompanyService {
@@ -355,7 +360,7 @@ export class CompanyService {
 
     static async listAllCompanyMembers(
         companyId: string
-    ):Promise<CompanyMemberDetails[]>{
+    ): Promise<CompanyMemberDetails[]> {
         const company = await CompanyRepository.getRawCompanyById(companyId);
         if (!company) {
             throw new NotFoundError("Company not found.");
@@ -366,14 +371,14 @@ export class CompanyService {
 
         const members = await CompanyRepository.listAllMembers(companyId);
 
-        return members; 
+        return members;
     }
 
     static async updateCompanyMemberRole(
         companyId: string,
         userId: string,
         role: CompanyMemberRole
-    ):Promise<CompanyMemberList>{
+    ): Promise<CompanyMemberList> {
         const company = await CompanyRepository.getRawCompanyById(companyId);
         if (!company) {
             throw new NotFoundError("Company not found.");
@@ -390,6 +395,47 @@ export class CompanyService {
         const updatedMember = await CompanyRepository.updateMembership(member.id, { role });
 
         return updatedMember;
+    }
+
+    static async removeCompanyMember(
+        companyId: string,
+        userIds: string[]
+    ): Promise<RemoveCompanyMembersResponse> {
+
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+        const members = await CompanyRepository.findMembersByUserIds(
+            companyId,
+            userIds
+        );
+
+        if (members.length === 0) {
+            throw new NotFoundError("No members found matching the criteria.");
+        }
+
+        const foundUserIds = new Set(
+            members.map(member => member.userId)
+        );
+
+        const invalidUsers = userIds.filter(
+            id => !foundUserIds.has(id)
+        );
+
+        if (invalidUsers.length > 0) {
+            throw new NotFoundError(
+                `These users are not members of this company: ${invalidUsers.join(", ")}`
+            );
+        }
+
+        const { removedCount } = await CompanyRepository.removeMember(companyId, userIds);
+
+        return { removedCount, removedMembers: members };
     }
 }
 

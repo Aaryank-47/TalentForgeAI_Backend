@@ -56,7 +56,7 @@ export type UpdateCompanyDto = z.infer<typeof updateCompanyDto>;
 
 export const deleteCompanyDto = z.object({
     companyId: companyIdValidator,
-    userId:userIdValidator
+    userId: userIdValidator
 })
 
 export type DeleteCompanyDto = z.infer<typeof deleteCompanyDto>;
@@ -77,7 +77,7 @@ export type GetCompanyInvitationTokenDto = z.infer<typeof getCompanyInvitationTo
 
 export const acceptOrRejectInvitationDto = z.object({
     token: companyInvitationToken,
-    action: z.string().trim().toLowerCase().refine(action => ["accept","reject"].includes(action), {
+    action: z.string().trim().toLowerCase().refine(action => ["accept", "reject"].includes(action), {
         message: "Action must be 'accept' or 'reject'"
     })
 })
@@ -89,3 +89,12 @@ export const updateCompanyMemberRoleDto = z.object({
 })
 
 export type UpdateCompanyMemberRoleDto = z.infer<typeof updateCompanyMemberRoleDto>
+
+export const removeCompanyMembersDto = z.object({
+    userIds: z
+        .array(userIdValidator)
+        .min(1, "select atleast one member to remove")
+        .max(100, "Maximum of 100 members can be removed at once")
+});
+
+export type RemoveCompanyMembersDto = z.infer<typeof removeCompanyMembersDto>;

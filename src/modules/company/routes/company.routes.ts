@@ -9,7 +9,8 @@ import {
     sendInvitationDto,
     getCompanyInvitationTokenDto,
     acceptOrRejectInvitationDto,
-    updateCompanyMemberRoleDto
+    updateCompanyMemberRoleDto,
+    removeCompanyMembersDto
 } from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
 import {loadCompanyMembership} from "../../../common/middleware/loadCompanyMembership.js";
@@ -99,6 +100,20 @@ router.patch(
     validate(deleteCompanyDto, "params"),
     validate(updateCompanyMemberRoleDto, "body"),
     CompanyController.updateCompanyMemberRole
+);
+
+router.delete(
+    "/:companyId/remove/members",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    loadCompanyMembership,
+    authorizedCompanyMember(
+        "OWNER",
+        "ADMIN"
+    ),
+    validate(companyIdParamDto, "params"),
+    validate(removeCompanyMembersDto, "body"),
+    CompanyController.removeCompanyMember
 );
 
 export default router;
