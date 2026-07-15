@@ -668,4 +668,8 @@ export class CompanyService {
         return restored;
     }
 
+    static async getAllCompanies(): Promise<CompanyView[]> {
+    return CompanyRepository.getAllCompanies();
+}
+
 }

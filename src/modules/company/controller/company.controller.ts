@@ -299,4 +299,18 @@ export class CompanyController {
             });
         }
     );
+
+    static getAllCompanies = asyncHandler(
+        async(
+            req: Request,
+            res: Response
+        ) => {
+            const companies = await CompanyService.getAllCompanies();
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANIES_FETCHED,
+                data: companies
+            });
+        }
+    )
 }

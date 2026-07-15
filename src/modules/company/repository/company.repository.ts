@@ -302,4 +302,15 @@ export class CompanyRepository {
             select: companySelect
         })
     }
+
+    static async getAllCompanies(): Promise<CompanyView[]> {
+    return prisma.company.findMany({
+        where: {
+            deletedAt: null,
+            status: CompanyStatus.ACTIVE,
+            isVerified: true,
+        },
+        select: companySelect,
+    });
+}
 }

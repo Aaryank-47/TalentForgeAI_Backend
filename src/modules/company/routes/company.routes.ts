@@ -166,4 +166,9 @@ router.patch(
     CompanyController.restoreCompany
 );
 
+router.get(
+    "/get/all",
+    CompanyController.getAllCompanies
+)
+
 export default router;
