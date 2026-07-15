@@ -87,6 +87,8 @@ export class ElasticsearchService {
                     status: "ACTIVE",
                     visibility: "PUBLIC",
                     isVerified: company.isVerified,
+                    verifiedAt: company.verifiedAt || null,
+                    verifiedBy: company.verifiedBy ?? null,
                     profileCompletion: company.profileCompletion,
                     createdAt: company.createdAt.toISOString(),
                     updatedAt: company.updatedAt.toISOString(),
