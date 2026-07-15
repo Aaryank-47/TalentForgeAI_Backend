@@ -19,6 +19,11 @@ export const companySelect = {
     verifiedAt: true,
     verifiedBy:true,
     deletedAt: true,
+    suspendedAt: true,
+    suspendedBy: true,
+    suspendedReason: true,
+    restoredAt: true,
+    restoredBy: true,
     createdAt: true,
     updatedAt: true,
 } as const;

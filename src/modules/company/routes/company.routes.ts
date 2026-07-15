@@ -12,6 +12,7 @@ import {
     updateCompanyMemberRoleDto,
     removeCompanyMembersDto,
     searchCompanyDto,
+    suspendCompanyDto,
 } from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
@@ -153,7 +154,16 @@ router.patch(
     authMiddleware,
     authorize("SUPER_ADMIN"),
     validate(companyIdParamDto, "params"),
+    validate(suspendCompanyDto, "body"),
     CompanyController.suspendCompany
+);
+
+router.patch(
+    "/admin/companies/:companyId/restore",
+    authMiddleware,
+    authorize("SUPER_ADMIN"),
+    validate(companyIdParamDto, "params"),
+    CompanyController.restoreCompany
 );
 
 export default router;

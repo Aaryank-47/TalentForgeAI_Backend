@@ -249,7 +249,7 @@ export class CompanyRepository {
     static async verifyCompany(
         companyId: string,
         verifiedBy: string
-    ): Promise<CompanyDetails> {
+    ): Promise<CompanyView> {
         return prisma.company.update({
             where: {
                 id: companyId
@@ -258,13 +258,16 @@ export class CompanyRepository {
                 isVerified: true,
                 verifiedAt: new Date(),
                 verifiedBy: verifiedBy,
+                status: CompanyStatus.ACTIVE,
             },
             select: companySelect
         })
     }
 
     static async suspendCompany(
-        companyId: string
+        companyId: string,
+        suspendedBy: string,
+        reason: string
     ): Promise<CompanyView> {
         return prisma.company.update({
             where: {
@@ -272,6 +275,29 @@ export class CompanyRepository {
             },
             data: {
                 status: CompanyStatus.SUSPENDED,
+                suspendedAt: new Date(),
+                suspendedBy: suspendedBy,
+                suspendedReason: reason,
+            },
+            select: companySelect
+        })
+    }
+    
+    static async restoreCompany(
+        companyId: string,
+        restoredBy: string
+    ): Promise<CompanyView> {
+        return prisma.company.update({
+            where: {
+                id: companyId
+            },
+            data: {
+                status: CompanyStatus.ACTIVE,
+                restoredAt: new Date(),
+                restoredBy: restoredBy,
+                suspendedAt: null,
+                suspendedBy: null,
+                suspendedReason: null,
             },
             select: companySelect
         })

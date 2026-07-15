@@ -54,6 +54,11 @@ export interface CompanyDetails {
     verifiedBy: string | null;
 
     deletedAt: Date | null;
+    suspendedAt: Date | null;
+    suspendedBy: string | null;
+    suspendedReason: string | null;
+    restoredAt: Date | null;
+    restoredBy: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -136,6 +141,8 @@ export interface CompanySearchView {
     isVerified: boolean;
     verifiedAt: Date|null;
     verifiedBy: string|null;
+    restoredAt: Date|null;
+    restoredBy: string|null;
     profileCompletion: number;
     createdAt: string;
     updatedAt: string;

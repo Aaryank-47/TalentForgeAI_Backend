@@ -187,6 +187,11 @@ model Company {
   updatedAt         DateTime          @updatedAt
   deletedAt         DateTime?
   deletedBy         String?
+  suspendedAt       DateTime?
+  suspendedBy       String?
+  suspendedReason   String?
+  restoredAt        DateTime?
+  restoredBy        String?
   jobs              Job[]
   companyMembers    CompanyMember[]
 }

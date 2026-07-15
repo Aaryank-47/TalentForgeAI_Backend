@@ -582,16 +582,27 @@ export class CompanyService {
         return ElasticsearchService.searchCompanies(params);
     }
 
-    static async verifyCompany(
-        companyId: string,
-        verifiedBy: string
-    ): Promise<CompanyDetails> {
+    private static async getValidCompany(companyId: string) {
         const company = await CompanyRepository.getRawCompanyById(companyId);
         if (!company) {
             throw new NotFoundError("Company not found.");
         }
         if (company.deletedAt) {
             throw new ConflictError("Company has been deleted.");
+        }
+        return company;
+    }
+
+    static async verifyCompany(
+        companyId: string,
+        verifiedBy: string
+    ): Promise<CompanyView> {
+        const company = await this.getValidCompany(companyId);
+
+        if (company.status === CompanyStatus.SUSPENDED) {
+            throw new ConflictError(
+                "Suspended company cannot be verified."
+            );
         }
         if (company.isVerified) {
             throw new ConflictError("Company is already verified.");
@@ -603,7 +614,7 @@ export class CompanyService {
         );
 
         ElasticsearchService.indexCompany(toCompanySearchView(verified)).catch((err) => {
-            logger.error({ err, companyId }, "[ES] Failed to sync company after verification.");
+            logger.error({ err, companyId }, "[ES] Failed to index verified company.");
         });
 
         return verified;
@@ -612,27 +623,49 @@ export class CompanyService {
 
     static async suspendCompany(
         companyId: string,
+        suspendedBy: string,
+        reason: string
     ): Promise<CompanyView> {
-        const company = await CompanyRepository.getRawCompanyById(companyId);
-        if (!company) {
-            throw new NotFoundError("Company not found.");
-        }
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
-        }
+        const company = await this.getValidCompany(companyId);
+
         if (company.status === CompanyStatus.SUSPENDED) {
-            throw new ConflictError("Company is already suspended");
+            throw new ConflictError("Company is already suspended.");
         }
 
         const suspended = await CompanyRepository.suspendCompany(
-            companyId
+            companyId,
+            suspendedBy,
+            reason
         );
 
-        ElasticsearchService.indexCompany(toCompanySearchView(suspended)).catch((err) => {
-            logger.error({ err, companyId }, "[ES] Failed to sync company after verification.");
+        ElasticsearchService.removeCompany(companyId).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to remove suspended company.");
         });
 
         return suspended;
+    }
+
+
+    static async restoreCompany(
+        companyId: string,
+        restoredBy: string
+    ): Promise<CompanyView> {
+        const company = await this.getValidCompany(companyId);
+
+        if (company.status !== CompanyStatus.SUSPENDED) {
+            throw new ConflictError("Company is not suspended no need to restore the company");
+        }
+
+        const restored = await CompanyRepository.restoreCompany(
+            companyId,
+            restoredBy
+        );
+
+        ElasticsearchService.indexCompany(toCompanySearchView(restored)).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to re-index restored company.");
+        });
+
+        return restored;
     }
 
 }

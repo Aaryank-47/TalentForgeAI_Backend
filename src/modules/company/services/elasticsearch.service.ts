@@ -89,6 +89,8 @@ export class ElasticsearchService {
                     isVerified: company.isVerified,
                     verifiedAt: company.verifiedAt || null,
                     verifiedBy: company.verifiedBy ?? null,
+                    restoredAt: (company as any).restoredAt || null,
+                    restoredBy: (company as any).restoredBy ?? null,
                     profileCompletion: company.profileCompletion,
                     createdAt: company.createdAt.toISOString(),
                     updatedAt: company.updatedAt.toISOString(),

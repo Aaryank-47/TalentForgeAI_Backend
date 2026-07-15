@@ -50,6 +50,7 @@ export const MESSAGE = {
     COMPANY_SEARCH_SUCCESS: "Companies fetched successfully.",
     COMPANY_VERIFIED: "Company verified successfully.",
     COMPANY_SUSPENDED: "Company suspended successfully.",
+    COMPANY_RESTORED: "Company restored successfully.",
 
     // Job
     JOB_CREATED: "Job created successfully.",

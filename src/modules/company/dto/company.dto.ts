@@ -117,3 +117,13 @@ export const searchCompanyDto = z.object({
 });
 
 export type SearchCompanyDto = z.infer<typeof searchCompanyDto>;
+
+export const suspendCompanyDto = z.object({
+    reason: z
+        .string()
+        .trim()
+        .min(3, "Reason must be at least 3 characters long")
+        .max(500, "Reason must be at most 500 characters long"),
+});
+
+export type SuspendCompanyDto = z.infer<typeof suspendCompanyDto>;

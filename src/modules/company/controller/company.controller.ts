@@ -10,6 +10,7 @@ import type {
     DeleteCompanyDto,
     RemoveCompanyMembersDto,
     SearchCompanyDto,
+    SuspendCompanyDto,
 } from "../dto/company.dto.js";
 import { CompanyService } from "../services/company.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
@@ -242,7 +243,6 @@ export class CompanyController {
             req: Request<CompanyIdParamDto>,
             res: Response
         ) => {
-
             const { companyId } = req.params;
 
             const company = await CompanyService.verifyCompany(
@@ -260,19 +260,41 @@ export class CompanyController {
     
     static suspendCompany = asyncHandler(
         async (
-            req: Request<CompanyIdParamDto>,
+            req: Request<CompanyIdParamDto, any, SuspendCompanyDto>,
             res: Response
         ) => {
-
             const { companyId } = req.params;
+            const { reason } = req.body;
 
             const company = await CompanyService.suspendCompany(
-                companyId
+                companyId,
+                req.user!.id,
+                reason
             );
 
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: MESSAGE.COMPANY_SUSPENDED,
+                data: company
+            });
+        }
+    );
+
+    static restoreCompany = asyncHandler(
+        async (
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        ) => {
+            const { companyId } = req.params;
+
+            const company = await CompanyService.restoreCompany(
+                companyId,
+                req.user!.id
+            );
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_RESTORED,
                 data: company
             });
         }
