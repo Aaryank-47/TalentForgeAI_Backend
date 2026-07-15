@@ -14,7 +14,7 @@ import {
     searchCompanyDto,
 } from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
-import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.Middleware.js";
+import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
 import { authorizedCompanyMember } from "../../../common/middleware/allowCompanyRoles.middleware.js";
 import { deleteCompanyDto } from "../dto/company.dto.js";
 import { uploadSingleFile } from "../../../common/uploads/index.js";
@@ -137,6 +137,14 @@ router.patch(
     authorizedCompanyMember("OWNER", "ADMIN"),
     uploadSingleFile("cover"),
     CompanyController.uploadCoverImage
+);
+
+router.patch(
+    "/admin/companies/:companyId/verify",
+    authMiddleware,
+    authorize("SUPER_ADMIN"),
+    validate(companyIdParamDto, "params"),
+    CompanyController.verifyCompany
 );
 
 export default router;

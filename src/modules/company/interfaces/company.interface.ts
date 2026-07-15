@@ -29,6 +29,35 @@ export interface UpdateCompanyInput {
     deletedAt?:Date|null;
 }
 
+export interface CompanyDetails {
+    id: string;
+    companyName: string;
+    slug: string;
+
+    companyEmail: string | null;
+    phoneNumber: string | null;
+    website: string | null;
+    logo: string | null;
+    coverImage: string | null;
+    description: string | null;
+    industry: string | null;
+    companySize: string | null;
+    foundedYear: number | null;
+    headquarters: string | null;
+    linkedinUrl: string | null;
+    twitterUrl: string | null;
+
+    profileCompletion: number;
+    isVerified: boolean;
+
+    verifiedAt: Date | null;
+    verifiedBy: string | null;
+
+    deletedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 
 export interface CompanyMemberList {
     id: string
@@ -105,6 +134,8 @@ export interface CompanySearchView {
     status: string;
     visibility: string;
     isVerified: boolean;
+    verifiedAt: Date|null;
+    verifiedBy: string|null;
     profileCompletion: number;
     createdAt: string;
     updatedAt: string;

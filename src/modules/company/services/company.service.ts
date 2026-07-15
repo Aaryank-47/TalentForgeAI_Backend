@@ -20,7 +20,8 @@ import type {
     RemoveCompanyMembersResponse,
     UploadCompanyLogoResult,
     UploadCompanyCoverResult,
-    SearchCompanyResult
+    SearchCompanyResult,
+    CompanyDetails
 } from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 import { ElasticsearchService } from "./elasticsearch.service.js";
@@ -579,5 +580,32 @@ export class CompanyService {
         params: SearchCompanyDto
     ): Promise<SearchCompanyResult> {
         return ElasticsearchService.searchCompanies(params);
+    }
+
+    static async verifyCompany(
+        companyId: string,
+        verifiedBy: string
+    ): Promise<CompanyDetails> {
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+        if (company.isVerified) {
+            throw new ConflictError("Company is already verified.");
+        }
+
+        const verified = await CompanyRepository.verifyCompany(
+            companyId,
+            verifiedBy
+        );
+
+        ElasticsearchService.indexCompany(toCompanySearchView(verified)).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to sync company after verification.");
+        });
+
+        return verified;
     }
 }

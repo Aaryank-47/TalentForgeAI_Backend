@@ -16,6 +16,8 @@ export const companySelect = {
     twitterUrl: true,
     profileCompletion: true,
     isVerified: true,
+    verifiedAt: true,
+    verifiedBy:true,
     deletedAt: true,
     createdAt: true,
     updatedAt: true,

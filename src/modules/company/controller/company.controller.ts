@@ -236,4 +236,25 @@ export class CompanyController {
             });
         }
     )
+
+    static verifyCompany = asyncHandler(
+        async (
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        ) => {
+
+            const { companyId } = req.params;
+
+            const company = await CompanyService.verifyCompany(
+                companyId,
+                req.user!.id
+            );
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_VERIFIED,
+                data: company
+            });
+        }
+    );
 }

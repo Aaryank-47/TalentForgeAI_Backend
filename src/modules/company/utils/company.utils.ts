@@ -64,6 +64,8 @@ export function toCompanySearchView(company: CompanyView & { status?: string; vi
         status: (company as any).status ?? "DRAFT",
         visibility: (company as any).visibility ?? "PUBLIC",
         isVerified: company.isVerified,
+        verifiedAt: company.verifiedAt,
+        verifiedBy: company.verifiedBy,
         profileCompletion: company.profileCompletion,
         createdAt: company.createdAt.toISOString(),
         updatedAt: company.updatedAt.toISOString(),

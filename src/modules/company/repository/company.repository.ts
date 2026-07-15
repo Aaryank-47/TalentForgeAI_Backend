@@ -1,7 +1,14 @@
 import prisma from "../../../config/database.js";
 import { companySelect, companyMemberSelect } from "../../../common/prisma.select/company.select.js";
 import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus, type Prisma } from "@prisma/client";
-import type { CreateCompanyInput, UpdateCompanyInput, CompanyMemberList, CompanyMemberDetails, RemoveCompanyMembersResponse } from "../interfaces/company.interface.js";
+import type {
+    CreateCompanyInput,
+    UpdateCompanyInput,
+    CompanyMemberList,
+    CompanyMemberDetails,
+    RemoveCompanyMembersResponse,
+    CompanyDetails
+} from "../interfaces/company.interface.js";
 import type { Company } from "@prisma/client";
 
 export type CompanyView = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
@@ -237,5 +244,22 @@ export class CompanyRepository {
             data: { coverImage: coverUrl },
             select: companySelect,
         });
+    }
+
+    static async verifyCompany(
+        companyId: string,
+        verifiedBy: string
+    ): Promise<CompanyDetails> {
+        return prisma.company.update({
+            where: {
+                id: companyId
+            },
+            data: {
+                isVerified: true,
+                verifiedAt: new Date(),
+                verifiedBy: verifiedBy,
+            },
+            select: companySelect
+        })
     }
 }

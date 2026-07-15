@@ -48,6 +48,7 @@ export const MESSAGE = {
     COMPANY_LOGO_UPLOADED: "Company logo uploaded successfully.",
     COMPANY_COVER_UPLOADED: "Company cover image uploaded successfully.",
     COMPANY_SEARCH_SUCCESS: "Companies fetched successfully.",
+    COMPANY_VERIFIED: "Company verified successfully.",
 
     // Job
     JOB_CREATED: "Job created successfully.",
