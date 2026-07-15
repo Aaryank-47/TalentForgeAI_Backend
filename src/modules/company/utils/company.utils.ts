@@ -1,4 +1,5 @@
 import type { Company } from "@prisma/client";
+import type { CompanyView, CompanySearchView } from "../interfaces/company.interface.js";
 
 const PROFILE_FIELDS: (keyof Company)[] = [
     "companyEmail",
@@ -33,3 +34,38 @@ export function omitUndefined<T extends object>(obj: T) {
 }
 
 export const invitationTokenGeneration = crypto.randomUUID();
+
+export function extractPublicId(url: string): string | null {
+    try {
+        const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/);
+        return (match?.[1]) ?? null;
+    } catch {
+        return null;
+    }
+}
+
+export function toCompanySearchView(company: CompanyView & { status?: string; visibility?: string }): CompanySearchView {
+    return {
+        id: company.id,
+        companyName: company.companyName,
+        slug: company.slug,
+        industry: company.industry ?? null,
+        description: company.description ?? null,
+        headquarters: company.headquarters ?? null,
+        website: company.website ?? null,
+        companySize: company.companySize ?? null,
+        companyEmail: company.companyEmail ?? null,
+        phoneNumber: company.phoneNumber ?? null,
+        logo: company.logo ?? null,
+        coverImage: company.coverImage ?? null,
+        foundedYear: company.foundedYear ?? null,
+        linkedinUrl: company.linkedinUrl ?? null,
+        twitterUrl: company.twitterUrl ?? null,
+        status: (company as any).status ?? "DRAFT",
+        visibility: (company as any).visibility ?? "PUBLIC",
+        isVerified: company.isVerified,
+        profileCompletion: company.profileCompletion,
+        createdAt: company.createdAt.toISOString(),
+        updatedAt: company.updatedAt.toISOString(),
+    };
+}

@@ -1,10 +1,11 @@
-import type { CreateCompanyDto, UpdateCompanyDto } from "../dto/company.dto.js";
+import type { CreateCompanyDto, UpdateCompanyDto, SearchCompanyDto } from "../dto/company.dto.js";
 import type { CompanyView } from "../repository/company.repository.js";
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import { CompanyRepository } from "../repository/company.repository.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
+import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
 import { calculateProfileCompletion, omitUndefined } from "../utils/company.utils.js";
 import { CompanyMemberRole, UserRole, CompanyMemberStatus } from "@prisma/client";
@@ -16,9 +17,18 @@ import type {
     InvitationResponse,
     CompanyMemberDetails,
     CompanyMemberList,
-    RemoveCompanyMembersResponse
+    RemoveCompanyMembersResponse,
+    UploadCompanyLogoResult,
+    UploadCompanyCoverResult,
+    SearchCompanyResult
 } from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
+import { ElasticsearchService } from "./elasticsearch.service.js";
+import { uploadFileToCloudinary } from "../../../common/helper/upload.helper.js";
+import { deleteFileFromCloudinary } from "../../../common/helper/delete.helper.js";
+import { logger } from "../../../common/logger/logger.js";
+import { COMPANY_IMAGE_MIME_TYPES, COMPANY_IMAGE_MAX_BYTES } from "../constants/company.contants.js"
+import { extractPublicId, toCompanySearchView } from "../utils/company.utils.js"
 
 export class CompanyService {
     static async createCompany(
@@ -46,6 +56,10 @@ export class CompanyService {
             companyEmail: dto.companyEmail,
             website: dto.website,
             phoneNumber: dto.phoneNumber,
+        });
+
+        ElasticsearchService.indexCompany(toCompanySearchView(newCompany)).catch((err) => {
+            logger.error({ err, companyId: newCompany.id }, "[ES] Failed to index new company.");
         });
 
         return newCompany;
@@ -102,6 +116,10 @@ export class CompanyService {
             })
         );
 
+        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to sync updated company.");
+        });
+
         return updated;
     }
 
@@ -135,6 +153,10 @@ export class CompanyService {
         }
 
         await CompanyRepository.deleteCompany(companyId, userId);
+
+        ElasticsearchService.removeCompany(companyId).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to remove deleted company from index.");
+        });
     }
 
     static async sendInvitation(
@@ -208,7 +230,6 @@ export class CompanyService {
             });
 
             const invitationLink = `${env.app.frontendUrl}/invitations/accept?token=${token}`;
-            // console.log("invitationLink : ",invitationLink);
             const emailTemplate = emailTemplates.existingUserInvitationTemplate(
                 company.companyName,
                 inviter.profile.fullName,
@@ -437,5 +458,126 @@ export class CompanyService {
 
         return { removedCount, removedMembers: members };
     }
-}
 
+
+    static async uploadLogo(
+        companyId: string,
+        file: Express.Multer.File
+    ): Promise<UploadCompanyLogoResult> {
+        if (!file) {
+            throw new ValidationError("No image file provided.", {
+                logo: { _errors: ["A logo image file is required."] },
+            });
+        }
+
+        if (!(COMPANY_IMAGE_MIME_TYPES as readonly string[]).includes(file.mimetype)) {
+            throw new ValidationError("Invalid file type.", {
+                logo: {
+                    _errors: [
+                        `Unsupported file type: ${file.mimetype}. Allowed: jpeg, jpg, png, svg, webp`,
+                    ],
+                },
+            });
+        }
+
+        if (file.size > COMPANY_IMAGE_MAX_BYTES) {
+            throw new ValidationError("File too large.", {
+                logo: { _errors: ["Logo image must not exceed 5 MB."] },
+            });
+        }
+
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+
+        if (company.logo) {
+            const publicId = extractPublicId(company.logo);
+            if (publicId) {
+                await deleteFileFromCloudinary({ publicId, resourceType: "image" }).catch((err) => {
+                    logger.warn({ err, companyId }, "[Cloudinary] Failed to delete old logo — continuing.");
+                });
+            }
+        }
+
+        const uploaded = await uploadFileToCloudinary(file, {
+            folder: "talentforge/company/logo",
+            resourceType: "image",
+        });
+        const updated = await CompanyRepository.updateLogo(companyId, uploaded.secureUrl);
+
+        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to sync company after logo upload.");
+        });
+
+        return { logo: uploaded.secureUrl };
+    }
+
+    static async uploadCoverImage(
+        companyId: string,
+        file: Express.Multer.File
+    ): Promise<UploadCompanyCoverResult> {
+        if (!file) {
+            throw new ValidationError("No image file provided.", {
+                cover: { _errors: ["A cover image file is required."] },
+            });
+        }
+
+        if (!(COMPANY_IMAGE_MIME_TYPES as readonly string[]).includes(file.mimetype)) {
+            throw new ValidationError("Invalid file type.", {
+                cover: {
+                    _errors: [
+                        `Unsupported file type: ${file.mimetype}. Allowed: jpeg, jpg, png, svg, webp`,
+                    ],
+                },
+            });
+        }
+
+        if (file.size > COMPANY_IMAGE_MAX_BYTES) {
+            throw new ValidationError("File too large.", {
+                cover: { _errors: ["Cover image must not exceed 5 MB."] },
+            });
+        }
+
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+
+        if (company.coverImage) {
+            const publicId = extractPublicId(company.coverImage);
+            if (publicId) {
+                await deleteFileFromCloudinary({ publicId, resourceType: "image" }).catch((err) => {
+                    logger.warn({ err, companyId }, "[Cloudinary] Failed to delete old cover — continuing.");
+                });
+            }
+        }
+
+        const uploaded = await uploadFileToCloudinary(file, {
+            folder: "talentforge/company/cover",
+            resourceType: "image",
+        });
+
+        const updated = await CompanyRepository.updateCoverImage(companyId, uploaded.secureUrl);
+
+        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to sync company after cover upload.");
+        });
+
+        return { coverImage: uploaded.secureUrl };
+    }
+
+    static async searchCompanies(
+        params: SearchCompanyDto
+    ): Promise<SearchCompanyResult> {
+        return ElasticsearchService.searchCompanies(params);
+    }
+}

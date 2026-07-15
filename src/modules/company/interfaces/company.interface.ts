@@ -1,4 +1,7 @@
 import { CompanyMemberRole, CompanyMemberStatus } from "@prisma/client";
+import { companySelect } from "../../../common/prisma.select/company.select.js";
+import { type Prisma } from "@prisma/client"
+
 
 export interface CreateCompanyInput {
     userId: string;
@@ -71,4 +74,50 @@ export interface InvitationResponse {
 export interface RemoveCompanyMembersResponse {
     removedCount: number;
     removedMembers: CompanyMemberList[];
+}
+
+export type CompanyView = Prisma.CompanyGetPayload<{ select: typeof companySelect }>;
+
+export interface UploadCompanyLogoResult {
+    logo: string;
+}
+
+export interface UploadCompanyCoverResult {
+    coverImage: string;
+}
+
+export interface CompanySearchView {
+    id: string;
+    companyName: string;
+    slug: string;
+    industry: string | null;
+    description: string | null;
+    headquarters: string | null;
+    website: string | null;
+    companySize: string | null;
+    companyEmail: string | null;
+    phoneNumber: string | null;
+    logo: string | null;
+    coverImage: string | null;
+    foundedYear: number | null;
+    linkedinUrl: string | null;
+    twitterUrl: string | null;
+    status: string;
+    visibility: string;
+    isVerified: boolean;
+    profileCompletion: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface SearchCompanyResult {
+    data: CompanySearchView[];
+    pagination: {
+        page: number;
+        limit: number;
+        totalItems: number;
+        totalPages: number;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+    };
 }

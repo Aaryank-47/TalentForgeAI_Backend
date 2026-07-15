@@ -8,7 +8,8 @@ import type {
     AcceptOrRejectInvitationDto,
     UpdateCompanyMemberRoleDto,
     DeleteCompanyDto,
-    RemoveCompanyMembersDto
+    RemoveCompanyMembersDto,
+    SearchCompanyDto,
 } from "../dto/company.dto.js";
 import { CompanyService } from "../services/company.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
@@ -185,6 +186,53 @@ export class CompanyController {
                 success: true,
                 message: MESSAGE.COMPANY_MEMBER_REMOVED,
                 data: updatedMember,
+            });
+        }
+    )
+
+    static uploadLogo = asyncHandler(
+        async (req: Request<CompanyIdParamDto>, res: Response) => {
+            const companyId = req.params.companyId;
+            const file = req.file as Express.Multer.File;
+
+            const result = await CompanyService.uploadLogo(companyId, file);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_LOGO_UPLOADED,
+                data: result,
+            });
+        }
+    )
+
+    static uploadCoverImage = asyncHandler(
+        async (req: Request<CompanyIdParamDto>, res: Response) => {
+            const companyId = req.params.companyId;
+            const file = req.file as Express.Multer.File;
+
+            const result = await CompanyService.uploadCoverImage(companyId, file);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_COVER_UPLOADED,
+                data: result,
+            });
+        }
+    )
+
+    static searchCompanies = asyncHandler(
+        async (req: Request, res: Response) => {
+            console.log("------------------ Reached to the controller ----------------------")
+            const params = req.query as unknown as SearchCompanyDto;
+            console.log("params : " + params)
+            const result = await CompanyService.searchCompanies(params);
+            console.log("result : " + result)
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_SEARCH_SUCCESS,
+                data: result.data,
+                pagination: result.pagination,
             });
         }
     )

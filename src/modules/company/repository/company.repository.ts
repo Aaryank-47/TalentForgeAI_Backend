@@ -216,4 +216,26 @@ export class CompanyRepository {
             }
         });
     }
+
+    static async updateLogo(
+        companyId: string,
+        logoUrl: string
+    ): Promise<CompanyView> {
+        return prisma.company.update({
+            where: { id: companyId },
+            data: { logo: logoUrl },
+            select: companySelect,
+        });
+    }
+
+    static async updateCoverImage(
+        companyId: string,
+        coverUrl: string
+    ): Promise<CompanyView> {
+        return prisma.company.update({
+            where: { id: companyId },
+            data: { coverImage: coverUrl },
+            select: companySelect,
+        });
+    }
 }

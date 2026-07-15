@@ -45,6 +45,9 @@ export const MESSAGE = {
     COMPANY_MEMBERS_FETCHED: "Company members fetched successfully.",
     COMPANY_MEMBER_ROLE_UPDATED:"Role Updated Successfully",
     COMPANY_MEMBER_REMOVED:"Removed Company Member",
+    COMPANY_LOGO_UPLOADED: "Company logo uploaded successfully.",
+    COMPANY_COVER_UPLOADED: "Company cover image uploaded successfully.",
+    COMPANY_SEARCH_SUCCESS: "Companies fetched successfully.",
 
     // Job
     JOB_CREATED: "Job created successfully.",

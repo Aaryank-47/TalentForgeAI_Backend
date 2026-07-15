@@ -14,7 +14,13 @@ export const validate = (
 ): void => {
 
         try {
-            req[target] = schema.parse(req[target]);
+            const parsed = schema.parse(req[target]);
+            Object.defineProperty(req, target, {
+                value: parsed,
+                writable: true,
+                configurable: true,
+                enumerable: true
+            });
             next();
         } catch (error) {
             if (error instanceof ZodError) {

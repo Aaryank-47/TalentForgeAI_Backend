@@ -6,5 +6,6 @@ export {
     getCompanyInvitationTokenDto,
     acceptOrRejectInvitationDto,
     updateCompanyMemberRoleDto,
-    removeCompanyMembersDto
+    removeCompanyMembersDto,
+    searchCompanyDto
 } from "../dto/company.dto.js";

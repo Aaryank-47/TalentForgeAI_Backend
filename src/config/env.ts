@@ -22,7 +22,11 @@ const envSchema = z.object({
     CLOUDINARY_CLOUD_NAME: z.string().min(1),
     INVITATION_TOKEN_SECRET: z.string().min(1),
     INVITATION_TOKEN_EXPIRES_IN: z.string(),
-    FRONTEND_URL: z.string()
+    FRONTEND_URL: z.string(),
+    ELASTICSEARCH_URL: z.string().min(1).default("http://localhost:9200"),
+    ELASTICSEARCH_USERNAME: z.string().optional(),
+    ELASTICSEARCH_PASSWORD: z.string().optional(),
+    ELASTICSEARCH_API_KEY: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -62,7 +66,13 @@ export const env = {
     },
     app: {
         frontendUrl: parsedEnv.data.FRONTEND_URL,
-    }
+    },
+    elasticsearch: {
+        url: parsedEnv.data.ELASTICSEARCH_URL,
+        username: parsedEnv.data.ELASTICSEARCH_USERNAME,
+        password: parsedEnv.data.ELASTICSEARCH_PASSWORD,
+        apiKey: parsedEnv.data.ELASTICSEARCH_API_KEY,
+    },
 } as const;
 
 export default env;

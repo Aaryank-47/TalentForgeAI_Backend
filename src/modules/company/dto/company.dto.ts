@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CompanyMemberRole } from "@prisma/client";
+import { CompanyMemberRole, CompanyVisibility, CompanyStatus } from "@prisma/client";
 import {
     companyNameValidator,
     companyEmailValidator,
@@ -47,6 +47,9 @@ export const updateCompanyDto = z.object({
     headquarters: headquartersValidator.optional(),
     linkedinUrl: companyLinkedInUrlValidator.optional(),
     twitterUrl: twitterUrlValidator.optional(),
+    visibility:z.enum(CompanyVisibility).optional(),
+    status: z.enum(CompanyStatus).optional()
+
 }).refine(
     (data) => Object.values(data).some((v) => v !== undefined),
     { message: "At least one field must be provided to update." }
@@ -98,3 +101,19 @@ export const removeCompanyMembersDto = z.object({
 });
 
 export type RemoveCompanyMembersDto = z.infer<typeof removeCompanyMembersDto>;
+
+export const searchCompanyDto = z.object({
+    keyword: z.string().trim().min(1).max(200).optional(),
+    industry: z.string().trim().min(1).max(100).optional(),
+    location: z.string().trim().min(1).max(150).optional(),
+    companySize: z.string().trim().min(1).max(50).optional(),
+    page: z.coerce.number().int().min(1).optional().default(1),
+    limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+    sortBy: z
+        .enum(["companyName", "createdAt", "profileCompletion", "foundedYear"])
+        .optional()
+        .default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+});
+
+export type SearchCompanyDto = z.infer<typeof searchCompanyDto>;
