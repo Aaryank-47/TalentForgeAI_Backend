@@ -172,7 +172,7 @@ router.get(
 )
 
 router.get(
-    "/invitations/:companyId",
+    "/sent/invitations/:companyId",
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
