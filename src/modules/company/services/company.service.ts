@@ -8,7 +8,7 @@ import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
 import { calculateProfileCompletion, omitUndefined } from "../utils/company.utils.js";
-import { CompanyMemberRole, UserRole, CompanyMemberStatus } from "@prisma/client";
+import { CompanyMemberRole, UserRole, CompanyMemberStatus, CompanyStatus } from "@prisma/client";
 import { emailTemplates } from "../../../common/email/email.templates.js"
 import { EmailService } from "../../../common/email/email.service.js";
 import { InvitationTokenHelper } from "../utils/invitationToken.util.js";
@@ -608,4 +608,31 @@ export class CompanyService {
 
         return verified;
     }
+
+
+    static async suspendCompany(
+        companyId: string,
+    ): Promise<CompanyView> {
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+        if (company.status === CompanyStatus.SUSPENDED) {
+            throw new ConflictError("Company is already suspended");
+        }
+
+        const suspended = await CompanyRepository.suspendCompany(
+            companyId
+        );
+
+        ElasticsearchService.indexCompany(toCompanySearchView(suspended)).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to sync company after verification.");
+        });
+
+        return suspended;
+    }
+
 }

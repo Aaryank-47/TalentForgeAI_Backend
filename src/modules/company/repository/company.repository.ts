@@ -262,4 +262,18 @@ export class CompanyRepository {
             select: companySelect
         })
     }
+
+    static async suspendCompany(
+        companyId: string
+    ): Promise<CompanyView> {
+        return prisma.company.update({
+            where: {
+                id: companyId
+            },
+            data: {
+                status: CompanyStatus.SUSPENDED,
+            },
+            select: companySelect
+        })
+    }
 }

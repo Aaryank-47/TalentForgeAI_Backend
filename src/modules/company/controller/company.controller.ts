@@ -257,4 +257,24 @@ export class CompanyController {
             });
         }
     );
+    
+    static suspendCompany = asyncHandler(
+        async (
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        ) => {
+
+            const { companyId } = req.params;
+
+            const company = await CompanyService.suspendCompany(
+                companyId
+            );
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_SUSPENDED,
+                data: company
+            });
+        }
+    );
 }

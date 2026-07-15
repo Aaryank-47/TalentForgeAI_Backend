@@ -147,4 +147,13 @@ router.patch(
     CompanyController.verifyCompany
 );
 
+
+router.patch(
+    "/admin/companies/:companyId/suspend",
+    authMiddleware,
+    authorize("SUPER_ADMIN"),
+    validate(companyIdParamDto, "params"),
+    CompanyController.suspendCompany
+);
+
 export default router;
