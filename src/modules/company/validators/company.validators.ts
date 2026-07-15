@@ -8,5 +8,7 @@ export {
     updateCompanyMemberRoleDto,
     removeCompanyMembersDto,
     searchCompanyDto,
-    suspendCompanyDto
+    suspendCompanyDto,
+    cancelInvitationParamDto,
+    resendInvitationParamDto,
 } from "../dto/company.dto.js";

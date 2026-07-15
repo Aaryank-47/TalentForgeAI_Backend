@@ -217,7 +217,7 @@ export class AuthRepository {
     }
     static async createCompany(companyInput) {
         return prisma.$transaction(async (tx) => {
-            const baseSlug = createUniqueSlugSeed(companyInput.slug ?? companyInput.name);
+            const baseSlug = createUniqueSlugSeed(companyInput.slug ?? companyInput.companyName);
             let slug = baseSlug;
             let suffix = 1;
             while (await tx.company.findUnique({ where: { slug } })) {
@@ -226,9 +226,9 @@ export class AuthRepository {
             }
             return tx.company.create({
                 data: {
-                    name: companyInput.name,
+                    companyName: companyInput.companyName,
                     slug,
-                    email: nullableString(companyInput.email),
+                    companyEmail: nullableString(companyInput.email),
                     phoneNumber: nullableString(companyInput.phoneNumber),
                     website: nullableString(companyInput.website),
                     logo: nullableString(companyInput.logo),
@@ -283,7 +283,7 @@ export class AuthRepository {
     }
     static async createCompanyOwnerRegistration(data) {
         return prisma.$transaction(async (tx) => {
-            const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.name);
+            const baseSlug = createUniqueSlugSeed(data.company.slug ?? data.company.companyName);
             let slug = baseSlug;
             let suffix = 1;
             while (await tx.company.findUnique({ where: { slug } })) {
@@ -292,9 +292,9 @@ export class AuthRepository {
             }
             const company = await tx.company.create({
                 data: {
-                    name: data.company.name,
+                    companyName: data.company.companyName,
                     slug,
-                    email: nullableString(data.company.email),
+                    companyEmail: nullableString(data.company.email),
                     phoneNumber: nullableString(data.company.phoneNumber),
                     website: nullableString(data.company.website),
                     logo: nullableString(data.company.logo),

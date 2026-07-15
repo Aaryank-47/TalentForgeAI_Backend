@@ -18,6 +18,13 @@ const envSchema = z.object({
     CLOUDINARY_API_KEY: z.string().min(1),
     CLOUDINARY_API_SECRET: z.string().min(1),
     CLOUDINARY_CLOUD_NAME: z.string().min(1),
+    INVITATION_TOKEN_SECRET: z.string().min(1),
+    INVITATION_TOKEN_EXPIRES_IN: z.string(),
+    FRONTEND_URL: z.string(),
+    ELASTICSEARCH_URL: z.string().min(1).default("http://localhost:9200"),
+    ELASTICSEARCH_USERNAME: z.string().optional(),
+    ELASTICSEARCH_PASSWORD: z.string().optional(),
+    ELASTICSEARCH_API_KEY: z.string().optional(),
 });
 const parsedEnv = envSchema.safeParse(process.env);
 if (!parsedEnv.success) {
@@ -35,6 +42,8 @@ export const env = {
         refreshExpiresIn: parsedEnv.data.JWT_REFRESH_EXPIRES_IN,
         resetPasswordSecret: parsedEnv.data.RESET_PASSWORD_SECRET,
         resetPasswordExpiresIn: parsedEnv.data.RESET_PASSWORD_EXPIRES_IN,
+        invitationTokenSecret: parsedEnv.data.INVITATION_TOKEN_SECRET,
+        invitationTokenExpiresIn: parsedEnv.data.INVITATION_TOKEN_EXPIRES_IN,
     },
     gmail: {
         user: parsedEnv.data.GMAIL_USER,
@@ -44,7 +53,16 @@ export const env = {
         apiKey: parsedEnv.data.CLOUDINARY_API_KEY,
         apiSecret: parsedEnv.data.CLOUDINARY_API_SECRET,
         cloudName: parsedEnv.data.CLOUDINARY_CLOUD_NAME,
-    }
+    },
+    app: {
+        frontendUrl: parsedEnv.data.FRONTEND_URL,
+    },
+    elasticsearch: {
+        url: parsedEnv.data.ELASTICSEARCH_URL,
+        username: parsedEnv.data.ELASTICSEARCH_USERNAME,
+        password: parsedEnv.data.ELASTICSEARCH_PASSWORD,
+        apiKey: parsedEnv.data.ELASTICSEARCH_API_KEY,
+    },
 };
 export default env;
 //# sourceMappingURL=env.js.map

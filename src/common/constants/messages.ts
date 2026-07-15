@@ -51,6 +51,10 @@ export const MESSAGE = {
     COMPANY_VERIFIED: "Company verified successfully.",
     COMPANY_SUSPENDED: "Company suspended successfully.",
     COMPANY_RESTORED: "Company restored successfully.",
+    COMPANY_INVITATION_CANCELLED: "Company invitation cancelled successfully.",
+    COMPANY_INVITATION_RESENT: "Company invitation resent successfully.",
+    COMPANY_DEACTIVATED: "Company deactivated successfully.",
+    COMPANY_ACTIVATED: "Company activated successfully.",
 
     // Job
     JOB_CREATED: "Job created successfully.",

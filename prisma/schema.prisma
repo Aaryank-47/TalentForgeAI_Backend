@@ -31,6 +31,7 @@ enum CompanyMemberStatus {
   SUSPENDED
   LEFT
   REMOVED
+  CANCELLED
 }
 
 enum CompanyStatus {

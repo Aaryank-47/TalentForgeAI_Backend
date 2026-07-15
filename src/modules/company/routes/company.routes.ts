@@ -13,6 +13,8 @@ import {
     removeCompanyMembersDto,
     searchCompanyDto,
     suspendCompanyDto,
+    cancelInvitationParamDto,
+    resendInvitationParamDto,
 } from "../validators/company.validators.js";
 import { CompanyController } from "../controller/company.controller.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
@@ -180,5 +182,45 @@ router.get(
     authorizedCompanyMember("OWNER", "ADMIN"),
     CompanyController.listAllInvitations
 )
+
+// Cancel a pending invitation (soft-cancel — keeps history)
+router.delete(
+    "/invitations/:invitationId/cancel",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(cancelInvitationParamDto, "params"),
+    CompanyController.cancelInvitation
+);
+
+// Resend a pending invitation with a fresh token
+router.post(
+    "/invitations/:invitationId/resend",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(resendInvitationParamDto, "params"),
+    CompanyController.resendInvitation
+);
+
+// Deactivate a company (OWNER only)
+router.patch(
+    "/:companyId/deactivate",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(companyIdParamDto, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER"),
+    CompanyController.deactivateCompany
+);
+
+// Activate a company (OWNER only)
+router.patch(
+    "/:companyId/activate",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(companyIdParamDto, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER"),
+    CompanyController.activateCompany
+);
 
 export default router;

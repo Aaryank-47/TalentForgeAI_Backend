@@ -1,9 +1,11 @@
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
 import env from './config/env.js';
+import { ElasticsearchService } from './modules/company/services/elasticsearch.service.js';
 const port = env.port;
 async function startServer() {
     await connectDatabase();
+    await ElasticsearchService.ensureIndex();
     app.listen(port, () => {
         console.log(`Server is running on port http://localhost:${port}`);
     });

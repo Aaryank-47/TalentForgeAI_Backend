@@ -9,12 +9,22 @@ export class EmailService {
         }
     });
     static async sendEmail(options) {
+        const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@talentforge.com>`;
+        const headers = {};
+        if (options.unsubscribeLink) {
+            headers["List-Unsubscribe"] = `<${options.unsubscribeLink}>`;
+            headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+        }
         await this.transporter.sendMail({
-            from: `TalentForge <${env.gmail.user}>`,
+            from: `"TalentForge" <${env.gmail.user}>`,
+            replyTo: `"TalentForge Support" <${env.gmail.user}>`,
             to: options.to,
             subject: options.subject,
             html: options.html,
-            text: options.text
+            text: options.text,
+            messageId: messageId,
+            date: new Date(),
+            headers: headers
         });
     }
 }

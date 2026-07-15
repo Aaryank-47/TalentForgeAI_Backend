@@ -1,1 +1,1 @@
-{"version":3,"file":"company.select.d.ts","sourceRoot":"","sources":["../../../../src/common/prisma.select/company.select.ts"],"names":[],"mappings":"AAAA,eAAO,MAAM,aAAa;;;;;;;;;;;;;;;;;;;CAmBhB,CAAC"}
+{"version":3,"file":"company.select.d.ts","sourceRoot":"","sources":["../../../../src/common/prisma.select/company.select.ts"],"names":[],"mappings":"AAAA,eAAO,MAAM,aAAa;;;;;;;;;;;;;;;;;;;;;;;;;;;;CA4BhB,CAAC;AAEX,eAAO,MAAM,mBAAmB;;;;;;;;;;;;;;;;;;;;;;;CAuBtB,CAAC;AAEX,eAAO,MAAM,uBAAuB;;;;;;;;;;;;;;;;;CAiB1B,CAAC;AAEX,eAAO,MAAM,gBAAgB;;;;;;;;;;;CAWnB,CAAC"}

@@ -11,6 +11,8 @@ import type {
     RemoveCompanyMembersDto,
     SearchCompanyDto,
     SuspendCompanyDto,
+    CancelInvitationParamDto,
+    ResendInvitationParamDto,
 } from "../dto/company.dto.js";
 import { CompanyService } from "../services/company.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
@@ -108,12 +110,12 @@ export class CompanyController {
             const { companyId } = req.params;
             const { inviterId, inviteeEmail, role } = req.body;
 
-            const token = await CompanyService.sendInvitation(companyId, inviterId, inviteeEmail, role);
+            const result = await CompanyService.sendInvitation(companyId, inviterId, inviteeEmail, role);
 
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: MESSAGE.COMPANY_INVITATION_SENT,
-                data: token
+                data: result
             });
         }
     )
@@ -332,4 +334,76 @@ export class CompanyController {
             });
         }
     )
+
+    static cancelInvitation = asyncHandler(
+        async (
+            req: Request<CancelInvitationParamDto>,
+            res: Response
+        ) => {
+            const { invitationId } = req.params;
+            const userId = req.user.id;
+
+            const result = await CompanyService.cancelInvitation(invitationId, userId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_INVITATION_CANCELLED,
+                data: result,
+            });
+        }
+    );
+
+    static resendInvitation = asyncHandler(
+        async (
+            req: Request<ResendInvitationParamDto>,
+            res: Response
+        ) => {
+            const { invitationId } = req.params;
+            const userId = req.user.id;
+
+            const result = await CompanyService.resendInvitation(invitationId, userId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_INVITATION_RESENT,
+                data: result,
+            });
+        }
+    );
+
+    static deactivateCompany = asyncHandler(
+        async (
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        ) => {
+            const { companyId } = req.params;
+            const userId = req.user.id;
+
+            const company = await CompanyService.deactivateCompany(companyId, userId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_DEACTIVATED,
+                data: company,
+            });
+        }
+    );
+
+    static activateCompany = asyncHandler(
+        async (
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        ) => {
+            const { companyId } = req.params;
+            const userId = req.user.id;
+
+            const company = await CompanyService.activateCompany(companyId, userId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_ACTIVATED,
+                data: company,
+            });
+        }
+    );
 }

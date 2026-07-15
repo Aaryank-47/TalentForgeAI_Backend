@@ -1,5 +1,5 @@
 import { CompanyMemberRole, CompanyMemberStatus } from "@prisma/client";
-import { companySelect } from "../../../common/prisma.select/company.select.js";
+import { companySelect, invitationSelect } from "../../../common/prisma.select/company.select.js";
 import { type Prisma } from "@prisma/client"
 
 
@@ -165,3 +165,19 @@ export interface SearchCompanyResult {
         hasPreviousPage: boolean;
     };
 }
+
+export type InvitationView = Prisma.CompanyMemberGetPayload<{ select: typeof invitationSelect }>;
+
+export interface CancelInvitationResult {
+    id: string;
+    status: CompanyMemberStatus;
+}
+
+export interface ResendInvitationResult {
+    id: string;
+    status: CompanyMemberStatus;
+    expiresAt: Date | null;
+}
+
+export type CompanyDeactivationResult = CompanyView;
+export type CompanyActivationResult = CompanyView;

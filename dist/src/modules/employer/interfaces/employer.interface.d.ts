@@ -1,5 +1,5 @@
 export interface EmployerCompanyInput {
-    name: string;
+    companyName: string;
     slug?: string | undefined;
     email?: string | undefined;
     phoneNumber?: string | undefined;
@@ -16,9 +16,9 @@ export interface EmployerCompanyInput {
 }
 export interface EmployerCompanyView {
     id: string;
-    name: string;
+    companyName: string;
     slug: string;
-    email: string | null;
+    companyEmail: string | null;
     phoneNumber: string | null;
     website: string | null;
     logo: string | null;

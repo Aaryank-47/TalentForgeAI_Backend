@@ -21,7 +21,12 @@ import type {
     UploadCompanyLogoResult,
     UploadCompanyCoverResult,
     SearchCompanyResult,
-    CompanyInvitationView
+    CompanyInvitationView,
+    InvitationView,
+    CancelInvitationResult,
+    ResendInvitationResult,
+    CompanyDeactivationResult,
+    CompanyActivationResult,
 } from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 import { ElasticsearchService } from "./elasticsearch.service.js";
@@ -165,7 +170,7 @@ export class CompanyService {
         inviterId: string,
         inviteeEmail: string,
         role: CompanyMemberRole
-    ): Promise<string> {
+    ): Promise<{ token: string; invitationId: string | null }> {
 
         const company = await CompanyRepository.getRawCompanyById(companyId);
         if (!company) {
@@ -200,6 +205,8 @@ export class CompanyService {
             role,
         });
 
+        let invitationId: string | null = null;
+
         if (invitee) {
             if (invitee.id === inviterId) {
                 throw new ConflictError(
@@ -223,12 +230,13 @@ export class CompanyService {
                 );
             }
 
-            await CompanyRepository.createInvitedMember({
+            const createdMember = await CompanyRepository.createInvitedMember({
                 userId: invitee.id,
                 companyId,
                 role,
                 invitedBy: inviterId,
             });
+            invitationId = createdMember.id;
 
             const invitationLink = `${env.app.frontendUrl}/invitations/accept?token=${token}`;
             const emailTemplate = emailTemplates.existingUserInvitationTemplate(
@@ -257,7 +265,7 @@ export class CompanyService {
             });
         }
 
-        return token;
+        return { token, invitationId };
     }
 
     static async getInvitation(
@@ -683,7 +691,163 @@ export class CompanyService {
     }
 
     static async getAllCompanies(): Promise<CompanyView[]> {
-    return CompanyRepository.getAllCompanies();
-}
+        return CompanyRepository.getAllCompanies();
+    }
+
+    static async cancelInvitation(
+        invitationId: string,
+        userId: string
+    ): Promise<CancelInvitationResult> {
+        const invitation = await CompanyRepository.findInvitationById(invitationId);
+        if (!invitation) {
+            throw new NotFoundError("Invitation not found.");
+        }
+
+        const membership = await CompanyRepository.membership(invitation.companyId, userId);
+        if (!membership || (membership.role !== CompanyMemberRole.OWNER && membership.role !== CompanyMemberRole.ADMIN)) {
+            throw new ForbiddenError("You do not have permission to cancel invitations for this company.");
+        }
+
+        if (invitation.status === CompanyMemberStatus.ACTIVE) {
+            throw new ConflictError("This invitation has already been accepted and cannot be cancelled.");
+        }
+        if (invitation.status === CompanyMemberStatus.CANCELLED) {
+            throw new ConflictError("This invitation has already been cancelled.");
+        }
+        if (invitation.status === CompanyMemberStatus.REMOVED) {
+            throw new ConflictError("This invitation has already been rejected.");
+        }
+        if (invitation.expiresAt && invitation.expiresAt < new Date()) {
+            throw new ConflictError("This invitation has already expired.");
+        }
+
+        return CompanyRepository.cancelInvitation(invitationId);
+    }
+
+    static async resendInvitation(
+        invitationId: string,
+        userId: string
+    ): Promise<ResendInvitationResult> {
+        const invitation = await CompanyRepository.findInvitationById(invitationId);
+        if (!invitation) {
+            throw new NotFoundError("Invitation not found.");
+        }
+
+        const membership = await CompanyRepository.membership(invitation.companyId, userId);
+        if (!membership || (membership.role !== CompanyMemberRole.OWNER && membership.role !== CompanyMemberRole.ADMIN)) {
+            throw new ForbiddenError("You do not have permission to resend invitations for this company.");
+        }
+
+        if (invitation.status === CompanyMemberStatus.ACTIVE) {
+            throw new ConflictError("This invitation has already been accepted.");
+        }
+        if (invitation.status === CompanyMemberStatus.REMOVED) {
+            throw new ConflictError("This invitation has already been rejected.");
+        }
+        if (invitation.status === CompanyMemberStatus.CANCELLED) {
+            throw new ConflictError("This invitation has been cancelled and cannot be resent.");
+        }
+
+        const company = await CompanyRepository.getRawCompanyById(invitation.companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+
+        const inviter = await AuthRepository.findProfileByUserId(userId);
+        if (!inviter || !inviter.profile) {
+            throw new NotFoundError("Inviter profile not found.");
+        }
+
+        const inviteeUser = await AuthRepository.findUserById(invitation.userId);
+        const inviteeEmail = inviteeUser?.email ?? "";
+
+        const token = InvitationTokenHelper.generateToken({
+            companyId: invitation.companyId,
+            inviteeEmail,
+            invitedBy: userId,
+            role: invitation.role,
+        });
+
+        const expiryMs = 7 * 24 * 60 * 60 * 1000;
+        const expiresAt = new Date(Date.now() + expiryMs);
+
+        const updated = await CompanyRepository.updateInvitationToken(invitationId, token, expiresAt);
+
+        if (inviteeUser) {
+            const invitationLink = `${env.app.frontendUrl}/invitations/accept?token=${token}`;
+            const emailTemplate = emailTemplates.existingUserInvitationTemplate(
+                company.companyName,
+                inviter.profile.fullName,
+                invitation.role,
+                invitationLink
+            );
+            await EmailService.sendEmail({ to: inviteeEmail, ...emailTemplate });
+        } else {
+            const registerLink = `${env.app.frontendUrl}/register?invite=${token}`;
+            const emailTemplate = emailTemplates.newUserInvitationTemplate(
+                company.companyName,
+                inviter.profile.fullName,
+                invitation.role,
+                registerLink
+            );
+            // inviteeEmail is empty for non-existing users — skip sending silently
+            if (inviteeEmail) {
+                await EmailService.sendEmail({ to: inviteeEmail, ...emailTemplate });
+            }
+        }
+
+        return updated;
+    }
+
+    static async deactivateCompany(
+        companyId: string,
+        userId: string
+    ): Promise<CompanyDeactivationResult> {
+        const company = await this.getValidCompany(companyId);
+
+        const membership = await CompanyRepository.membership(companyId, userId);
+        if (!membership || membership.role !== CompanyMemberRole.OWNER) {
+            throw new ForbiddenError("Only the company owner can deactivate this company.");
+        }
+
+        if (company.status === CompanyStatus.INACTIVE) {
+            throw new ConflictError("Company is already inactive.");
+        }
+
+        const deactivated = await CompanyRepository.deactivateCompany(companyId);
+
+        ElasticsearchService.removeCompany(companyId).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to remove deactivated company from index.");
+        });
+
+        return deactivated;
+    }
+
+    static async activateCompany(
+        companyId: string,
+        userId: string
+    ): Promise<CompanyActivationResult> {
+        const company = await this.getValidCompany(companyId);
+
+        const membership = await CompanyRepository.membership(companyId, userId);
+        if (!membership || membership.role !== CompanyMemberRole.OWNER) {
+            throw new ForbiddenError("Only the company owner can activate this company.");
+        }
+
+        if (company.status !== CompanyStatus.INACTIVE) {
+            throw new ConflictError("Company is not inactive.");
+        }
+
+        const activated = await CompanyRepository.activateCompany(companyId);
+
+        ElasticsearchService.indexCompany(toCompanySearchView(activated)).catch((err) => {
+            logger.error({ err, companyId }, "[ES] Failed to index activated company.");
+        });
+
+        return activated;
+    }
 
 }

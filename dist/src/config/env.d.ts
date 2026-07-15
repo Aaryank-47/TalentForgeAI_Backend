@@ -9,6 +9,8 @@ export declare const env: {
         readonly refreshExpiresIn: string;
         readonly resetPasswordSecret: string;
         readonly resetPasswordExpiresIn: string;
+        readonly invitationTokenSecret: string;
+        readonly invitationTokenExpiresIn: string;
     };
     readonly gmail: {
         readonly user: string;
@@ -18,6 +20,15 @@ export declare const env: {
         readonly apiKey: string;
         readonly apiSecret: string;
         readonly cloudName: string;
+    };
+    readonly app: {
+        readonly frontendUrl: string;
+    };
+    readonly elasticsearch: {
+        readonly url: string;
+        readonly username: string | undefined;
+        readonly password: string | undefined;
+        readonly apiKey: string | undefined;
     };
 };
 export default env;

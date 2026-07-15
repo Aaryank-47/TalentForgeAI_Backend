@@ -1,5 +1,8 @@
+import { type Prisma } from "@prisma/client";
 import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js";
-import type { EmployerCompanyInput, EmployerCompanyView, EmployerProfileView } from "../../employer/interfaces/employer.interface.js";
+import type { EmployerCompanyInput } from "../../employer/interfaces/employer.interface.js";
+import { companySelect } from "../../../common/prisma.select/company.select.js";
+import { employerSelect } from "../../../common/prisma.select/employer.select.js";
 import type { RegisterCandidateInput, RegisterEmployerInput, RegisterCompanyOwnerInput, AuthUserView } from "../interfaces/auth.interface.js";
 export declare class AuthRepository {
     static findUserByEmail(email: string): Promise<AuthUserView | null>;
@@ -84,7 +87,7 @@ export declare class AuthRepository {
         revokedAt: Date | null;
     }>;
     static calcLoggedinDevices(userId: string): Promise<number>;
-    static deleteAllRefreshTokensForUser(userId: string): Promise<import("@prisma/client").Prisma.BatchPayload>;
+    static deleteAllRefreshTokensForUser(userId: string): Promise<Prisma.BatchPayload>;
     static saveOTP(userId: string, otp: string, otpExpiresAt: Date): Promise<{
         email: string;
         password: string;
@@ -173,16 +176,26 @@ export declare class AuthRepository {
         user: AuthUserView;
         candidate: CandidateRegistrationView;
     }>;
-    static findCompanyById(companyId: string): Promise<EmployerCompanyView | null>;
-    static createCompany(companyInput: EmployerCompanyInput): Promise<EmployerCompanyView>;
+    static findCompanyById(companyId: string): Promise<Prisma.CompanyGetPayload<{
+        select: typeof companySelect;
+    }> | null>;
+    static createCompany(companyInput: EmployerCompanyInput): Promise<Prisma.CompanyGetPayload<{
+        select: typeof companySelect;
+    }>>;
     static createEmployerRegistration(data: RegisterEmployerInput): Promise<{
         user: AuthUserView;
-        employer: EmployerProfileView;
+        employer: Prisma.EmployerGetPayload<{
+            select: typeof employerSelect;
+        }>;
     }>;
     static createCompanyOwnerRegistration(data: RegisterCompanyOwnerInput): Promise<{
         user: AuthUserView;
-        company: EmployerCompanyView;
-        employer: EmployerProfileView;
+        company: Prisma.CompanyGetPayload<{
+            select: typeof companySelect;
+        }>;
+        employer: Prisma.EmployerGetPayload<{
+            select: typeof employerSelect;
+        }>;
     }>;
     static saveRefreshToken(data: {
         token: string;

@@ -127,3 +127,15 @@ export const suspendCompanyDto = z.object({
 });
 
 export type SuspendCompanyDto = z.infer<typeof suspendCompanyDto>;
+
+export const cancelInvitationParamDto = z.object({
+    invitationId: userIdValidator,
+});
+
+export type CancelInvitationParamDto = z.infer<typeof cancelInvitationParamDto>;
+
+export const resendInvitationParamDto = z.object({
+    invitationId: userIdValidator,
+});
+
+export type ResendInvitationParamDto = z.infer<typeof resendInvitationParamDto>;

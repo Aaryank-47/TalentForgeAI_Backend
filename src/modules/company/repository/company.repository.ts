@@ -1,5 +1,5 @@
 import prisma from "../../../config/database.js";
-import { companySelect, companyMemberSelect, companyInvitationSelect } from "../../../common/prisma.select/company.select.js";
+import { companySelect, companyMemberSelect, companyInvitationSelect, invitationSelect } from "../../../common/prisma.select/company.select.js";
 import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus, type Prisma } from "@prisma/client";
 import type {
     CreateCompanyInput,
@@ -7,7 +7,10 @@ import type {
     CompanyMemberList,
     CompanyMemberDetails,
     RemoveCompanyMembersResponse,
-    CompanyInvitationView
+    CompanyInvitationView,
+    InvitationView,
+    CancelInvitationResult,
+    ResendInvitationResult,
 } from "../interfaces/company.interface.js";
 import type { Company } from "@prisma/client";
 
@@ -330,6 +333,61 @@ export class CompanyRepository {
                 status: CompanyStatus.ACTIVE,
                 isVerified: true,
             },
+            select: companySelect,
+        });
+    }
+
+    static async findInvitationById(
+        invitationId: string
+    ): Promise<InvitationView | null> {
+        return prisma.companyMember.findUnique({
+            where: { id: invitationId },
+            select: invitationSelect,
+        });
+    }
+
+    static async cancelInvitation(
+        invitationId: string
+    ): Promise<CancelInvitationResult> {
+        return prisma.companyMember.update({
+            where: { id: invitationId },
+            data: { status: CompanyMemberStatus.CANCELLED },
+            select: { id: true, status: true },
+        });
+    }
+
+    static async updateInvitationToken(
+        invitationId: string,
+        token: string,
+        expiresAt: Date
+    ): Promise<ResendInvitationResult> {
+        return prisma.companyMember.update({
+            where: { id: invitationId },
+            data: {
+                invitationToken: token,
+                invitedAt: new Date(),
+                expiresAt,
+            },
+            select: { id: true, status: true, expiresAt: true },
+        });
+    }
+
+    static async deactivateCompany(
+        companyId: string
+    ): Promise<CompanyView> {
+        return prisma.company.update({
+            where: { id: companyId },
+            data: { status: CompanyStatus.INACTIVE },
+            select: companySelect,
+        });
+    }
+
+    static async activateCompany(
+        companyId: string
+    ): Promise<CompanyView> {
+        return prisma.company.update({
+            where: { id: companyId },
+            data: { status: CompanyStatus.ACTIVE },
             select: companySelect,
         });
     }

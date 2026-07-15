@@ -5,7 +5,7 @@ export declare const RATE_LIMIT: {
     };
     readonly REGISTER: {
         readonly WINDOW_MS: number;
-        readonly MAX_REQUESTS: 5;
+        readonly MAX_REQUESTS: 500;
     };
     readonly FORGOT_PASSWORD: {
         readonly WINDOW_MS: number;

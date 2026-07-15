@@ -71,3 +71,16 @@ export const companyInvitationSelect = {
         },
     },
 } as const;
+
+export const invitationSelect = {
+    id: true,
+    userId: true,
+    companyId: true,
+    role: true,
+    status: true,
+    invitedBy: true,
+    invitedAt: true,
+    expiresAt: true,
+    invitationToken: true,
+    joinedAt: true,
+} as const;
