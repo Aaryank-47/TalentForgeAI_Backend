@@ -1,5 +1,5 @@
 import prisma from "../../../config/database.js";
-import { companySelect, companyMemberSelect } from "../../../common/prisma.select/company.select.js";
+import { companySelect, companyMemberSelect, companyInvitationSelect } from "../../../common/prisma.select/company.select.js";
 import { CompanyMemberRole, CompanyMemberStatus, CompanyStatus, type Prisma } from "@prisma/client";
 import type {
     CreateCompanyInput,
@@ -7,7 +7,7 @@ import type {
     CompanyMemberList,
     CompanyMemberDetails,
     RemoveCompanyMembersResponse,
-    CompanyDetails
+    CompanyInvitationView
 } from "../interfaces/company.interface.js";
 import type { Company } from "@prisma/client";
 
@@ -160,6 +160,26 @@ export class CompanyRepository {
         });
     }
 
+    static async listAllInvitations(
+        companyId: string
+    ): Promise<CompanyInvitationView[]> {
+        const invitations = await prisma.companyMember.findMany({
+            where: {
+                companyId: companyId,
+                status: CompanyMemberStatus.INVITED
+            },
+            select: companyInvitationSelect,
+        });
+        return invitations.map((member) => ({
+            id: member.user.id,
+            email: member.user.email,
+            fullName:
+                member.user.employer?.fullName ??
+                member.user.candidate?.fullName ??
+                "Unknown"
+        }));
+    }
+
     static async updateMembership(
         membershipId: string,
         data: Prisma.CompanyMemberUpdateInput
@@ -282,7 +302,7 @@ export class CompanyRepository {
             select: companySelect
         })
     }
-    
+
     static async restoreCompany(
         companyId: string,
         restoredBy: string
@@ -304,13 +324,13 @@ export class CompanyRepository {
     }
 
     static async getAllCompanies(): Promise<CompanyView[]> {
-    return prisma.company.findMany({
-        where: {
-            deletedAt: null,
-            status: CompanyStatus.ACTIVE,
-            isVerified: true,
-        },
-        select: companySelect,
-    });
-}
+        return prisma.company.findMany({
+            where: {
+                deletedAt: null,
+                status: CompanyStatus.ACTIVE,
+                isVerified: true,
+            },
+            select: companySelect,
+        });
+    }
 }

@@ -171,4 +171,14 @@ router.get(
     CompanyController.getAllCompanies
 )
 
+router.get(
+    "/invitations/:companyId",
+    authMiddleware,
+    authorize("EMPLOYER"),
+    validate(companyIdParamDto, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN"),
+    CompanyController.listAllInvitations
+)
+
 export default router;

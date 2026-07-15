@@ -52,3 +52,22 @@ export const companyMemberSelect = {
         },
     },
 } as const;
+
+export const companyInvitationSelect = {
+    user: {
+        select: {
+            id: true,
+            email: true,
+            employer: {
+                select: {
+                    fullName: true,
+                },
+            },
+            candidate: {
+                select: {
+                    fullName: true,
+                },
+            },
+        },
+    },
+} as const;

@@ -21,7 +21,7 @@ import type {
     UploadCompanyLogoResult,
     UploadCompanyCoverResult,
     SearchCompanyResult,
-    CompanyDetails
+    CompanyInvitationView
 } from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
 import { ElasticsearchService } from "./elasticsearch.service.js";
@@ -378,6 +378,20 @@ export class CompanyService {
                 status: CompanyMemberStatus.REMOVED,
             }
         );
+    }
+
+    static async getAllSentInvitation(
+        companyId: string
+    ):Promise<CompanyInvitationView[]> {
+        const company = await CompanyRepository.getRawCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found.");
+        }
+        if (company.deletedAt) {
+            throw new ConflictError("Company has been deleted.");
+        }
+
+        return CompanyRepository.listAllInvitations(companyId); 
     }
 
     static async listAllCompanyMembers(

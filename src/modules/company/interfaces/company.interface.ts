@@ -105,6 +105,12 @@ export interface InvitationResponse {
     expiresAt: Date | null;
 }
 
+export interface CompanyInvitationView {
+    id: string;
+    email: string;
+    fullName: string;
+}
+
 export interface RemoveCompanyMembersResponse {
     removedCount: number;
     removedMembers: CompanyMemberList[];

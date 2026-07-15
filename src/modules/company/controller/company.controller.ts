@@ -313,4 +313,23 @@ export class CompanyController {
             });
         }
     )
+
+    static listAllInvitations = asyncHandler(
+        async(
+            req: Request<CompanyIdParamDto>,
+            res: Response
+        )=>{
+            const {companyId} = req.params;
+            console.log("companyId : ", companyId)
+            
+            const invitations = await CompanyService.getAllSentInvitation(companyId);
+            console.log("invitations : ", invitations)
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.COMPANY_INVITATION_FETCHED,
+                data: invitations
+            });
+        }
+    )
 }
