@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { CompanyRepository } from "../../modules/company/repository/company.repository.js";
-import { UnauthorizedError } from "../../common/errors/UnauthorizedError.js";
-import { ForbiddenError } from "../../common/errors/ForbiddenError.js";
-import { NotFoundError } from "../../common/errors/NotFoundError.js";
+import { UnauthorizedError } from "../errors/UnauthorizedError.js";
+import { ForbiddenError } from "../errors/ForbiddenError.js";
+import { NotFoundError } from "../errors/NotFoundError.js";
 import { CompanyMemberStatus } from "@prisma/client";
 
 export const loadCompanyMembership = async (
