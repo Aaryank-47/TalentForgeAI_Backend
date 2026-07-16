@@ -71,14 +71,42 @@ enum ExperienceLevel {
   ARCHITECT
 }
 
-enum JobType {
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  CLOSED
+  FILLED
+  EXPIRED
+  ARCHIVED
+}
+
+enum EmploymentType {
   FULL_TIME
   PART_TIME
-  INTERN
   CONTRACT
+  INTERN
   FREELANCE
   TEMPORARY
   APPRENTICESHIP
+}
+
+enum WorkplaceType {
+  ONSITE
+  REMOTE
+  HYBRID
+}
+
+enum JobVisibility {
+  PUBLIC
+  PRIVATE
+  INTERNAL
+}
+
+enum SalaryPeriod {
+  HOURLY
+  MONTHLY
+  YEARLY
 }
 
 model User {
@@ -159,7 +187,6 @@ model Employer {
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  jobs           Job[]
 }
 
 model Company {
@@ -210,6 +237,7 @@ model CompanyMember {
   invitedBy       String?
   user            User                @relation(fields: [userId], references: [id])
   company         Company             @relation(fields: [companyId], references: [id])
+  jobMembers      JobMember[]
 
   @@unique([userId, companyId])
   @@index([companyId])
@@ -236,33 +264,126 @@ model Admin {
 model Job {
   id String @id @default(cuid())
 
-  employer   Employer? @relation(fields: [employerId], references: [id])
-  employerId String?
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  company   Company? @relation(fields: [companyId], references: [id])
-  companyId String?
+  title String
+  slug  String @unique
 
-  title       String
+  summary     String?
   description String
-  type        JobType?
 
-  minimumExperience Int @default(0)
-  maximumExperience Int @default(0)
+  employmentType EmploymentType
+  workplaceType  WorkplaceType
+
+  status     JobStatus     @default(DRAFT)
+  visibility JobVisibility @default(PUBLIC)
+
+  vacancies Int @default(1)
+
+  location String?
+
+  minExperience Int @default(0)
+  maxExperience Int @default(0)
 
   minimumSalary Int?
   maximumSalary Int?
+  salaryPeriod  SalaryPeriod?
+  hideSalary    Boolean       @default(false)
+
+  applicationDeadline DateTime?
+
+  publishedAt DateTime?
+  closedAt    DateTime?
+  archivedAt  DateTime?
+
+  createdById String
+  updatedById String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  skills       JobSkill[]
+  benefits     JobBenefit[]
+  members      JobMember[]
+  applications Application[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([employmentType])
+  @@index([workplaceType])
 }
 
-model Resume {
-  id          String     @id @default(cuid())
-  candidate   Candidate? @relation(fields: [candidateId], references: [id])
-  candidateId String?
+model JobSkill {
+  id String @id @default(cuid())
+
+  name String
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  isRequired Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, name])
+  @@index([jobId])
+}
+
+model JobBenefit {
+  id String @id @default(cuid())
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  benefit String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, benefit])
+  @@index([jobId])
+}
+
+model JobMember {
+  id String @id @default(cuid())
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+  assignedBy String?
+
+  companyMemberId String
+  companyMember   CompanyMember @relation(fields: [companyMemberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, companyMemberId])
+  @@index([jobId])
+  @@index([companyMemberId])
 }
 
 model Application {
+  id String @id @default(cuid())
+
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id])
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, candidateId])
+  @@index([jobId])
+  @@index([candidateId])
+}
+
+model Resume {
   id          String     @id @default(cuid())
   candidate   Candidate? @relation(fields: [candidateId], references: [id])
   candidateId String?
