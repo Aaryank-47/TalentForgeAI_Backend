@@ -140,14 +140,7 @@ export class CompanyService {
             throw new ForbiddenError("You do not have permission to delete this company.");
         }
 
-        const company = await CompanyRepository.getRawCompanyById(companyId);
-        if (!company) {
-            throw new NotFoundError("Company not found.");
-        }
 
-        if (company.deletedAt) {
-            throw new ConflictError("Company is already deleted.");
-        }
 
         if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
             const membership = await CompanyRepository.membership(companyId, userId);
@@ -174,10 +167,6 @@ export class CompanyService {
         const company = await CompanyRepository.getRawCompanyById(companyId);
         if (!company) {
             throw new NotFoundError("Company not found.");
-        }
-
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
         }
 
 
@@ -390,28 +379,12 @@ export class CompanyService {
     static async getAllSentInvitation(
         companyId: string
     ):Promise<CompanyInvitationView[]> {
-        const company = await CompanyRepository.getRawCompanyById(companyId);
-        if (!company) {
-            throw new NotFoundError("Company not found.");
-        }
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
-        }
-
         return CompanyRepository.listAllInvitations(companyId); 
     }
 
     static async listAllCompanyMembers(
         companyId: string
     ): Promise<CompanyMemberDetails[]> {
-        const company = await CompanyRepository.getRawCompanyById(companyId);
-        if (!company) {
-            throw new NotFoundError("Company not found.");
-        }
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
-        }
-
         const members = await CompanyRepository.listAllMembers(companyId);
 
         return members;
@@ -422,14 +395,6 @@ export class CompanyService {
         userId: string,
         role: CompanyMemberRole
     ): Promise<CompanyMemberList> {
-        const company = await CompanyRepository.getRawCompanyById(companyId);
-        if (!company) {
-            throw new NotFoundError("Company not found.");
-        }
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
-        }
-
         const member = await CompanyRepository.membership(companyId, userId);
         if (!member) {
             throw new NotFoundError("Member not found.");
@@ -445,14 +410,7 @@ export class CompanyService {
         userIds: string[]
     ): Promise<RemoveCompanyMembersResponse> {
 
-        const company = await CompanyRepository.getRawCompanyById(companyId);
-        if (!company) {
-            throw new NotFoundError("Company not found.");
-        }
 
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
-        }
         const members = await CompanyRepository.findMembersByUserIds(
             companyId,
             userIds
@@ -513,10 +471,6 @@ export class CompanyService {
             throw new NotFoundError("Company not found.");
         }
 
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
-        }
-
         if (company.logo) {
             const publicId = extractPublicId(company.logo);
             if (publicId) {
@@ -568,10 +522,6 @@ export class CompanyService {
         const company = await CompanyRepository.getRawCompanyById(companyId);
         if (!company) {
             throw new NotFoundError("Company not found.");
-        }
-
-        if (company.deletedAt) {
-            throw new ConflictError("Company has been deleted.");
         }
 
         if (company.coverImage) {

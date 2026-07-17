@@ -21,6 +21,8 @@ import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMem
 import { authorizedCompanyMember } from "../../../common/middleware/allowCompanyRoles.middleware.js";
 import { deleteCompanyDto } from "../dto/company.dto.js";
 import { uploadSingleFile } from "../../../common/uploads/index.js";
+import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany .Middleware.js";
+import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 
 const router = Router();
 
@@ -58,6 +60,7 @@ router.patch(
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     validate(updateCompanyDto, "body"),
     CompanyController.updateCompanyProfile
 )
@@ -67,6 +70,7 @@ router.delete(
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     CompanyController.deleteCompanyProfile
 )
 
@@ -75,6 +79,8 @@ router.post(
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
+    ensureVerifiedCompany,
     validate(sendInvitationDto, "body"),
     CompanyController.sendInvitation
 )
@@ -95,6 +101,7 @@ router.get("/members/:companyId",
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     CompanyController.listAllCompanyMembers
 )
 
@@ -102,9 +109,10 @@ router.patch(
     "/:companyId/members/:userId/role",
     authMiddleware,
     authorize("EMPLOYER"),
+    validate(deleteCompanyDto, "params"),
+    ensureActiveCompany,
     loadCompanyMembership,
     authorizedCompanyMember("OWNER", "ADMIN"),
-    validate(deleteCompanyDto, "params"),
     validate(updateCompanyMemberRoleDto, "body"),
     CompanyController.updateCompanyMemberRole
 );
@@ -113,9 +121,10 @@ router.delete(
     "/:companyId/remove/members",
     authMiddleware,
     authorize("EMPLOYER"),
+    validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     loadCompanyMembership,
     authorizedCompanyMember("OWNER", "ADMIN"),
-    validate(companyIdParamDto, "params"),
     validate(removeCompanyMembersDto, "body"),
     CompanyController.removeCompanyMember
 );
@@ -125,6 +134,7 @@ router.patch(
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     loadCompanyMembership,
     authorizedCompanyMember("OWNER", "ADMIN"),
     uploadSingleFile("logo"),
@@ -136,6 +146,7 @@ router.patch(
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     loadCompanyMembership,
     authorizedCompanyMember("OWNER", "ADMIN"),
     uploadSingleFile("cover"),
@@ -178,6 +189,7 @@ router.get(
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     loadCompanyMembership,
     authorizedCompanyMember("OWNER", "ADMIN"),
     CompanyController.listAllInvitations
@@ -207,6 +219,7 @@ router.patch(
     authMiddleware,
     authorize("EMPLOYER"),
     validate(companyIdParamDto, "params"),
+    ensureActiveCompany,
     loadCompanyMembership,
     authorizedCompanyMember("OWNER"),
     CompanyController.deactivateCompany

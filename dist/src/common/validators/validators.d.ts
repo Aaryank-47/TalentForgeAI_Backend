@@ -65,7 +65,7 @@ export declare const companyVisibilityValidator: z.ZodOptional<z.ZodEnum<{
 export declare const companyIdValidator: z.ZodString;
 export declare const jobTitleValidator: z.ZodString;
 export declare const jobDescriptionValidator: z.ZodString;
-export declare const jobTypeValidator: z.ZodOptional<z.ZodEnum<{
+export declare const employmentTypeValidator: z.ZodEnum<{
     INTERN: "INTERN";
     FULL_TIME: "FULL_TIME";
     PART_TIME: "PART_TIME";
@@ -73,11 +73,39 @@ export declare const jobTypeValidator: z.ZodOptional<z.ZodEnum<{
     FREELANCE: "FREELANCE";
     TEMPORARY: "TEMPORARY";
     APPRENTICESHIP: "APPRENTICESHIP";
-}>>;
+}>;
 export declare const minimumExperienceValidator: z.ZodOptional<z.ZodNumber>;
 export declare const maximumExperienceValidator: z.ZodOptional<z.ZodNumber>;
 export declare const minimumSalaryValidator: z.ZodOptional<z.ZodNumber>;
 export declare const maximumSalaryValidator: z.ZodOptional<z.ZodNumber>;
+export declare const salaryPeriodValidator: z.ZodOptional<z.ZodEnum<{
+    HOURLY: "HOURLY";
+    MONTHLY: "MONTHLY";
+    YEARLY: "YEARLY";
+}>>;
+export declare const workplaceTypeValidator: z.ZodEnum<{
+    REMOTE: "REMOTE";
+    HYBRID: "HYBRID";
+    ONSITE: "ONSITE";
+}>;
+export declare const jobStatusValidator: z.ZodEnum<{
+    DRAFT: "DRAFT";
+    PUBLISHED: "PUBLISHED";
+    PAUSED: "PAUSED";
+    CLOSED: "CLOSED";
+    FILLED: "FILLED";
+    EXPIRED: "EXPIRED";
+    ARCHIVED: "ARCHIVED";
+}>;
+export declare const jobVisibilityValidator: z.ZodEnum<{
+    PUBLIC: "PUBLIC";
+    PRIVATE: "PRIVATE";
+    INTERNAL: "INTERNAL";
+}>;
+export declare const hideSalaryValidator: z.ZodOptional<z.ZodBoolean>;
+export declare const applicationDeadlineValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+export declare const skillsValidator: z.ZodArray<z.ZodString>;
+export declare const benefitsValidator: z.ZodOptional<z.ZodArray<z.ZodString>>;
 export declare const candidateIdValidator: z.ZodString;
 export declare const resumeFileValidator: z.ZodString;
 export declare const resumeTitleValidator: z.ZodString;
@@ -95,7 +123,7 @@ export declare const endDateValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
 export declare const cgpaValidator: z.ZodOptional<z.ZodNumber>;
 export declare const percentageValidator: z.ZodOptional<z.ZodNumber>;
 export declare const experienceDesignationValidator: z.ZodString;
-export declare const employmentTypeValidator: z.ZodString;
+export declare const experienceEmploymentTypeValidator: z.ZodString;
 export declare const experienceStartDateValidator: z.ZodCoercedDate<unknown>;
 export declare const experienceEndDateValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
 export declare const isCurrentJobValidator: z.ZodBoolean;

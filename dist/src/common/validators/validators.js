@@ -224,17 +224,15 @@ export const jobDescriptionValidator = z
     .trim()
     .min(20, "Job description must be at least 20 characters long")
     .max(10000, "Job description must be at most 10000 characters long");
-export const jobTypeValidator = z
-    .enum([
+export const employmentTypeValidator = z.enum([
     "FULL_TIME",
     "PART_TIME",
-    "INTERN",
     "CONTRACT",
+    "INTERN",
     "FREELANCE",
     "TEMPORARY",
     "APPRENTICESHIP",
-])
-    .optional();
+]);
 export const minimumExperienceValidator = z
     .number()
     .min(0, "Minimum experience cannot be negative")
@@ -255,6 +253,42 @@ export const maximumSalaryValidator = z
     .int("Maximum salary must be a whole number")
     .min(0, "Maximum salary cannot be negative")
     .optional();
+export const salaryPeriodValidator = z
+    .enum([
+    "HOURLY",
+    "MONTHLY",
+    "YEARLY",
+])
+    .optional();
+export const workplaceTypeValidator = z.enum([
+    "REMOTE",
+    "HYBRID",
+    "ONSITE",
+]);
+export const jobStatusValidator = z.enum([
+    "DRAFT",
+    "PUBLISHED",
+    "PAUSED",
+    "CLOSED",
+    "FILLED",
+    "EXPIRED",
+    "ARCHIVED",
+]);
+export const jobVisibilityValidator = z.enum([
+    "PUBLIC",
+    "PRIVATE",
+    "INTERNAL",
+]);
+export const hideSalaryValidator = z.boolean().optional();
+export const applicationDeadlineValidator = z.coerce.date().optional();
+export const skillsValidator = z.array(z.string()
+    .trim()
+    .min(2, "Skill must be at least 2 characters long")
+    .max(50, "Skill must be at most 50 characters long")).min(1, "At least one skill is required");
+export const benefitsValidator = z.array(z.string()
+    .trim()
+    .min(2, "Benefit must be at least 2 characters long")
+    .max(100, "Benefit must be at most 100 characters long")).optional();
 // Resume
 export const candidateIdValidator = uuidValidator;
 export const resumeFileValidator = z
@@ -324,7 +358,7 @@ export const experienceDesignationValidator = z
     .trim()
     .min(2, "Designation must be at least 2 characters long")
     .max(100, "Designation must be at most 100 characters long");
-export const employmentTypeValidator = z
+export const experienceEmploymentTypeValidator = z
     .string()
     .trim()
     .min(2, "Employment type is required")

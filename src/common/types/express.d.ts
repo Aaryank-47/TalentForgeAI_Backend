@@ -1,4 +1,5 @@
 import type { AuthTokenPayload } from "../modules/auth/interfaces/auth.interface.js";
+import { CompanyMemberRole, CompanyStatus, type Company } from "@prisma/client";
 
 declare global {
     namespace Express {
@@ -11,6 +12,7 @@ declare global {
                 role: CompanyMemberRole;
                 status: CompanyMemberStatus;
             };
+            company?: Company;
         };
     }
 }
