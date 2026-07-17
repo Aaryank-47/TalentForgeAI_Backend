@@ -22,7 +22,6 @@ import type {
     UploadCompanyCoverResult,
     SearchCompanyResult,
     CompanyInvitationView,
-    InvitationView,
     CancelInvitationResult,
     ResendInvitationResult,
     CompanyDeactivationResult,
