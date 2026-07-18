@@ -1,13 +1,4 @@
-import type {
-    CompanyMemberRole,
-    EmploymentType,
-    WorkplaceType,
-    SalaryPeriod,
-    JobSkill as Skill,
-    JobBenefit as Benefit
-} from "@prisma/client";
-import type { AuthUserView } from "../../auth/interfaces/auth.interface.js";
-
+import type { CompanyMemberRole, User, EmploymentType, WorkplaceType, SalaryPeriod, JobSkill as Skill, JobBenefit as Benefit } from "@prisma/client";
 export interface Job {
     id: string;
     companyId: string;
@@ -27,10 +18,10 @@ export interface Job {
     benefits: Benefit[];
     isPublished: boolean;
 }
-
 export interface JobView extends Job {
     skills: Skill[];
     benefits: Benefit[];
     companyMemberRole: CompanyMemberRole;
-    author: AuthUserView;
+    author: User;
 }
+//# sourceMappingURL=jobs.interface.d.ts.map

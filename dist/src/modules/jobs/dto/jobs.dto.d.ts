@@ -1,5 +1,6 @@
 import { z } from "zod";
 export declare const jobCreationDto: z.ZodObject<{
+    companyId: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
     employmentType: z.ZodEnum<{

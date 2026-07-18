@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { jobTitleValidator, jobDescriptionValidator, employmentTypeValidator, workplaceTypeValidator, minimumExperienceValidator, maximumExperienceValidator, minimumSalaryValidator, maximumSalaryValidator, salaryPeriodValidator, hideSalaryValidator, applicationDeadlineValidator, skillsValidator, benefitsValidator, } from "../../../common/validators/validators.js";
+import { companyIdValidator, jobTitleValidator, jobDescriptionValidator, employmentTypeValidator, workplaceTypeValidator, minimumExperienceValidator, maximumExperienceValidator, minimumSalaryValidator, maximumSalaryValidator, salaryPeriodValidator, hideSalaryValidator, applicationDeadlineValidator, skillsValidator, benefitsValidator, } from "../../../common/validators/validators.js";
 export const jobCreationDto = z.object({
+    companyId: companyIdValidator,
     title: jobTitleValidator,
     description: jobDescriptionValidator,
     employmentType: employmentTypeValidator,

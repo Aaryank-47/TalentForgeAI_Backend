@@ -1,5 +1,7 @@
 import { z } from "zod";
 import {
+    jobVacanciesValidator,
+    locationValidator,
     jobTitleValidator,
     jobDescriptionValidator,
     employmentTypeValidator,
@@ -20,8 +22,8 @@ export const jobCreationDto = z.object({
     description: jobDescriptionValidator,
     employmentType: employmentTypeValidator,
     workplaceType: workplaceTypeValidator,
-    vacancies: z.number().int().min(1).optional().default(1),
-    location: z.string().trim().min(2).max(150).optional(),
+    vacancies: jobVacanciesValidator,
+    location: locationValidator,
     minExperience: minimumExperienceValidator,
     maxExperience: maximumExperienceValidator,
     minimumSalary: minimumSalaryValidator,
