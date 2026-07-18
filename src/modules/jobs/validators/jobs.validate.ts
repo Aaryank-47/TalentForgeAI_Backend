@@ -1,3 +1,4 @@
 export { 
-    jobCreationDto 
+    jobCreationDto,
+    jobDetailsParamDto
 } from "../dto/jobs.dto.js"

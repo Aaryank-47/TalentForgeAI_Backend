@@ -1,9 +1,10 @@
 import prisma from "../../../config/database.js";
+import { JobSelect } from "../../../common/prisma.select/jobs.select.js";
 export class JobsRepository {
-    static async createJob(data, slug, createdById) {
+    static async createJob(companyId, data, slug, createdById) {
         return prisma.job.create({
             data: {
-                companyId: data.companyId,
+                companyId: companyId,
                 title: data.title,
                 slug,
                 description: data.description,
@@ -31,10 +32,35 @@ export class JobsRepository {
                     })),
                 },
             },
+            select: JobSelect
+        });
+    }
+    static async listCompanyJobs(companyId) {
+        return prisma.job.findMany({
+            where: {
+                companyId: companyId,
+            },
+            select: JobSelect
+        });
+    }
+    static async findJobById(jobId) {
+        return prisma.job.findUnique({
+            where: {
+                id: jobId,
+            },
             include: {
                 skills: true,
                 benefits: true,
-            },
+                members: {
+                    include: {
+                        companyMember: {
+                            include: {
+                                user: true
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 }

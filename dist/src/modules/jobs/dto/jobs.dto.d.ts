@@ -1,6 +1,5 @@
 import { z } from "zod";
 export declare const jobCreationDto: z.ZodObject<{
-    companyId: z.ZodString;
     title: z.ZodString;
     description: z.ZodString;
     employmentType: z.ZodEnum<{
@@ -17,7 +16,7 @@ export declare const jobCreationDto: z.ZodObject<{
         HYBRID: "HYBRID";
         ONSITE: "ONSITE";
     }>;
-    vacancies: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    vacancies: z.ZodOptional<z.ZodNumber>;
     location: z.ZodOptional<z.ZodString>;
     minExperience: z.ZodOptional<z.ZodNumber>;
     maxExperience: z.ZodOptional<z.ZodNumber>;
@@ -34,4 +33,9 @@ export declare const jobCreationDto: z.ZodObject<{
     benefits: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export type JobCreationDto = z.infer<typeof jobCreationDto>;
+export declare const jobDetailsParamDto: z.ZodObject<{
+    companyId: z.ZodString;
+    jobId: z.ZodString;
+}, z.core.$strip>;
+export type JobDetailsParamDto = z.infer<typeof jobDetailsParamDto>;
 //# sourceMappingURL=jobs.dto.d.ts.map

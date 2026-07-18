@@ -4,7 +4,7 @@ import { createJobService } from "../services/jobs.services.js";
 import type { Request, Response } from "express";
 import { CompanyMemberRole } from "@prisma/client";
 import type { CompanyIdParamDto } from "../../company/dto/company.dto.js";
-import type { JobCreationDto } from "../../jobs/dto/jobs.dto.js"
+import type { JobCreationDto, JobDetailsParamDto } from "../../jobs/dto/jobs.dto.js"
 
 export class JobController {
     static async createJob(
@@ -36,6 +36,20 @@ export class JobController {
             status: "success",
             message: MESSAGE.JOBS_LISTED,
             data: jobs,
+        });
+    }
+
+    static async getJobDetails(
+        req: Request,
+        res: Response
+    ) {
+        const { companyId, jobId } = req.params as JobDetailsParamDto;
+        const job = await createJobService.getJobDetails(companyId, jobId);
+
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: MESSAGE.JOB_DETAILS_FETCHED,
+            data: job,
         });
     }
 }

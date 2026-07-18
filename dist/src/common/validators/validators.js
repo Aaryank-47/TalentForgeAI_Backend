@@ -279,6 +279,17 @@ export const jobVisibilityValidator = z.enum([
     "PRIVATE",
     "INTERNAL",
 ]);
+export const jobVacanciesValidator = z
+    .number()
+    .int("Job vacancies must be a whole number")
+    .positive("Job vacancies must be a positive number")
+    .optional();
+export const locationValidator = z
+    .string()
+    .trim()
+    .min(2, "Location must be at least 2 characters long")
+    .max(100, "Location must be at most 100 characters long")
+    .optional();
 export const hideSalaryValidator = z.boolean().optional();
 export const applicationDeadlineValidator = z.coerce.date().optional();
 export const skillsValidator = z.array(z.string()

@@ -49,8 +49,10 @@ export const MESSAGE = {
     COMPANY_ACTIVATED: "Company activated successfully.",
     // Job
     JOB_CREATED: "Job created successfully.",
+    JOBS_LISTED: "Get All Company Jobs listed successfully.",
     JOB_UPDATED: "Job updated successfully.",
     JOB_DELETED: "Job deleted successfully.",
-    JOB_NOT_FOUND: "Job not found."
+    JOB_NOT_FOUND: "Job not found.",
+    JOB_DETAILS_FETCHED: "Job details fetched successfully."
 };
 //# sourceMappingURL=messages.js.map

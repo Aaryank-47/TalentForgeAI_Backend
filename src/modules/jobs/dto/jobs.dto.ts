@@ -60,3 +60,10 @@ export const jobCreationDto = z.object({
 );
 
 export type JobCreationDto = z.infer<typeof jobCreationDto>;
+
+export const jobDetailsParamDto = z.object({
+    companyId: z.string().cuid("Please enter a valid Company UUID"),
+    jobId: z.string().cuid("Please enter a valid Job UUID"),
+});
+
+export type JobDetailsParamDto = z.infer<typeof jobDetailsParamDto>;

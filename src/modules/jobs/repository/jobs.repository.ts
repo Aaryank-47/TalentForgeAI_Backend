@@ -52,4 +52,28 @@ export class JobsRepository {
             select: JobSelect
         });
     }
+
+    static async findJobById(
+        jobId: string
+    ): Promise<any> {
+        return prisma.job.findUnique({
+            where: {
+                id: jobId,
+            },
+            include: {
+                skills: true,
+                benefits: true,
+                members: {
+                    include: {
+                        companyMember: {
+                            include: {
+                                user: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
+

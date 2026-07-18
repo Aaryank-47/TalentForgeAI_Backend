@@ -49,5 +49,26 @@ export class createJobService {
 
         return jobs;
     }
+
+    static async getJobDetails(
+        companyId: string,
+        jobId: string
+    ): Promise<any> {
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found");
+        }
+
+        const job = await JobsRepository.findJobById(jobId);
+        if (!job) {
+            throw new NotFoundError("Job not found");
+        }
+
+        if (job.companyId !== companyId) {
+            throw new NotFoundError("Job does not belong to this company");
+        }
+
+        return job;
+    }
 }
 

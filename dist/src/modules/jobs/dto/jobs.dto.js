@@ -1,13 +1,12 @@
 import { z } from "zod";
-import { companyIdValidator, jobTitleValidator, jobDescriptionValidator, employmentTypeValidator, workplaceTypeValidator, minimumExperienceValidator, maximumExperienceValidator, minimumSalaryValidator, maximumSalaryValidator, salaryPeriodValidator, hideSalaryValidator, applicationDeadlineValidator, skillsValidator, benefitsValidator, } from "../../../common/validators/validators.js";
+import { jobVacanciesValidator, locationValidator, jobTitleValidator, jobDescriptionValidator, employmentTypeValidator, workplaceTypeValidator, minimumExperienceValidator, maximumExperienceValidator, minimumSalaryValidator, maximumSalaryValidator, salaryPeriodValidator, hideSalaryValidator, applicationDeadlineValidator, skillsValidator, benefitsValidator, } from "../../../common/validators/validators.js";
 export const jobCreationDto = z.object({
-    companyId: companyIdValidator,
     title: jobTitleValidator,
     description: jobDescriptionValidator,
     employmentType: employmentTypeValidator,
     workplaceType: workplaceTypeValidator,
-    vacancies: z.number().int().min(1).optional().default(1),
-    location: z.string().trim().min(2).max(150).optional(),
+    vacancies: jobVacanciesValidator,
+    location: locationValidator,
     minExperience: minimumExperienceValidator,
     maxExperience: maximumExperienceValidator,
     minimumSalary: minimumSalaryValidator,
@@ -35,5 +34,9 @@ export const jobCreationDto = z.object({
 }, {
     message: "Minimum salary cannot be greater than maximum salary",
     path: ["minimumSalary"],
+});
+export const jobDetailsParamDto = z.object({
+    companyId: z.string().cuid("Please enter a valid Company UUID"),
+    jobId: z.string().cuid("Please enter a valid Job UUID"),
 });
 //# sourceMappingURL=jobs.dto.js.map

@@ -42,8 +42,10 @@ export declare const MESSAGE: {
     readonly COMPANY_DEACTIVATED: "Company deactivated successfully.";
     readonly COMPANY_ACTIVATED: "Company activated successfully.";
     readonly JOB_CREATED: "Job created successfully.";
+    readonly JOBS_LISTED: "Get All Company Jobs listed successfully.";
     readonly JOB_UPDATED: "Job updated successfully.";
     readonly JOB_DELETED: "Job deleted successfully.";
     readonly JOB_NOT_FOUND: "Job not found.";
+    readonly JOB_DETAILS_FETCHED: "Job details fetched successfully.";
 };
 //# sourceMappingURL=messages.d.ts.map

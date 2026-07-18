@@ -102,6 +102,8 @@ export declare const jobVisibilityValidator: z.ZodEnum<{
     PRIVATE: "PRIVATE";
     INTERNAL: "INTERNAL";
 }>;
+export declare const jobVacanciesValidator: z.ZodOptional<z.ZodNumber>;
+export declare const locationValidator: z.ZodOptional<z.ZodString>;
 export declare const hideSalaryValidator: z.ZodOptional<z.ZodBoolean>;
 export declare const applicationDeadlineValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
 export declare const skillsValidator: z.ZodArray<z.ZodString>;
