@@ -6,6 +6,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import { CompanyMemberRole } from "@prisma/client";
 import { JobsRepository } from "../repository/jobs.repository.js";
+import type { JobsListView } from "../../jobs/interfaces/jobs.interface.js"
 
 export class createJobService {
     static async createJob(
@@ -33,6 +34,20 @@ export class createJobService {
         }
 
         return toJobView(job, author, companyMemberRole);
+    }
+
+    static async listCompanyJobs(
+        companyId: string
+    ): Promise<JobsListView[]> {
+        const company = await CompanyRepository.findCompanyById(companyId);
+
+        if (!company) {
+            throw new NotFoundError("Company not found");
+        }
+
+        const jobs = await JobsRepository.listCompanyJobs(companyId);
+
+        return jobs;
     }
 }
 

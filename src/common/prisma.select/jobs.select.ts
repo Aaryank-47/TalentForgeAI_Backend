@@ -1,20 +1,55 @@
-export const Jobselect = {
-    select: {
-        id: true,
-        title: true,
-        description: true,
-        employmentType: true,
-        workplaceType: true,
-        location: true,
-        minExperience: true,
-        maxExperience: true,
-        minimumSalary: true,
-        maximumSalary: true,
-        salaryPeriod: true,
-        hideSalary: true,
-        applicationDeadline: true,
-        skills: true,
-        benefits: true,
-        isPublished: true,
-    }
-} as const
+export const JobSelect = {
+    id: true,
+    companyId: true,
+
+    title: true,
+    slug: true,
+
+    summary: true,
+    description: true,
+
+    employmentType: true,
+    workplaceType: true,
+
+    status: true,
+    visibility: true,
+
+    vacancies: true,
+
+    location: true,
+
+    minExperience: true,
+    maxExperience: true,
+
+    minimumSalary: true,
+    maximumSalary: true,
+    salaryPeriod: true,
+    hideSalary: true,
+
+    applicationDeadline: true,
+
+    publishedAt: true,
+    closedAt: true,
+    archivedAt: true,
+
+    createdById: true,
+    updatedById: true,
+
+    createdAt: true,
+    updatedAt: true,
+
+    skills: {
+        select: {
+            id: true,
+            name: true,
+            isRequired: true,
+        },
+    },
+
+    benefits: {
+        select: {
+            id: true,
+            benefit: true,
+        },
+    },
+} as const;

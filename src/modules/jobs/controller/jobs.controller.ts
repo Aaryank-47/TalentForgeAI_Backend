@@ -23,4 +23,19 @@ export class JobController {
             data: job,
         });
     }
+
+    static async listCompanyJobs(
+        req: Request,
+        res: Response
+    ){
+        const { companyId } = req.params as CompanyIdParamDto;
+        const userId = req.user.id as string;
+        const jobs = await createJobService.listCompanyJobs(companyId);
+
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: MESSAGE.JOBS_LISTED,
+            data: jobs,
+        });
+    }
 }

@@ -25,4 +25,11 @@ router.post(
     JobController.createJob
 );
 
+router.get(
+    "/company/:companyId/job/posts",
+    authMiddleware,
+    validate(companyIdParamDto, "params"),
+    JobController.listCompanyJobs
+)
+
 export default router;

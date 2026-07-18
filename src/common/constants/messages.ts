@@ -58,6 +58,7 @@ export const MESSAGE = {
 
     // Job
     JOB_CREATED: "Job created successfully.",
+    JOBS_LISTED: "Get All Company Jobs listed successfully.",
     JOB_UPDATED: "Job updated successfully.",
     JOB_DELETED: "Job deleted successfully.",
     JOB_NOT_FOUND: "Job not found."

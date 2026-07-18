@@ -34,3 +34,24 @@ export interface JobView extends Job {
     companyMemberRole: CompanyMemberRole;
     author: AuthUserView;
 }
+
+export interface JobsListView {
+    id: string;
+    companyId: string;
+    title: string;
+    description: string;
+    employmentType: EmploymentType;
+    workplaceType: WorkplaceType;
+    location: string;
+    minExperience: number;
+    maxExperience: number;
+    minimumSalary: number;
+    maximumSalary: number;
+    salaryPeriod: SalaryPeriod;
+    hideSalary: boolean;
+    applicationDeadline: Date;
+    skills: Skill[];
+    benefits: Benefit[];
+    isPublished: boolean;
+    author: AuthUserView
+}

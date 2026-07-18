@@ -1,13 +1,13 @@
 import prisma from "../../../config/database.js";
 import type { JobCreationDto } from "../dto/jobs.dto.js";
-
+import { JobSelect } from "../../../common/prisma.select/jobs.select.js"
 export class JobsRepository {
     static async createJob(
         companyId: string,
         data: JobCreationDto,
         slug: string,
         createdById: string
-    ) {
+    ): Promise<any> {
         return prisma.job.create({
             data: {
                 companyId: companyId,
@@ -38,10 +38,18 @@ export class JobsRepository {
                     })),
                 },
             },
-            include: {
-                skills: true,
-                benefits: true,
+            select: JobSelect
+        });
+    }
+
+    static async listCompanyJobs(
+        companyId: string,
+    ): Promise<any[]> {
+        return prisma.job.findMany({
+            where: {
+                companyId: companyId,
             },
+            select: JobSelect
         });
     }
 }
