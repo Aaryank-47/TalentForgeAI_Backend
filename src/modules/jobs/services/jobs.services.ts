@@ -4,7 +4,7 @@ import { CompanyRepository } from "../../company/repository/company.repository.j
 import { SlugHelper, toJobView } from "../utils/jobs.utils.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
-import { CompanyMemberRole } from "@prisma/client";
+import { CompanyMemberRole, JobStatus } from "@prisma/client";
 import { JobsRepository } from "../repository/jobs.repository.js";
 import type { JobsListView } from "../../jobs/interfaces/jobs.interface.js"
 
@@ -90,6 +90,30 @@ export class createJobService {
         }
 
         const updateJobdetails = await JobsRepository.updateJobDetails(params.jobId, jobPayload);
+
+        return updateJobdetails;
+    }
+
+    static async updateJobStatus(
+        companyId: string,
+        jobId: string,
+        status: JobStatus
+    ): Promise<JobView> {
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found");
+        }
+
+        const job = await JobsRepository.findJobById(jobId);
+        if (!job) {
+            throw new NotFoundError("Job not found");
+        }
+
+        if (job.companyId !== companyId) {
+            throw new NotFoundError("Job does not belong to this company");
+        }
+
+        const updateJobdetails = await JobsRepository.updateJobStatus(jobId, status);
 
         return updateJobdetails;
     }

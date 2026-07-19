@@ -2,6 +2,7 @@ import prisma from "../../../config/database.js";
 import type { JobCreationDto, JobUpdateDto } from "../dto/jobs.dto.js";
 import { JobSelect } from "../../../common/prisma.select/jobs.select.js"
 import { toJobUpdateInput, toJobCreateInput } from "../mappers/job.mapper.js";
+import { JobStatus } from "@prisma/client";
 
 export class JobsRepository {
     static async createJob(
@@ -59,6 +60,21 @@ export class JobsRepository {
                 id: jobId,
             },
             data: toJobUpdateInput(jobPayload),
+            select: JobSelect
+        })
+    }
+
+    static async updateJobStatus(
+        jobId: string,
+        status: JobStatus
+    ): Promise<any> {
+        return prisma.job.update({
+            where: {
+                id: jobId,
+            },
+            data: {
+                status: status,
+            },
             select: JobSelect
         })
     }

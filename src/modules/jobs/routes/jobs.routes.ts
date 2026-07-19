@@ -7,7 +7,7 @@ import { ensureActiveCompany } from "../../../common/middleware/ensureActiveComp
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { jobCreationDto, jobDetailsParamDto, jobUpdateDto } from "../validators/jobs.validate.js";
+import { jobCreationDto, jobDetailsParamDto, jobUpdateDto, statusUpdateDto } from "../validators/jobs.validate.js";
 import { companyIdParamDto } from "../../company/validators/company.validators.js"
 
 const router = Router();
@@ -54,6 +54,19 @@ router.patch(
     loadCompanyMembership,
     authorizedCompanyMember("OWNER", "ADMIN", "RECRUITER", "HIRING_MANAGER"),
     JobController.updateJobDetails
+)
+
+router.patch(
+    "/company/:companyId/job/:jobId/status",
+    authMiddleware,
+    authorize("EMPLOYER","ADMIN"),
+    validate(jobDetailsParamDto, "params"),
+    validate(statusUpdateDto, "body"),
+    ensureActiveCompany,
+    ensureVerifiedCompany,
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN", "RECRUITER", "HIRING_MANAGER"),
+    JobController.updateJobStatus
 )
 
 export default router;

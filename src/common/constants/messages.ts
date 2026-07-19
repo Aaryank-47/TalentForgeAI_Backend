@@ -62,5 +62,6 @@ export const MESSAGE = {
     JOB_UPDATED: "Job updated successfully.",
     JOB_DELETED: "Job deleted successfully.",
     JOB_NOT_FOUND: "Job not found.",
-    JOB_DETAILS_FETCHED: "Job details fetched successfully."
+    JOB_DETAILS_FETCHED: "Job details fetched successfully.",
+    JOB_STATUS_UPDATED: "Job status updated successfully."
 } as const;

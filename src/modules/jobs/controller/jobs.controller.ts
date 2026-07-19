@@ -2,9 +2,9 @@ import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { MESSAGE } from "../../../common/constants/messages.js";
 import { createJobService } from "../services/jobs.services.js";
 import type { Request, Response } from "express";
-import { CompanyMemberRole } from "@prisma/client";
+import { CompanyMemberRole, JobStatus } from "@prisma/client";
 import type { CompanyIdParamDto } from "../../company/dto/company.dto.js";
-import type { JobCreationDto, JobDetailsParamDto, JobUpdateDto } from "../../jobs/dto/jobs.dto.js"
+import type { JobCreationDto, JobDetailsParamDto, JobUpdateDto, StatusUpdateDto } from "../../jobs/dto/jobs.dto.js"
 
 export class JobController {
     static async createJob(
@@ -63,6 +63,21 @@ export class JobController {
         res.status(HTTP_STATUS.OK).json({
             status: "success",
             message: MESSAGE.JOB_UPDATED,
+            data: job
+        });
+    }
+
+    static async updateJobStatus(
+        req: Request,
+        res: Response
+    ) {
+        const { companyId, jobId } = req.params as JobDetailsParamDto;
+        const status = req.body.status as JobStatus;
+        const job = await createJobService.updateJobStatus(companyId, jobId, status);
+
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: MESSAGE.JOB_STATUS_UPDATED,
             data: job
         });
     }

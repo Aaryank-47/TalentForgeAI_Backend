@@ -17,6 +17,7 @@ import {
     applicationDeadlineValidator,
     skillsValidator,
     benefitsValidator,
+    jobStatusValidator,
 } from "../../../common/validators/validators.js";
 
 export const jobCreationDto = z.object({
@@ -113,3 +114,9 @@ export const jobDetailsParamDto = z.object({
 });
 
 export type JobDetailsParamDto = z.infer<typeof jobDetailsParamDto>;
+
+export const statusUpdateDto = z.object({
+    status: jobStatusValidator,
+});
+
+export type StatusUpdateDto = z.infer<typeof statusUpdateDto>;
