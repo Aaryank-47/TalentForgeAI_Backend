@@ -1,4 +1,4 @@
-import type { JobCreationDto } from "../dto/jobs.dto.js";
+import type { JobCreationDto, JobDetailsParamDto, JobUpdateDto } from "../dto/jobs.dto.js";
 import type { JobView } from "../interfaces/jobs.interface.js"
 import { CompanyRepository } from "../../company/repository/company.repository.js";
 import { SlugHelper, toJobView } from "../utils/jobs.utils.js";
@@ -69,6 +69,29 @@ export class createJobService {
         }
 
         return job;
+    }
+
+    static async updateJobDetails(
+        params: JobDetailsParamDto,
+        jobPayload: JobUpdateDto
+    ): Promise<JobView> {
+        const company = await CompanyRepository.findCompanyById(params.companyId);
+        if (!company) {
+            throw new NotFoundError("Company not found");
+        }
+
+        const job = await JobsRepository.findJobById(params.jobId);
+        if (!job) {
+            throw new NotFoundError("Job not found");
+        }
+
+        if (job.companyId !== params.companyId) {
+            throw new NotFoundError("Job does not belong to this company");
+        }
+
+        const updateJobdetails = await JobsRepository.updateJobDetails(params.jobId, jobPayload);
+
+        return updateJobdetails;
     }
 }
 

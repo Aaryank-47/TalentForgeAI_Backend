@@ -1,43 +1,17 @@
 import prisma from "../../../config/database.js";
-import type { JobCreationDto } from "../dto/jobs.dto.js";
+import type { JobCreationDto, JobUpdateDto } from "../dto/jobs.dto.js";
 import { JobSelect } from "../../../common/prisma.select/jobs.select.js"
+import { toJobUpdateInput, toJobCreateInput } from "../mappers/job.mapper.js";
+
 export class JobsRepository {
     static async createJob(
         companyId: string,
-        data: JobCreationDto,
+        jobCreationPayload: JobCreationDto,
         slug: string,
         createdById: string
     ): Promise<any> {
         return prisma.job.create({
-            data: {
-                companyId: companyId,
-                title: data.title,
-                slug,
-                description: data.description,
-                employmentType: data.employmentType,
-                workplaceType: data.workplaceType,
-                vacancies: data.vacancies ?? 1,
-                location: data.location ?? null,
-                minExperience: data.minExperience ?? 0,
-                maxExperience: data.maxExperience ?? 0,
-                minimumSalary: data.minimumSalary ?? null,
-                maximumSalary: data.maximumSalary ?? null,
-                salaryPeriod: data.salaryPeriod ?? null,
-                hideSalary: data.hideSalary ?? false,
-                applicationDeadline: data.applicationDeadline ? new Date(data.applicationDeadline) : null,
-                createdById,
-                skills: {
-                    create: data.skills.map((skill) => ({
-                        name: skill,
-                        isRequired: true,
-                    })),
-                },
-                benefits: {
-                    create: (data.benefits || []).map((benefit) => ({
-                        benefit,
-                    })),
-                },
-            },
+            data: toJobCreateInput(companyId, jobCreationPayload, slug, createdById),
             select: JobSelect
         });
     }
@@ -74,6 +48,19 @@ export class JobsRepository {
                 }
             }
         });
+    }
+
+    static async updateJobDetails(
+        jobId: string,
+        jobPayload: JobUpdateDto,
+    ): Promise<any> {
+        return prisma.job.update({
+            where: {
+                id: jobId,
+            },
+            data: toJobUpdateInput(jobPayload),
+            select: JobSelect
+        })
     }
 }
 

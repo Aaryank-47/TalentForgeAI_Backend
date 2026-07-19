@@ -1,5 +1,7 @@
 import { z } from "zod";
 import {
+    companyIdValidator,
+    jobIdValidator,
     jobVacanciesValidator,
     locationValidator,
     jobTitleValidator,
@@ -61,9 +63,53 @@ export const jobCreationDto = z.object({
 
 export type JobCreationDto = z.infer<typeof jobCreationDto>;
 
+export const jobUpdateDto = z.object({
+    title: jobTitleValidator.optional(),
+    description: jobDescriptionValidator.optional(),
+    employmentType: employmentTypeValidator.optional(),
+    workplaceType: workplaceTypeValidator.optional(),
+    vacancies: jobVacanciesValidator.optional(),
+    location: locationValidator.optional(),
+    minExperience: minimumExperienceValidator.optional(),
+    maxExperience: maximumExperienceValidator.optional(),
+    minimumSalary: minimumSalaryValidator.optional(),
+    maximumSalary: maximumSalaryValidator.optional(),
+    salaryPeriod: salaryPeriodValidator.optional(),
+    hideSalary: hideSalaryValidator.optional(),
+    applicationDeadline: applicationDeadlineValidator.optional(),
+    skills: skillsValidator.optional(),
+    benefits: benefitsValidator.optional(),
+})
+.refine(
+    (data) => {
+        if (data.minExperience !== undefined && data.maxExperience !== undefined) {
+            return data.minExperience <= data.maxExperience;
+        }
+        return true;
+    },
+    {
+        message: "Minimum experience cannot be greater than maximum experience",
+        path: ["minExperience"],
+    }
+)
+.refine(
+    (data) => {
+        if (data.minimumSalary !== undefined && data.maximumSalary !== undefined) {
+            return data.minimumSalary <= data.maximumSalary;
+        }
+        return true;
+    },
+    {
+        message: "Minimum salary cannot be greater than maximum salary",
+        path: ["minimumSalary"],
+    }
+);
+
+export type JobUpdateDto = z.infer<typeof jobUpdateDto>;
+
 export const jobDetailsParamDto = z.object({
-    companyId: z.string().cuid("Please enter a valid Company UUID"),
-    jobId: z.string().cuid("Please enter a valid Job UUID"),
+    companyId: companyIdValidator,
+    jobId: jobIdValidator,
 });
 
 export type JobDetailsParamDto = z.infer<typeof jobDetailsParamDto>;
