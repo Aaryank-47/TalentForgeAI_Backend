@@ -79,6 +79,14 @@ export class CompanyRepository {
         });
     }
 
+    static async findCompanyMemberById(
+        companyMemberId: string
+    ) {
+        return prisma.companyMember.findUnique({
+            where: { id: companyMemberId },
+        });
+    }
+
     static async findMemberByUserAndCompany(
         userId: string,
         companyId: string

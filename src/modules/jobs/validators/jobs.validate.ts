@@ -2,5 +2,9 @@ export {
     jobCreationDto,
     jobDetailsParamDto,
     jobUpdateDto,
-    statusUpdateDto
+    statusUpdateDto,
+    assignCompanyMemberToJobDto,
+    jobAssignmentMemberParamsDto,
+    listAssignedMembersParamsDto,
+    removeAssignedCompanyMembersDto
 } from "../dto/jobs.dto.js"

@@ -55,3 +55,14 @@ export interface JobsListView {
     isPublished: boolean;
     author: AuthUserView
 }
+
+export interface JobAssignedMemberView {
+    companyMemberId: string;
+    userId: string;
+    fullName: string;
+    email: string;
+    role: string;
+    profilePicture: string | null;
+    joinedAt: Date;
+    assignedAt: Date;
+}

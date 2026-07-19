@@ -18,6 +18,8 @@ import {
     skillsValidator,
     benefitsValidator,
     jobStatusValidator,
+    userIdValidator,
+    uuidValidator
 } from "../../../common/validators/validators.js";
 
 export const jobCreationDto = z.object({
@@ -120,3 +122,33 @@ export const statusUpdateDto = z.object({
 });
 
 export type StatusUpdateDto = z.infer<typeof statusUpdateDto>;
+
+export const assignRecruiterToJobDto = z.object({
+    jobId: jobIdValidator,
+    recruiterId: userIdValidator,
+});
+
+export type AssignRecruiterToJobDto = z.infer<typeof assignRecruiterToJobDto>;
+
+export const assignCompanyMemberToJobDto = z.object({
+    companyMemberId: uuidValidator,
+});
+
+export type AssignCompanyMemberToJobDto = z.infer<typeof assignCompanyMemberToJobDto>;
+
+export const jobAssignmentMemberParamsDto = z.object({
+    companyId: companyIdValidator,
+    jobId: jobIdValidator,
+});
+
+export type JobAssignmentMemberParamsDto = z.infer<typeof jobAssignmentMemberParamsDto>;
+
+export const listAssignedMembersParamsDto = jobAssignmentMemberParamsDto;
+
+export type ListAssignedMembersParamsDto = z.infer<typeof listAssignedMembersParamsDto>;
+
+export const removeAssignedCompanyMembersDto = z.object({
+    companyMemberIds: z.array(uuidValidator).min(1, "At least one company member ID must be provided"),
+});
+
+export type RemoveAssignedCompanyMembersDto = z.infer<typeof removeAssignedCompanyMembersDto>;

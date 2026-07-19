@@ -1,5 +1,6 @@
 import Router from "express"
 import { JobController } from "../controller/jobs.controller.js";
+import { JobAssignmentsController } from "../controller/jobAssignments.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorizedCompanyMember } from "../../../common/middleware/allowCompanyRoles.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
@@ -7,7 +8,16 @@ import { ensureActiveCompany } from "../../../common/middleware/ensureActiveComp
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { jobCreationDto, jobDetailsParamDto, jobUpdateDto, statusUpdateDto } from "../validators/jobs.validate.js";
+import { 
+    jobCreationDto, 
+    jobDetailsParamDto, 
+    jobUpdateDto, 
+    statusUpdateDto,
+    assignCompanyMemberToJobDto,
+    jobAssignmentMemberParamsDto,
+    listAssignedMembersParamsDto,
+    removeAssignedCompanyMembersDto
+} from "../validators/jobs.validate.js";
 import { companyIdParamDto } from "../../company/validators/company.validators.js"
 
 const router = Router();
@@ -68,5 +78,43 @@ router.patch(
     authorizedCompanyMember("OWNER", "ADMIN", "RECRUITER", "HIRING_MANAGER"),
     JobController.updateJobStatus
 )
+
+router.post(
+    "/companies/:companyId/jobs/:jobId/assignments/members",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(jobAssignmentMemberParamsDto, "params"),
+    validate(assignCompanyMemberToJobDto, "body"),
+    ensureActiveCompany,
+    ensureVerifiedCompany,
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN", "RECRUITER", "HIRING_MANAGER"),
+    JobAssignmentsController.assignCompanyMemberToJob
+);
+
+router.get(
+    "/companies/:companyId/jobs/:jobId/assignments/members",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(listAssignedMembersParamsDto, "params"),
+    ensureActiveCompany,
+    ensureVerifiedCompany,
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN", "RECRUITER", "HIRING_MANAGER"),
+    JobAssignmentsController.listAssignedCompanyMembersForJob
+);
+
+router.delete(
+    "/companies/:companyId/jobs/:jobId/remove/assigned/members",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(jobAssignmentMemberParamsDto, "params"),
+    validate(removeAssignedCompanyMembersDto, "body"),
+    ensureActiveCompany,
+    ensureVerifiedCompany,
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN", "RECRUITER", "HIRING_MANAGER"),
+    JobAssignmentsController.removeAssignedCompanyMembersFromJob
+);
 
 export default router;
