@@ -109,6 +109,17 @@ enum SalaryPeriod {
   YEARLY
 }
 
+enum GradingSystem {
+  PERCENTAGE
+  CGPA
+  GPA_4
+  GPA_5
+  GPA_10
+  LETTER_GRADE
+  PASS_FAIL
+  OTHER
+}
+
 model User {
   id                          String          @id @default(cuid())
   email                       String          @unique
@@ -149,6 +160,7 @@ model Candidate {
   profilePicture     String?
   headline           String?
   bio                String?
+  dateOfBirth        DateTime?
   gender             Gender?
   experienceLevel    ExperienceLevel?
   currentLocation    String?
@@ -164,7 +176,7 @@ model Candidate {
   portfolioUrl       String?
   websiteUrl         String?
   isOpenToWork       Boolean               @default(true)
-  profileCompleted   Boolean               @default(false)
+  profileCompletion  Int                   @default(0)
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   skills             CandidateSkill[]
@@ -172,6 +184,10 @@ model Candidate {
   experiences        CandidateExperience[]
   resumes            Resume[]
   applications       Application[]
+
+  @@index([experienceLevel])
+  @@index([currentLocation])
+  @@index([isOpenToWork])
 }
 
 model Employer {
@@ -370,10 +386,10 @@ model Application {
   id String @id @default(cuid())
 
   jobId String
-  job   Job    @relation(fields: [jobId], references: [id])
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   candidateId String
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -384,25 +400,64 @@ model Application {
 }
 
 model Resume {
-  id          String     @id @default(cuid())
-  candidate   Candidate? @relation(fields: [candidateId], references: [id])
-  candidateId String?
+  id          String    @id @default(cuid())
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId String
+  resumeName  String
+  resumeUrl   String
+  fileSize    Int
+  uploadedAt  DateTime  @default(now())
+
+  @@index([candidateId])
 }
 
 model CandidateSkill {
-  id          String     @id @default(cuid())
-  candidate   Candidate? @relation(fields: [candidateId], references: [id])
-  candidateId String?
+  id                String    @id @default(cuid())
+  candidateId       String
+  candidate         Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name              String
+  yearsOfExperience Float?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([candidateId, name])
+  @@index([candidateId])
 }
 
 model CandidateEducation {
-  id          String     @id @default(cuid())
-  candidate   Candidate? @relation(fields: [candidateId], references: [id])
-  candidateId String?
+  id                String        @id @default(cuid())
+  candidate         Candidate     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId       String
+  collegeName       String
+  degree            String
+  fieldOfStudy      String
+  currentlyStudying Boolean       @default(false)
+  startDate         DateTime
+  endDate           DateTime?
+  gradingSystem     GradingSystem
+  gradeText         String?
+  grade             Float?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([candidateId])
 }
 
 model CandidateExperience {
-  id          String     @id @default(cuid())
-  candidate   Candidate? @relation(fields: [candidateId], references: [id])
-  candidateId String?
+  id               String         @id @default(cuid())
+  candidate        Candidate      @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId      String
+  companyName      String
+  designation      String
+  employmentType   EmploymentType
+  description      String?
+  location         String?
+  startDate        DateTime
+  endDate          DateTime?
+  currentlyWorking Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([candidateId])
+  @@index([companyName])
 }
