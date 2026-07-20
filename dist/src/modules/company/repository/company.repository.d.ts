@@ -10,6 +10,18 @@ export declare class CompanyRepository {
     static createCompany(input: CreateCompanyInput): Promise<CompanyView>;
     static getMyCompanies(userId: string): Promise<CompanyView[]>;
     static findCompanyById(companyId: string): Promise<CompanyView | null>;
+    static findCompanyMemberById(companyMemberId: string): Promise<{
+        companyId: string;
+        id: string;
+        role: import("@prisma/client").$Enums.CompanyMemberRole;
+        status: import("@prisma/client").$Enums.CompanyMemberStatus;
+        userId: string;
+        expiresAt: Date | null;
+        joinedAt: Date;
+        invitationToken: string | null;
+        invitedAt: Date | null;
+        invitedBy: string | null;
+    } | null>;
     static findMemberByUserAndCompany(userId: string, companyId: string): Promise<{
         companyId: string;
         id: string;

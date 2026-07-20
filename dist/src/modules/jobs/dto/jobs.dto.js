@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jobVacanciesValidator, locationValidator, jobTitleValidator, jobDescriptionValidator, employmentTypeValidator, workplaceTypeValidator, minimumExperienceValidator, maximumExperienceValidator, minimumSalaryValidator, maximumSalaryValidator, salaryPeriodValidator, hideSalaryValidator, applicationDeadlineValidator, skillsValidator, benefitsValidator, } from "../../../common/validators/validators.js";
+import { companyIdValidator, jobIdValidator, jobVacanciesValidator, locationValidator, jobTitleValidator, jobDescriptionValidator, employmentTypeValidator, workplaceTypeValidator, minimumExperienceValidator, maximumExperienceValidator, minimumSalaryValidator, maximumSalaryValidator, salaryPeriodValidator, hideSalaryValidator, applicationDeadlineValidator, skillsValidator, benefitsValidator, jobStatusValidator, userIdValidator, uuidValidator } from "../../../common/validators/validators.js";
 export const jobCreationDto = z.object({
     title: jobTitleValidator,
     description: jobDescriptionValidator,
@@ -35,8 +35,61 @@ export const jobCreationDto = z.object({
     message: "Minimum salary cannot be greater than maximum salary",
     path: ["minimumSalary"],
 });
+export const jobUpdateDto = z.object({
+    title: jobTitleValidator.optional(),
+    description: jobDescriptionValidator.optional(),
+    employmentType: employmentTypeValidator.optional(),
+    workplaceType: workplaceTypeValidator.optional(),
+    vacancies: jobVacanciesValidator.optional(),
+    location: locationValidator.optional(),
+    minExperience: minimumExperienceValidator.optional(),
+    maxExperience: maximumExperienceValidator.optional(),
+    minimumSalary: minimumSalaryValidator.optional(),
+    maximumSalary: maximumSalaryValidator.optional(),
+    salaryPeriod: salaryPeriodValidator.optional(),
+    hideSalary: hideSalaryValidator.optional(),
+    applicationDeadline: applicationDeadlineValidator.optional(),
+    skills: skillsValidator.optional(),
+    benefits: benefitsValidator.optional(),
+})
+    .refine((data) => {
+    if (data.minExperience !== undefined && data.maxExperience !== undefined) {
+        return data.minExperience <= data.maxExperience;
+    }
+    return true;
+}, {
+    message: "Minimum experience cannot be greater than maximum experience",
+    path: ["minExperience"],
+})
+    .refine((data) => {
+    if (data.minimumSalary !== undefined && data.maximumSalary !== undefined) {
+        return data.minimumSalary <= data.maximumSalary;
+    }
+    return true;
+}, {
+    message: "Minimum salary cannot be greater than maximum salary",
+    path: ["minimumSalary"],
+});
 export const jobDetailsParamDto = z.object({
-    companyId: z.string().cuid("Please enter a valid Company UUID"),
-    jobId: z.string().cuid("Please enter a valid Job UUID"),
+    companyId: companyIdValidator,
+    jobId: jobIdValidator,
+});
+export const statusUpdateDto = z.object({
+    status: jobStatusValidator,
+});
+export const assignRecruiterToJobDto = z.object({
+    jobId: jobIdValidator,
+    recruiterId: userIdValidator,
+});
+export const assignCompanyMemberToJobDto = z.object({
+    companyMemberId: uuidValidator,
+});
+export const jobAssignmentMemberParamsDto = z.object({
+    companyId: companyIdValidator,
+    jobId: jobIdValidator,
+});
+export const listAssignedMembersParamsDto = jobAssignmentMemberParamsDto;
+export const removeAssignedCompanyMembersDto = z.object({
+    companyMemberIds: z.array(uuidValidator).min(1, "At least one company member ID must be provided"),
 });
 //# sourceMappingURL=jobs.dto.js.map

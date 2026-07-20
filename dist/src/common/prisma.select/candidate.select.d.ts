@@ -28,7 +28,7 @@ export declare const candidateProfileSelect: {
     portfolioUrl: boolean;
     websiteUrl: boolean;
     isOpenToWork: boolean;
-    profileCompleted: boolean;
+    profileCompletion: boolean;
     createdAt: boolean;
     updatedAt: boolean;
 };

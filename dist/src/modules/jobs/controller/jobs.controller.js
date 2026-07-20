@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { MESSAGE } from "../../../common/constants/messages.js";
 import { createJobService } from "../services/jobs.services.js";
-import { CompanyMemberRole } from "@prisma/client";
+import { CompanyMemberRole, JobStatus } from "@prisma/client";
 export class JobController {
     static async createJob(req, res) {
         const { companyId } = req.params;
@@ -31,7 +31,26 @@ export class JobController {
         res.status(HTTP_STATUS.OK).json({
             status: "success",
             message: MESSAGE.JOB_DETAILS_FETCHED,
-            data: job,
+            data: job
+        });
+    }
+    static async updateJobDetails(req, res) {
+        const jobPayload = req.body;
+        const job = await createJobService.updateJobDetails(req.params, jobPayload);
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: MESSAGE.JOB_UPDATED,
+            data: job
+        });
+    }
+    static async updateJobStatus(req, res) {
+        const { companyId, jobId } = req.params;
+        const status = req.body.status;
+        const job = await createJobService.updateJobStatus(companyId, jobId, status);
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: MESSAGE.JOB_STATUS_UPDATED,
+            data: job
         });
     }
 }

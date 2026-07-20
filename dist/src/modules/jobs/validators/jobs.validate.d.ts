@@ -1,2 +1,2 @@
-export { jobCreationDto, jobDetailsParamDto } from "../dto/jobs.dto.js";
+export { jobCreationDto, jobDetailsParamDto, jobUpdateDto, statusUpdateDto, assignCompanyMemberToJobDto, jobAssignmentMemberParamsDto, listAssignedMembersParamsDto, removeAssignedCompanyMembersDto } from "../dto/jobs.dto.js";
 //# sourceMappingURL=jobs.validate.d.ts.map

@@ -1,1 +1,1 @@
-{"version":3,"file":"jobs.validate.d.ts","sourceRoot":"","sources":["../../../../../src/modules/jobs/validators/jobs.validate.ts"],"names":[],"mappings":"AAAA,OAAO,EACH,cAAc,EACd,kBAAkB,EACrB,MAAM,oBAAoB,CAAA"}
+{"version":3,"file":"jobs.validate.d.ts","sourceRoot":"","sources":["../../../../../src/modules/jobs/validators/jobs.validate.ts"],"names":[],"mappings":"AAAA,OAAO,EACH,cAAc,EACd,kBAAkB,EAClB,YAAY,EACZ,eAAe,EACf,2BAA2B,EAC3B,4BAA4B,EAC5B,4BAA4B,EAC5B,+BAA+B,EAClC,MAAM,oBAAoB,CAAA"}

@@ -47,5 +47,9 @@ export declare const MESSAGE: {
     readonly JOB_DELETED: "Job deleted successfully.";
     readonly JOB_NOT_FOUND: "Job not found.";
     readonly JOB_DETAILS_FETCHED: "Job details fetched successfully.";
+    readonly JOB_STATUS_UPDATED: "Job status updated successfully.";
+    readonly JOB_MEMBER_ASSIGNED: "Company member assigned to job successfully.";
+    readonly JOB_MEMBERS_LISTED: "Assigned company members fetched successfully.";
+    readonly JOB_MEMBER_REMOVED: "Company member removed from job successfully.";
 };
 //# sourceMappingURL=messages.d.ts.map

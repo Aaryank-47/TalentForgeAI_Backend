@@ -21,7 +21,7 @@ export declare const RATE_LIMIT: {
     };
     readonly GLOBAL: {
         readonly WINDOW_MS: number;
-        readonly MAX_REQUESTS: 100;
+        readonly MAX_REQUESTS: 1000;
     };
 };
 //# sourceMappingURL=rateLimit.constants.d.ts.map

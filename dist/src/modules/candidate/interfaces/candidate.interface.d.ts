@@ -22,7 +22,7 @@ export interface CandidateProfileView {
     portfolioUrl: string | null;
     websiteUrl: string | null;
     isOpenToWork: boolean;
-    profileCompleted: boolean;
+    profileCompletion: number;
     createdAt: Date;
     updatedAt: Date;
 }
