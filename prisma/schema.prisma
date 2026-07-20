@@ -134,6 +134,19 @@ model User {
   lastLoginAt                 DateTime?
   createdAt                   DateTime        @default(now())
   updatedAt                   DateTime        @updatedAt
+  deletedAt                   DateTime?
+  deletedById                 String?
+  deletedBy                   User?           @relation("DeletedBy", fields: [deletedById], references: [id])
+  deletedUsers                User[]          @relation("DeletedBy")
+  suspendedAt                 DateTime?
+  suspendedById               String?
+  suspendedBy                 User?           @relation("SuspendedBy", fields: [suspendedById], references: [id])
+  suspendedUsers              User[]          @relation("SuspendedBy")
+  suspendedReason             String?
+  restoredAt                  DateTime?
+  restoredById                String?
+  restoredBy                  User?           @relation("RestoredBy", fields: [restoredById], references: [id])
+  restoredUsers               User[]          @relation("RestoredBy")
   refreshTokens               RefreshToken[]
   candidate                   Candidate?
   employer                    Employer?
