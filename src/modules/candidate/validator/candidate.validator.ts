@@ -1,3 +1,4 @@
 export {
-    updateCandidateProfileDto
+    updateCandidateProfileDto,
+    resumeUploadDto
 } from "../dto/candidate.dto.js"

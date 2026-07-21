@@ -24,6 +24,7 @@ export function toCandidateUpdateInput(
         expectedSalary: dto.expectedSalary,
         currentSalary: dto.currentSalary,
         noticePeriod: dto.noticePeriod,
+        resumeFileId: dto.resumeUrl,
         linkedinUrl: dto.linkedinUrl,
         githubUrl: dto.githubUrl,
         portfolioUrl: dto.portfolioUrl,

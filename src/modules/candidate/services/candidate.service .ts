@@ -1,9 +1,10 @@
 import { AuthRepository } from "../../auth/repositories/auth.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
 import type { CandidateProfileView } from "../interfaces/candidate.interface.js"
-import { CandidateRepository } from "../repository/candiadate.repository.js";
+import { CandidateRepository } from "../repository/candidate.repository.js";
 import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js"
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
+import type { Resume } from "@prisma/client";
 
 
 export class CandidateService {
@@ -45,5 +46,19 @@ export class CandidateService {
         }
 
         return calculateCandidateProfileCompletion(candidate);
+    }
+
+    static async uploadResume(
+        candidateId: string,
+        resumeData: { resumeUrl: string; resumeName: string; fileSize: number }
+    ): Promise<Resume> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const newResume = await CandidateRepository.uploadResume(candidateId, resumeData);
+        
+        return newResume;
     }
 }

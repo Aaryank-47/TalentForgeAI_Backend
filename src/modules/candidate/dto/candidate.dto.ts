@@ -17,6 +17,7 @@ import {
     expectedSalaryValidator,
     currentSalaryValidator,
     noticePeriodValidator,
+    resumeFileValidator,
     linkedInUrlValidator,
     githubUrlValidator,
     portfolioUrlValidator,
@@ -47,6 +48,7 @@ export const updateCandidateProfileDto = z.object({
     expectedSalary: expectedSalaryValidator.optional(),
     currentSalary: currentSalaryValidator.optional(),
     noticePeriod: noticePeriodValidator.optional(),
+    resumeUrl: resumeFileValidator.optional(),
     linkedinUrl: linkedInUrlValidator.optional(),
     githubUrl: githubUrlValidator.optional(),
     portfolioUrl: portfolioUrlValidator.optional(),
@@ -55,3 +57,9 @@ export const updateCandidateProfileDto = z.object({
 });
 
 export type UpdateCandidateProfileDto = z.infer<typeof updateCandidateProfileDto>;
+
+export const resumeUploadDto = z.object({
+    resume: resumeFileValidator
+})
+
+export type ResumeUploadDto = z.infer<typeof resumeUploadDto>

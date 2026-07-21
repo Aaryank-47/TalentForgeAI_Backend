@@ -3,6 +3,7 @@ import type { CandidateProfileView } from "../interfaces/candidate.interface.js"
 import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js";
 import prisma from "../../../config/database.js";
 import { toCandidateUpdateInput } from "../mappper/candidate.mapper.js";
+import type { Resume } from "@prisma/client";
 
 export class CandidateRepository {
     static async updateCandidateProfile(
@@ -36,6 +37,25 @@ export class CandidateRepository {
                         experiences: true
                     }
                 }
+            }
+        });
+    }
+
+    static async uploadResume(
+        userId: string,
+        resumeData: { resumeUrl: string; resumeName: string; fileSize: number }
+    ): Promise<Resume> {
+        const candidate = await prisma.candidate.findUniqueOrThrow({
+            where: { userId },
+            select: { id: true }
+        });
+
+        return prisma.resume.create({
+            data: {
+                candidateId: candidate.id,
+                resumeUrl: resumeData.resumeUrl,
+                resumeName: resumeData.resumeName,
+                fileSize: resumeData.fileSize
             }
         });
     }

@@ -2,6 +2,7 @@ import { MESSAGE } from "../../../common/constants/messages.js"
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js"
 import { CandidateService } from "../services/candidate.service .js";
 import type { Request, Response } from "express";
+import { uploadFileToCloudinary } from "../../../common/uploads/index.js";
 
 export class CandidateController {
     static async getCandidateProfile(
@@ -24,7 +25,7 @@ export class CandidateController {
         const candidateId = req.user.id;
         const updateData = req.body;
         const candidate = await CandidateService.updateProfile(candidateId, updateData);
-        console.log("candidate from candidate controller : ",candidate);
+        
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: MESSAGE.USER_PROFILE_UPDATED,
@@ -42,6 +43,38 @@ export class CandidateController {
             success: true,
             message: "Profile completion calculated successfully",
             data: { completion }
+        });
+    }
+
+    static async uploadResume(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const file = req.file;
+        if (!file) {
+            res.status(HTTP_STATUS.BAD_REQUEST).json({
+                success: false,
+                message: "No resume file uploaded"
+            });
+            return;
+        }
+
+        const uploadResult = await uploadFileToCloudinary(file, {
+            folder: "resumes",
+            resourceType: "raw"
+        });
+
+        const candidate = await CandidateService.uploadResume(candidateId, {
+            resumeUrl: uploadResult.secureUrl,
+            resumeName: file.originalname,
+            fileSize: file.size
+        });
+
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Resume uploaded successfully",
+            data: candidate
         });
     }
 }
