@@ -6,15 +6,15 @@ import { toCandidateUpdateInput } from "../mappper/candidate.mapper.js";
 
 export class CandidateRepository {
     static async updateCandidateProfile(
-    userId: string,
-    updateData: UpdateCandidateProfileDto
-): Promise<CandidateProfileView> {
-    return prisma.candidate.update({
-        where: {
-            userId: userId
-        },
-        data: toCandidateUpdateInput(updateData),
-        select: candidateProfileSelect
-    })
-}
+        userId: string,
+        updateData: UpdateCandidateProfileDto
+    ): Promise<CandidateProfileView> {
+        return prisma.candidate.update({
+            where: {
+                userId: userId
+            },
+            data: toCandidateUpdateInput(updateData),
+            select: candidateProfileSelect
+        })
+    }
 }
