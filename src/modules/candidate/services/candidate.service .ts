@@ -3,6 +3,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js"
 import type { CandidateProfileView } from "../interfaces/candidate.interface.js"
 import { CandidateRepository } from "../repository/candiadate.repository.js";
 import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js"
+import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
 
 
 export class CandidateService {
@@ -33,5 +34,16 @@ export class CandidateService {
         const updateCandidateProfile = await CandidateRepository.updateCandidateProfile(candidateId, updateData);
         
         return updateCandidateProfile;
+    }
+
+    static async calculateProfileCompletion(
+        candidateId: string
+    ): Promise<number> {
+        const candidate = await CandidateRepository.findProfileWithRelationsCount(candidateId);
+        if (!candidate) {
+            throw new NotFoundError("Candidate profile not found");
+        }
+
+        return calculateCandidateProfileCompletion(candidate);
     }
 }

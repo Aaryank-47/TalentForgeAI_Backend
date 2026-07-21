@@ -31,5 +31,18 @@ export class CandidateController {
             data: candidate
         });
     }
+
+    static async getProfileCompletion(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const completion = await CandidateService.calculateProfileCompletion(candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Profile completion calculated successfully",
+            data: { completion }
+        });
+    }
 }
 

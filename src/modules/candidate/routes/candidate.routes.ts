@@ -20,4 +20,10 @@ candidateRoutes.patch(
     validate(updateCandidateProfileDto, 'body'),
     CandidateController.updateCandidateProfile
 );
+candidateRoutes.get(
+    "/me/profile-completion",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.getProfileCompletion
+);
 export default candidateRoutes;

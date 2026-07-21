@@ -27,3 +27,18 @@ export interface CandidateProfileView {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface CandidateWithRelationsCount {
+    fullName: string;
+    phoneNumber: string | null;
+    profilePicture: string | null;
+    headline: string | null;
+    bio: string | null;
+    currentLocation: string | null;
+    isOpenToWork: boolean;
+    _count: {
+        skills: number;
+        educations: number;
+        experiences: number;
+    };
+}

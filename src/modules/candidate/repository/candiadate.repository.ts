@@ -17,4 +17,26 @@ export class CandidateRepository {
             select: candidateProfileSelect
         })
     }
+
+    static async findProfileWithRelationsCount(userId: string) {
+        return prisma.candidate.findUnique({
+            where: { userId },
+            select: {
+                fullName: true,
+                phoneNumber: true,
+                profilePicture: true,
+                headline: true,
+                bio: true,
+                currentLocation: true,
+                isOpenToWork: true,
+                _count: {
+                    select: {
+                        skills: true,
+                        educations: true,
+                        experiences: true
+                    }
+                }
+            }
+        });
+    }
 }
