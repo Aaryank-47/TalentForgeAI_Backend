@@ -34,4 +34,11 @@ candidateRoutes.post(
     upload.single("resume"),
     CandidateController.uploadResume
 )
+
+candidateRoutes.get(
+    "/me/resumes",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.getResumes
+)
 export default candidateRoutes;

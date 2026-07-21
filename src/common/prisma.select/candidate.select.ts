@@ -35,3 +35,11 @@ export const candidateProfileSelect = {
     createdAt: true,
     updatedAt: true,
 };
+
+export const resume = {
+    id: true,
+    resumeName: true,
+    resumeUrl: true,
+    fileSize: true,
+    uploadedAt: true,
+} as const

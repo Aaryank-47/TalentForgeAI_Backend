@@ -42,3 +42,11 @@ export interface CandidateWithRelationsCount {
         experiences: number;
     };
 }
+
+export interface ResumeView {
+    id: string,
+    resumeName: string,
+    resumeUrl: string,
+    fileSize: number,
+    uploadedAt: Date
+}

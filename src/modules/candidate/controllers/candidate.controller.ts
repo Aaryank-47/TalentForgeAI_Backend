@@ -77,5 +77,18 @@ export class CandidateController {
             data: candidate
         });
     }
+
+    static async getResumes(
+        req: Request,
+        res: Response
+    ):Promise<void>{
+        const candidateId = req.user.id;
+        const resumes = await CandidateService.getResumes(candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Resumes fetched successfully",
+            data: resumes
+        });
+    }
 }
 
