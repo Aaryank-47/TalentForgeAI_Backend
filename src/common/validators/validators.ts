@@ -64,6 +64,16 @@ export const bioValidator = z
   .max(1000, "Bio must be at most 1000 characters long")
   .optional();
 
+export const dateOfBirthValidator = z
+  .string()
+  .transform((value) => new Date(value))
+  .refine((date) => !isNaN(date.getTime()), {
+    message: "Invalid date format",
+  })
+  .refine((date) => date < new Date(), {
+    message: "Date of birth cannot be in the future",
+  });
+
 export const genderValidator = z.enum([
   "MALE",
   "FEMALE",
