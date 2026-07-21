@@ -6,6 +6,8 @@ import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js"
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
 import type { Resume } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { deleteFileFromCloudinary } from "../../../common/uploads/index.js";
+import { extractPublicId } from "../../company/utils/company.utils.js";
 
 
 export class CandidateService {
@@ -79,21 +81,54 @@ export class CandidateService {
         return resume;
     }
 
-    // static async getResumes(
-    //     resumeId: string,
-    //     candidateId: string
-    // ):Promise<Resume[]>{
-    //     const allowedUser = await CandidateRepository.findResumeBelongToUser(candidateId, resumeId);
-    //     if(!allowedUser){
-    //         throw new ConflictError("Resume doesn't belong to this user");
-    //     }
+    static async getResumeById(
+        resumeId: string,
+        candidateId: string
+    ): Promise<Resume> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
 
-    //     const resume = await CandidateRepository.findResumeById(resumeId);
-    //     if(!resume){
-    //         throw new NotFoundError("Resume not found");
-    //     }
-        
-    //     return resume
-        
-    // }
+        const allowedUser = await CandidateRepository.findResumeBelongToUser(candidateId, resumeId);
+        if (!allowedUser || allowedUser.length === 0) {
+            throw new ConflictError("Resume doesn't belong to this user");
+        }
+
+        const resumeList = await CandidateRepository.findResumeById(resumeId);
+        const resume = resumeList[0];
+        if (!resume) {
+            throw new NotFoundError("Resume not found");
+        }
+
+        return resume;
+    }
+
+    static async deleteResumes(
+        resumeIds: string[],
+        candidateId: string
+    ): Promise<void> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const allowedResumes = await CandidateRepository.findResumesBelongingToUser(candidateId, resumeIds);
+        if (allowedResumes.length !== resumeIds.length) {
+            throw new ConflictError("One or more resumes do not exist or do not belong to this user");
+        }
+
+        const deletePromises = allowedResumes.map(async (resume) => {
+            const publicId = extractPublicId(resume.resumeUrl);
+            if (publicId) {
+                await deleteFileFromCloudinary({
+                    publicId,
+                    resourceType: 'raw'
+                });
+            }
+        });
+        await Promise.all(deletePromises);
+
+        await CandidateRepository.deleteMultipleResumes(resumeIds);
+    }
 }

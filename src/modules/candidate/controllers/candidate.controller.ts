@@ -90,5 +90,32 @@ export class CandidateController {
             data: resumes
         });
     }
+
+    static async getResumeById(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { resumeId } = req.params;
+        const resume = await CandidateService.getResumeById(resumeId as string, candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Resume details fetched successfully",
+            data: resume
+        });
+    }
+
+    static async deleteResumes(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { resumeIds } = req.body;
+        await CandidateService.deleteResumes(resumeIds, candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Resumes deleted successfully"
+        });
+    }
 }
 

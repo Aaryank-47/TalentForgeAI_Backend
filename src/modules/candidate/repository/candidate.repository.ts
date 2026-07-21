@@ -3,7 +3,7 @@ import type { CandidateProfileView, ResumeView } from "../interfaces/candidate.i
 import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js";
 import prisma from "../../../config/database.js";
 import { toCandidateUpdateInput } from "../mappper/candidate.mapper.js";
-import type { Resume } from "@prisma/client";
+import type { Resume, Prisma } from "@prisma/client";
 
 export class CandidateRepository {
     static async updateCandidateProfile(
@@ -93,5 +93,43 @@ export class CandidateRepository {
                 }
             }
         })
+    }
+
+    static async findResumesBelongingToUser(
+        userId: string,
+        resumeIds: string[]
+    ): Promise<Resume[]> {
+        return prisma.resume.findMany({
+            where: {
+                id: {
+                    in: resumeIds
+                },
+                candidate: {
+                    userId: userId
+                }
+            }
+        });
+    }
+
+    static async deleteResume(
+        resumeId: string
+    ): Promise<Resume> {
+        return prisma.resume.delete({
+            where: {
+                id: resumeId
+            }
+        });
+    }
+
+    static async deleteMultipleResumes(
+        resumeIds: string[]
+    ): Promise<Prisma.BatchPayload> {
+        return prisma.resume.deleteMany({
+            where: {
+                id: {
+                    in: resumeIds
+                }
+            }
+        });
     }
 }

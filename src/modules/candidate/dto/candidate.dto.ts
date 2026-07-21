@@ -63,3 +63,9 @@ export const resumeUploadDto = z.object({
 })
 
 export type ResumeUploadDto = z.infer<typeof resumeUploadDto>
+
+export const deleteResumesDto = z.object({
+    resumeIds: z.array(z.string()).min(1, "At least one resume ID is required")
+});
+
+export type DeleteResumesDto = z.infer<typeof deleteResumesDto>;
