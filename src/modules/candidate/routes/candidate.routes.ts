@@ -7,7 +7,8 @@ import {
     updateCandidateProfileDto, 
     deleteResumesDto, 
     addSkillsDto,
-    updateSkillDto
+    updateSkillDto,
+    skillsIdsDto
  } from "../dto/candidate.dto.js";
 import { upload } from "../../../common/uploads/index.js";
 
@@ -83,5 +84,13 @@ candidateRoutes.patch(
     authorize("CANDIDATE"),
     validate(updateSkillDto, 'body'),
     CandidateController.updateSkill
+)
+
+candidateRoutes.delete(
+    "/me/skills/delete",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(skillsIdsDto, 'body'),
+    CandidateController.deleteSkills
 )
 export default candidateRoutes;

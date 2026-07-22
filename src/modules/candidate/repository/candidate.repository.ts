@@ -61,33 +61,33 @@ export class CandidateRepository {
     }
 
     static async findResumesByCandidateId(
-        candidateId:string
-    ):Promise<ResumeView[]>{
+        candidateId: string
+    ): Promise<ResumeView[]> {
         return prisma.resume.findMany({
-            where:{
-                candidateId:candidateId
+            where: {
+                candidateId: candidateId
             },
             select: resume
         })
     }
 
     static async findResumeById(
-        resumeId:string
-    ):Promise<Resume[]>{
+        resumeId: string
+    ): Promise<Resume[]> {
         return prisma.resume.findMany({
-            where:{
-                id:resumeId
+            where: {
+                id: resumeId
             }
         })
     }
 
     static async findResumeBelongToUser(
-        userId:string,
-        resumeId:string
-    ):Promise<Resume[]>{
+        userId: string,
+        resumeId: string
+    ): Promise<Resume[]> {
         return prisma.resume.findMany({
-            where:{
-                id:resumeId,
+            where: {
+                id: resumeId,
                 candidate: {
                     userId: userId
                 }
@@ -134,11 +134,11 @@ export class CandidateRepository {
     }
 
     static async findSkillById(
-        skillId:string
-    ):Promise<SkillsView | null>{
+        skillId: string
+    ): Promise<SkillsView | null> {
         return prisma.candidateSkill.findFirst({
-            where:{
-                id:skillId
+            where: {
+                id: skillId
             },
             select: skill
         })
@@ -174,10 +174,10 @@ export class CandidateRepository {
 
     static async findAllSkillsByCandidateId(
         candidateId: string
-    ):Promise<SkillsView[]>{
+    ): Promise<SkillsView[]> {
         return prisma.candidateSkill.findMany({
-            where:{
-                candidateId:candidateId
+            where: {
+                candidateId: candidateId
             },
             select: skill
         })
@@ -186,9 +186,9 @@ export class CandidateRepository {
     static async findSkillBelongToUser(
         candidateId: string,
         skillId: string
-    ):Promise<SkillsView | null>{
+    ): Promise<SkillsView | null> {
         return prisma.candidateSkill.findFirst({
-            where:{
+            where: {
                 id: skillId,
                 candidateId: candidateId
             },
@@ -201,11 +201,28 @@ export class CandidateRepository {
         })
     }
 
+    static async findSkillsBelongToUser(
+        candidateId: string,
+        skillIds: string[]
+    ) {
+        return prisma.candidateSkill.findMany({
+            where: {
+                candidateId,
+                id: {
+                    in: skillIds
+                }
+            },
+            select: {
+                id: true
+            }
+        });
+    }
+
     static async updateSkill(
-        skillId:string,
+        skillId: string,
         skillsName: string,
         yearsOfExperience: number
-    ):Promise<SkillsView>{
+    ): Promise<SkillsView> {
         return prisma.candidateSkill.update({
             where: {
                 id: skillId
@@ -218,7 +235,18 @@ export class CandidateRepository {
         })
     }
 
-    // static async deleteSkill(
-    //     skillId: string
-    // ):Promise<SkillsView>{}
+    static async deleteSkills(
+        skillIds: string[]
+    ): Promise<number> {
+
+        const result = await prisma.candidateSkill.deleteMany({
+            where: {
+                id: {
+                    in: skillIds
+                }
+            }
+        });
+
+        return result.count;
+    }
 }

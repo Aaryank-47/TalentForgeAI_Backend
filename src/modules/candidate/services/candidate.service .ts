@@ -34,9 +34,9 @@ export class CandidateService {
 
         console.log("candidateid : ", candidateId);
         console.log("UpdatedData : ", updateData);
-        
+
         const updateCandidateProfile = await CandidateRepository.updateCandidateProfile(candidateId, updateData);
-        
+
         return updateCandidateProfile;
     }
 
@@ -61,23 +61,23 @@ export class CandidateService {
         }
 
         const newResume = await CandidateRepository.uploadResume(candidateId, resumeData);
-        
+
         return newResume;
     }
 
     static async getResumes(
         candidateId: string
-    ):Promise<ResumeView[]>{
+    ): Promise<ResumeView[]> {
         const candidate = await AuthRepository.findProfileByUserId(candidateId);
         if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
             throw new NotFoundError('Candidate not found');
         }
 
         const resume = await CandidateRepository.findResumesByCandidateId(candidate.profile.id);
-        if(!resume){
+        if (!resume) {
             throw new NotFoundError("Resume not found");
         }
-        
+
         return resume;
     }
 
@@ -157,15 +157,15 @@ export class CandidateService {
             );
             addedSkills.push(newSkill);
         }
-        
+
         return addedSkills;
     }
 
     static async getAllSkills(
         candidateId: string
-    ):Promise<SkillsView[]>{
+    ): Promise<SkillsView[]> {
         const candidate = await AuthRepository.findProfileByUserId(candidateId);
-        if(!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)){
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
             throw new NotFoundError('Candidate not found');
         }
 
@@ -178,24 +178,77 @@ export class CandidateService {
         skillId: string,
         skillName: string,
         skillExperience: number
-    ):Promise<SkillsView>{
+    ): Promise<SkillsView> {
         const candidate = await AuthRepository.findProfileByUserId(candidateId);
-        if(!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)){
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
             throw new NotFoundError('Candidate not found');
         }
 
         const skillExistence = await CandidateRepository.findSkillById(skillId);
-        if(!skillExistence){
+        if (!skillExistence) {
             throw new NotFoundError("Skill not found");
         }
 
-    const skill = CandidateRepository.findSkillBelongToUser(candidateId, skillId);
-        if(!skill){
+        const skill = CandidateRepository.findSkillBelongToUser(candidateId, skillId);
+        if (!skill) {
             throw new ConflictError("Skill doesn't belong to this user");
         }
 
-        const updateSkill = await CandidateRepository.updateSkill(skillId,skillName ,skillExperience);
-        
+        const updateSkill = await CandidateRepository.updateSkill(skillId, skillName, skillExperience);
+
         return updateSkill
+    }
+
+    static async deleteSkills(
+        candidateId: string,
+        skillIds: string[]
+    ): Promise<void> {
+
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+
+        if (
+            !candidate ||
+            !candidate.profile ||
+            !("isOpenToWork" in candidate.profile)
+        ) {
+            throw new NotFoundError("Candidate not found");
+        }
+
+        if (!skillIds || skillIds.length === 0) {
+            throw new ConflictError("Please provide at least one skill id.");
+        }
+
+        const uniqueSkillIds = new Set(skillIds);
+
+        if (uniqueSkillIds.size !== skillIds.length) {
+            throw new ConflictError(
+                "Duplicate skill ids are not allowed."
+            );
+        }
+
+        const candidateSkills =
+            await CandidateRepository.findSkillsBelongToUser(
+                candidate.profile.id,
+                [...uniqueSkillIds]
+            );
+
+        // console.log("candidateId from delete skills : " + candidateId);
+        // console.log("candidateRecordId from delete skills : " + candidate.profile.id);
+
+
+        if (candidateSkills.length !== uniqueSkillIds.size) {
+            throw new NotFoundError(
+                "One or more skills do not exist or do not belong to this candidate."
+            );
+        }
+
+        const deletedCount =
+            await CandidateRepository.deleteSkills([...uniqueSkillIds]);
+
+        if (deletedCount !== uniqueSkillIds.size) {
+            throw new ConflictError(
+                "Failed to delete one or more skills."
+            );
+        }
     }
 }

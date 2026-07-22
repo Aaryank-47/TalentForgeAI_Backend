@@ -92,3 +92,9 @@ export const updateSkillDto = z.object({
 })
 
 export type UpdateSkillDto = z.infer<typeof updateSkillDto>;
+
+export const skillsIdsDto = z.object({
+    skillIds: z.array(z.string()).min(1, "At least one skill ID is required")
+})
+
+export type SkillsIdsDto = z.infer<typeof skillsIdsDto>;

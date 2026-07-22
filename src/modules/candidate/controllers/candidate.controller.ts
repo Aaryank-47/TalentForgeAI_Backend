@@ -166,5 +166,18 @@ export class CandidateController {
             data: updatedSkills
         });
     }
+
+    static async deleteSkills(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { skillIds } = req.body;
+        await CandidateService.deleteSkills(candidateId, skillIds);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Skills deleted successfully"
+        });
+    }
 }
 
