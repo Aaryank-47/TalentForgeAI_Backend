@@ -11,7 +11,7 @@ export class CandidateController {
     ): Promise<void> {
         const candidateId = req.user.id;
         const candidate = await CandidateService.getCandidateProfile(candidateId);
-        res.status(HTTP_STATUS.OK ).json({
+        res.status(HTTP_STATUS.OK).json({
             success: true,
             message: "Candidate profile fetched successfully",
             data: candidate
@@ -25,7 +25,7 @@ export class CandidateController {
         const candidateId = req.user.id;
         const updateData = req.body;
         const candidate = await CandidateService.updateProfile(candidateId, updateData);
-        
+
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: MESSAGE.USER_PROFILE_UPDATED,
@@ -81,7 +81,7 @@ export class CandidateController {
     static async getResumes(
         req: Request,
         res: Response
-    ):Promise<void>{
+    ): Promise<void> {
         const candidateId = req.user.id;
         const resumes = await CandidateService.getResumes(candidateId);
         res.status(HTTP_STATUS.OK).json({
@@ -115,6 +115,34 @@ export class CandidateController {
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: "Resumes deleted successfully"
+        });
+    }
+
+    static async addSkills(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { skills } = req.body;
+        const skill = await CandidateService.addSkills(candidateId, skills);
+
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Skill added successfully",
+            data: skill
+        });
+    }
+
+    static async getSkills(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        // const skills = await CandidateService.getSkills(candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Skills fetched successfully",
+            // data: skills
         });
     }
 }

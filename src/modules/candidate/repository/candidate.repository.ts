@@ -1,5 +1,5 @@
 import { candidateProfileSelect, resume } from "../../../common/prisma.select/candidate.select.js";
-import type { CandidateProfileView, ResumeView } from "../interfaces/candidate.interface.js";
+import type { CandidateProfileView, ResumeView, SkillsView } from "../interfaces/candidate.interface.js";
 import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js";
 import prisma from "../../../config/database.js";
 import { toCandidateUpdateInput } from "../mappper/candidate.mapper.js";
@@ -129,6 +129,44 @@ export class CandidateRepository {
                 id: {
                     in: resumeIds
                 }
+            }
+        });
+    }
+
+    static async findSkillsNameViaCandidate(
+        skillName: string,
+        candidateId: string
+    ): Promise<SkillsView | null> {
+        return prisma.candidateSkill.findFirst({
+            where: {
+                name: skillName,
+                candidateId: candidateId
+            },
+            select: {
+                id: true,
+                name: true,
+                yearsOfExperience: true,
+                candidateId: true
+            }
+        });
+    }
+
+    static async addSkills(
+        candidateId: string,
+        name: string,
+        yearsOfExperience: number | null
+    ): Promise<SkillsView> {
+        return prisma.candidateSkill.create({
+            data: {
+                candidateId,
+                name,
+                yearsOfExperience
+            },
+            select: {
+                id: true,
+                name: true,
+                yearsOfExperience: true,
+                candidateId: true
             }
         });
     }

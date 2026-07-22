@@ -23,6 +23,9 @@ import {
     portfolioUrlValidator,
     websiteUrlValidator,
     isOpenToWorkValidator,
+    skillNameValidator,
+    skillExperienceValidator,
+    proficiencyValidator
 } from "../../../common/validators/validators.js";
 
 export const candidateIdParamDto = z.object({
@@ -53,7 +56,7 @@ export const updateCandidateProfileDto = z.object({
     githubUrl: githubUrlValidator.optional(),
     portfolioUrl: portfolioUrlValidator.optional(),
     websiteUrl: websiteUrlValidator.optional(),
-    isOpenToWork: isOpenToWorkValidator.optional(),
+    isOpenToWork: isOpenToWorkValidator.optional()
 });
 
 export type UpdateCandidateProfileDto = z.infer<typeof updateCandidateProfileDto>;
@@ -69,3 +72,16 @@ export const deleteResumesDto = z.object({
 });
 
 export type DeleteResumesDto = z.infer<typeof deleteResumesDto>;
+
+export const singleSkillDto = z.object({
+    skillName: skillNameValidator,
+    skillExperience: skillExperienceValidator
+});
+
+export type SingleSkillDto = z.infer<typeof singleSkillDto>;
+
+export const addSkillsDto = z.object({
+    skills: z.array(singleSkillDto).min(1, "At least one skill is required")
+});
+
+export type AddSkillsDto = z.infer<typeof addSkillsDto>;

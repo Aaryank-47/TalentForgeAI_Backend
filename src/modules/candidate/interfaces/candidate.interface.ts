@@ -50,3 +50,11 @@ export interface ResumeView {
     fileSize: number,
     uploadedAt: Date
 }
+
+export interface SkillsView {
+    id: string;
+    name: string;
+    yearsOfExperience: number | null;
+    candidateId: string;
+}
+

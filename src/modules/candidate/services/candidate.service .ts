@@ -1,8 +1,8 @@
 import { AuthRepository } from "../../auth/repositories/auth.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
-import type { CandidateProfileView, ResumeView } from "../interfaces/candidate.interface.js"
+import type { CandidateProfileView, ResumeView, SkillsView } from "../interfaces/candidate.interface.js"
 import { CandidateRepository } from "../repository/candidate.repository.js";
-import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js"
+import type { UpdateCandidateProfileDto, SingleSkillDto } from "../dto/candidate.dto.js"
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
 import type { Resume } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
@@ -130,5 +130,34 @@ export class CandidateService {
         await Promise.all(deletePromises);
 
         await CandidateRepository.deleteMultipleResumes(resumeIds);
+    }
+
+    static async addSkills(
+        candidateId: string,
+        skills: SingleSkillDto[]
+    ): Promise<SkillsView[]> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const candidateRecordId = candidate.profile.id;
+        const addedSkills: SkillsView[] = [];
+
+        for (const skillItem of skills) {
+            const skill = await CandidateRepository.findSkillsNameViaCandidate(skillItem.skillName, candidateRecordId);
+            if (skill) {
+                throw new ConflictError(`Skill "${skillItem.skillName}" already exists`);
+            }
+
+            const newSkill = await CandidateRepository.addSkills(
+                candidateRecordId,
+                skillItem.skillName,
+                skillItem.skillExperience ?? null
+            );
+            addedSkills.push(newSkill);
+        }
+        
+        return addedSkills;
     }
 }
