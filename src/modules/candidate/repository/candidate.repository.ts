@@ -1,8 +1,9 @@
-import { candidateProfileSelect, resume, skill } from "../../../common/prisma.select/candidate.select.js";
-import type { CandidateProfileView, ResumeView, SkillsView } from "../interfaces/candidate.interface.js";
-import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js";
+import { candidateProfileSelect, resume, skill, education } from "../../../common/prisma.select/candidate.select.js";
+import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView } from "../interfaces/candidate.interface.js";
+import type { UpdateCandidateProfileDto, AddEducationDto, UpdateEducationDto } from "../dto/candidate.dto.js";
 import prisma from "../../../config/database.js";
 import { toCandidateUpdateInput } from "../mappper/candidate.mapper.js";
+import { removeUndefined } from "../../../common/helper/object.helper.js";
 import type { Resume, Prisma } from "@prisma/client";
 
 export class CandidateRepository {
@@ -248,5 +249,79 @@ export class CandidateRepository {
         });
 
         return result.count;
+    }
+
+    static async addEducation(
+        candidateId: string,
+        data: AddEducationDto
+    ): Promise<CandidateEducationView> {
+        return prisma.candidateEducation.create({
+            data: removeUndefined({
+                candidateId,
+                ...data
+            }) as Prisma.CandidateEducationUncheckedCreateInput,
+            select: education
+        });
+    }
+
+    static async findAllEducations(
+        candidateId: string
+    ): Promise<CandidateEducationView[]> {
+        return prisma.candidateEducation.findMany({
+            where: {
+                candidateId
+            },
+            select: education
+        });
+    }
+
+    static async findEducationById(
+        educationId: string
+    ): Promise<CandidateEducationView | null> {
+        return prisma.candidateEducation.findFirst({
+            where: {
+                id: educationId
+            },
+            select: education
+        });
+    }
+
+    static async findEducationBelongToUser(
+        userId: string,
+        educationId: string
+    ): Promise<CandidateEducationView | null> {
+        return prisma.candidateEducation.findFirst({
+            where: {
+                id: educationId,
+                candidate: {
+                    userId: userId
+                }
+            },
+            select: education
+        });
+    }
+
+    static async updateEducation(
+        educationId: string,
+        data: UpdateEducationDto
+    ): Promise<CandidateEducationView> {
+        return prisma.candidateEducation.update({
+            where: {
+                id: educationId
+            },
+            data: removeUndefined(data) as Prisma.CandidateEducationUpdateInput,
+            select: education
+        });
+    }
+
+    static async deleteEducation(
+        educationId: string
+    ): Promise<CandidateEducationView> {
+        return prisma.candidateEducation.delete({
+            where: {
+                id: educationId
+            },
+            select: education
+        });
     }
 }

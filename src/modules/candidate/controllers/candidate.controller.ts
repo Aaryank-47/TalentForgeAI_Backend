@@ -179,5 +179,75 @@ export class CandidateController {
             message: "Skills deleted successfully"
         });
     }
+
+    static async addEducation(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const educationData = req.body;
+        const newEducation = await CandidateService.addEducation(candidateId, educationData);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Education added successfully",
+            data: newEducation
+        });
+    }
+
+    static async getEducations(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const educations = await CandidateService.getEducations(candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Educations fetched successfully",
+            data: educations
+        });
+    }
+
+    static async getEducationById(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { educationId } = req.params;
+        const education = await CandidateService.getEducationById(educationId as string, candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Education details fetched successfully",
+            data: education
+        });
+    }
+
+    static async updateEducation(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { educationId } = req.params;
+        const updateData = req.body;
+        const updatedEducation = await CandidateService.updateEducation(candidateId, educationId as string, updateData);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Education updated successfully",
+            data: updatedEducation
+        });
+    }
+
+    static async deleteEducation(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { educationId } = req.params;
+        const deletedEducation = await CandidateService.deleteEducation(candidateId, educationId as string);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Education deleted successfully",
+            data: deletedEducation
+        });
+    }
 }
 

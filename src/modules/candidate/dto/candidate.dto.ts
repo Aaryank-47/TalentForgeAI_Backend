@@ -25,7 +25,11 @@ import {
     isOpenToWorkValidator,
     skillNameValidator,
     skillExperienceValidator,
-    proficiencyValidator
+    collegeValidator,
+    degreeValidator,
+    fieldOfStudyValidator,
+    startDateValidator,
+    endDateValidator
 } from "../../../common/validators/validators.js";
 
 export const candidateIdParamDto = z.object({
@@ -98,3 +102,48 @@ export const skillsIdsDto = z.object({
 })
 
 export type SkillsIdsDto = z.infer<typeof skillsIdsDto>;
+
+export const educationBaseSchema = z.object({
+    collegeName: collegeValidator,
+    degree: degreeValidator,
+    fieldOfStudy: fieldOfStudyValidator,
+    currentlyStudying: z.boolean().default(false),
+    startDate: startDateValidator,
+    endDate: endDateValidator,
+    gradingSystem: z.enum([
+      "PERCENTAGE",
+      "CGPA",
+      "GPA_4",
+      "GPA_5",
+      "GPA_10",
+      "LETTER_GRADE",
+      "PASS_FAIL",
+      "OTHER"
+    ]),
+    gradeText: z.string().trim().optional(),
+    grade: z.number().optional()
+});
+
+export const addEducationDto = educationBaseSchema.refine(data => {
+    if (!data.currentlyStudying && !data.endDate) {
+        return false;
+    }
+    return true;
+}, {
+    message: "End date is required if you are not currently studying",
+    path: ["endDate"]
+});
+
+export type AddEducationDto = z.infer<typeof addEducationDto>;
+
+export const updateEducationDto = educationBaseSchema.partial().refine(data => {
+    if (data.currentlyStudying === false && !data.endDate) {
+        return false;
+    }
+    return true;
+}, {
+    message: "End date is required if you are not currently studying",
+    path: ["endDate"]
+});
+
+export type UpdateEducationDto = z.infer<typeof updateEducationDto>;

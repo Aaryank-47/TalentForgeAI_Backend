@@ -50,3 +50,19 @@ export const skill ={
     yearsOfExperience: true,
     candidateId: true
 } as const
+
+export const education = {
+    id: true,
+    candidateId: true,
+    collegeName: true,
+    degree: true,
+    fieldOfStudy: true,
+    currentlyStudying: true,
+    startDate: true,
+    endDate: true,
+    gradingSystem: true,
+    gradeText: true,
+    grade: true,
+    createdAt: true,
+    updatedAt: true
+} as const

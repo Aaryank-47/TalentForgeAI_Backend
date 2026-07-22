@@ -3,5 +3,7 @@ export {
     resumeUploadDto,
     addSkillsDto,
     updateSkillDto,
-    skillsIdsDto
+    skillsIdsDto,
+    addEducationDto,
+    updateEducationDto
 } from "../dto/candidate.dto.js"

@@ -1,8 +1,8 @@
 import { AuthRepository } from "../../auth/repositories/auth.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
-import type { CandidateProfileView, ResumeView, SkillsView } from "../interfaces/candidate.interface.js"
+import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView } from "../interfaces/candidate.interface.js"
 import { CandidateRepository } from "../repository/candidate.repository.js";
-import type { UpdateCandidateProfileDto, SingleSkillDto } from "../dto/candidate.dto.js"
+import type { UpdateCandidateProfileDto, SingleSkillDto, AddEducationDto, UpdateEducationDto } from "../dto/candidate.dto.js"
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
 import type { Resume } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
@@ -250,5 +250,85 @@ export class CandidateService {
                 "Failed to delete one or more skills."
             );
         }
+    }
+
+    static async addEducation(
+        candidateId: string,
+        data: AddEducationDto
+    ): Promise<CandidateEducationView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const candidateRecordId = candidate.profile.id;
+        const newEducation = await CandidateRepository.addEducation(candidateRecordId, data);
+        return newEducation;
+    }
+
+    static async getEducations(
+        candidateId: string
+    ): Promise<CandidateEducationView[]> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const educations = await CandidateRepository.findAllEducations(candidate.profile.id);
+        return educations;
+    }
+
+    static async getEducationById(
+        educationId: string,
+        candidateId: string
+    ): Promise<CandidateEducationView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const education = await CandidateRepository.findEducationBelongToUser(candidateId, educationId);
+        if (!education) {
+            throw new NotFoundError('Education record not found or does not belong to candidate');
+        }
+
+        return education;
+    }
+
+    static async updateEducation(
+        candidateId: string,
+        educationId: string,
+        data: UpdateEducationDto
+    ): Promise<CandidateEducationView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const education = await CandidateRepository.findEducationBelongToUser(candidateId, educationId);
+        if (!education) {
+            throw new NotFoundError('Education record not found or does not belong to candidate');
+        }
+
+        const updatedEducation = await CandidateRepository.updateEducation(educationId, data);
+        return updatedEducation;
+    }
+
+    static async deleteEducation(
+        candidateId: string,
+        educationId: string
+    ): Promise<CandidateEducationView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const education = await CandidateRepository.findEducationBelongToUser(candidateId, educationId);
+        if (!education) {
+            throw new NotFoundError('Education record not found or does not belong to candidate');
+        }
+
+        const deletedEducation = await CandidateRepository.deleteEducation(educationId);
+        return deletedEducation;
     }
 }

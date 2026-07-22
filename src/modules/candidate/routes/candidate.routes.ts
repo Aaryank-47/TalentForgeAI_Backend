@@ -8,7 +8,9 @@ import {
     deleteResumesDto, 
     addSkillsDto,
     updateSkillDto,
-    skillsIdsDto
+    skillsIdsDto,
+    addEducationDto,
+    updateEducationDto
  } from "../dto/candidate.dto.js";
 import { upload } from "../../../common/uploads/index.js";
 
@@ -92,5 +94,42 @@ candidateRoutes.delete(
     authorize("CANDIDATE"),
     validate(skillsIdsDto, 'body'),
     CandidateController.deleteSkills
+)
+
+candidateRoutes.post(
+    "/educations",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(addEducationDto, 'body'),
+    CandidateController.addEducation
+)
+
+candidateRoutes.get(
+    "/educations",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.getEducations
+)
+
+candidateRoutes.get(
+    "/educations/:educationId",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.getEducationById
+)
+
+candidateRoutes.patch(
+    "/educations/:educationId",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(updateEducationDto, 'body'),
+    CandidateController.updateEducation
+)
+
+candidateRoutes.delete(
+    "/educations/:educationId",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.deleteEducation
 )
 export default candidateRoutes;
