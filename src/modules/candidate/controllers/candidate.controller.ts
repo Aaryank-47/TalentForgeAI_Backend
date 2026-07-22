@@ -138,11 +138,11 @@ export class CandidateController {
         res: Response
     ): Promise<void> {
         const candidateId = req.user.id;
-        // const skills = await CandidateService.getSkills(candidateId);
+        const skills = await CandidateService.getAllSkills(candidateId);
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: "Skills fetched successfully",
-            // data: skills
+            data: skills
         });
     }
 }

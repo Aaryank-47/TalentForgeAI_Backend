@@ -170,4 +170,20 @@ export class CandidateRepository {
             }
         });
     }
+
+    static async findAllSkillsByCandidateId(
+        candidateId: string
+    ):Promise<SkillsView[]>{
+        return prisma.candidateSkill.findMany({
+            where:{
+                candidateId:candidateId
+            },
+            select: {
+                id: true,
+                name: true,
+                yearsOfExperience: true,
+                candidateId: true
+            }
+        })
+    }
 }

@@ -160,4 +160,16 @@ export class CandidateService {
         
         return addedSkills;
     }
+
+    static async getAllSkills(
+        candidateId: string
+    ):Promise<SkillsView[]>{
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if(!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)){
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const allSkills = await CandidateRepository.findAllSkillsByCandidateId(candidate.profile.id);
+        return allSkills;
+    }
 }

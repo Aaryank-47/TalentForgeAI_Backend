@@ -64,4 +64,11 @@ candidateRoutes.post(
     validate(addSkillsDto, 'body'),
     CandidateController.addSkills
 )
+
+candidateRoutes.get(
+    "/me/skills",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.getSkills
+)
 export default candidateRoutes;
