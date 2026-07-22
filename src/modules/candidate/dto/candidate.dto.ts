@@ -188,3 +188,30 @@ export const updateExperienceDto = experienceBaseSchema.partial().refine(data =>
 });
 
 export type UpdateExperienceDto = z.infer<typeof updateExperienceDto>;
+
+export const toggleOpenToWorkDto = z.object({
+    isOpenToWork: z.boolean()
+});
+
+export type ToggleOpenToWorkDto = z.infer<typeof toggleOpenToWorkDto>;
+
+export const updateSalaryPreferencesDto = z.object({
+    expectedSalary: expectedSalaryValidator.optional(),
+    currentSalary: currentSalaryValidator.optional(),
+    noticePeriod: noticePeriodValidator.optional()
+});
+
+export type UpdateSalaryPreferencesDto = z.infer<typeof updateSalaryPreferencesDto>;
+
+export const updateLocationPreferencesDto = z.object({
+    preferredLocation: preferredLocationValidator.optional(),
+    currentLocation: currentLocationValidator.optional()
+});
+
+export type UpdateLocationPreferencesDto = z.infer<typeof updateLocationPreferencesDto>;
+
+export const getPublicProfileParamDto = z.object({
+    candidateId: candidateIdValidator
+});
+
+export type GetPublicProfileParamDto = z.infer<typeof getPublicProfileParamDto>;

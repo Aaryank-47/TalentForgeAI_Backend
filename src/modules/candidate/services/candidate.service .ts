@@ -2,13 +2,15 @@ import { AuthRepository } from "../../auth/repositories/auth.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
 import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView, CandidateExperienceView } from "../interfaces/candidate.interface.js"
 import { CandidateRepository } from "../repository/candidate.repository.js";
-import type { UpdateCandidateProfileDto, SingleSkillDto, AddEducationDto, UpdateEducationDto, AddExperienceDto, UpdateExperienceDto } from "../dto/candidate.dto.js"
+import type { UpdateCandidateProfileDto, SingleSkillDto, AddEducationDto, UpdateEducationDto, AddExperienceDto, UpdateExperienceDto, ToggleOpenToWorkDto, UpdateSalaryPreferencesDto, UpdateLocationPreferencesDto } from "../dto/candidate.dto.js"
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
-import type { Resume } from "@prisma/client";
+import type { Resume, Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { deleteFileFromCloudinary } from "../../../common/uploads/index.js";
 import { extractPublicId } from "../../company/utils/company.utils.js";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
+import { removeUndefined } from "../../../common/helper/object.helper.js";
 
 
 export class CandidateService {
@@ -423,5 +425,78 @@ export class CandidateService {
 
         const deletedExperience = await CandidateRepository.deleteExperience(experienceId);
         return deletedExperience;
+    }
+
+    static async getPublicProfile(candidateId: string) {
+        const candidate = await CandidateRepository.findProfileByCandidateId(candidateId);
+        if (!candidate) {
+            throw new NotFoundError('Candidate not found');
+        }
+        return candidate;
+    }
+
+    static async getCandidateResumes(
+        candidateId: string,
+        loggedInUser: { id: string; role: string }
+    ): Promise<ResumeView[]> {
+        const candidate = await CandidateRepository.findProfileByCandidateId(candidateId);
+        if (!candidate) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const isSelf = candidate.userId === loggedInUser.id;
+        const isRecruiterOrAdmin = ["EMPLOYER", "ADMIN", "SUPER_ADMIN"].includes(loggedInUser.role);
+
+        if (!isSelf && !isRecruiterOrAdmin) {
+            throw new ForbiddenError("You do not have permission to view this candidate's resumes");
+        }
+
+        const resumes = await CandidateRepository.findResumesByCandidateId(candidateId);
+        return resumes;
+    }
+
+    static async toggleOpenToWork(
+        userId: string,
+        isOpenToWork: boolean
+    ): Promise<CandidateProfileView> {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        return CandidateRepository.updateCandidateSettings(userId, {
+            isOpenToWork
+        });
+    }
+
+    static async updateSalaryPreferences(
+        userId: string,
+        data: UpdateSalaryPreferencesDto
+    ): Promise<CandidateProfileView> {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        return CandidateRepository.updateCandidateSettings(userId, removeUndefined({
+            expectedSalary: data.expectedSalary,
+            currentSalary: data.currentSalary,
+            noticePeriod: data.noticePeriod
+        }) as Prisma.CandidateUpdateInput);
+    }
+
+    static async updateLocationPreferences(
+        userId: string,
+        data: UpdateLocationPreferencesDto
+    ): Promise<CandidateProfileView> {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        return CandidateRepository.updateCandidateSettings(userId, removeUndefined({
+            preferredLocation: data.preferredLocation,
+            currentLocation: data.currentLocation
+        }) as Prisma.CandidateUpdateInput);
     }
 }

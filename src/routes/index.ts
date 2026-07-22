@@ -4,6 +4,7 @@ import authRoutes from '../modules/auth/auth.module.js';
 import companyRoutes from '../modules/company/company.module.js';
 import jobRoutes from '../modules/jobs/routes/jobs.routes.js';
 import candidateRoutes from '../modules/candidate/routes/candidate.routes.js';
+import candidatesRoutes from '../modules/candidate/routes/candidates.routes.js';
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.use('/auth', authRoutes);
 router.use("/companies", companyRoutes);
 router.use("/jobs", jobRoutes);
 router.use("/candidate", candidateRoutes);
+router.use("/candidates", candidatesRoutes);
 
 export default router;

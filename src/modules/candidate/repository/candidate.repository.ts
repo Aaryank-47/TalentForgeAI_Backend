@@ -398,4 +398,26 @@ export class CandidateRepository {
             select: experience
         });
     }
+
+    static async findProfileByCandidateId(candidateId: string) {
+        return prisma.candidate.findUnique({
+            where: { id: candidateId },
+            include: {
+                skills: true,
+                educations: true,
+                experiences: true,
+            }
+        });
+    }
+
+    static async updateCandidateSettings(
+        userId: string,
+        data: Prisma.CandidateUpdateInput
+    ): Promise<CandidateProfileView> {
+        return prisma.candidate.update({
+            where: { userId },
+            data,
+            select: candidateProfileSelect
+        });
+    }
 }

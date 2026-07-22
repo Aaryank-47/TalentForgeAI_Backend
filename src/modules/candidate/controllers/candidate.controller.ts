@@ -319,5 +319,77 @@ export class CandidateController {
             data: deletedExperience
         });
     }
+
+    static async getPublicProfile(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const { candidateId } = req.params;
+        const profile = await CandidateService.getPublicProfile(candidateId as string);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Public profile fetched successfully",
+            data: profile
+        });
+    }
+
+    static async getCandidateResumes(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const { candidateId } = req.params;
+        const loggedInUser = {
+            id: req.user.id,
+            role: req.user.role
+        };
+        const resumes = await CandidateService.getCandidateResumes(candidateId as string, loggedInUser);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Candidate resumes fetched successfully",
+            data: resumes
+        });
+    }
+
+    static async toggleOpenToWork(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const { isOpenToWork } = req.body;
+        const updatedProfile = await CandidateService.toggleOpenToWork(userId, isOpenToWork);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Availability toggled successfully",
+            data: updatedProfile
+        });
+    }
+
+    static async updateSalaryPreferences(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const updateData = req.body;
+        const updatedProfile = await CandidateService.updateSalaryPreferences(userId, updateData);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Salary preferences updated successfully",
+            data: updatedProfile
+        });
+    }
+
+    static async updateLocationPreferences(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const updateData = req.body;
+        const updatedProfile = await CandidateService.updateLocationPreferences(userId, updateData);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Location preferences updated successfully",
+            data: updatedProfile
+        });
+    }
 }
 

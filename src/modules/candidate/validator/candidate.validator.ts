@@ -7,5 +7,9 @@ export {
     addEducationDto,
     updateEducationDto,
     addExperienceDto,
-    updateExperienceDto
+    updateExperienceDto,
+    toggleOpenToWorkDto,
+    updateSalaryPreferencesDto,
+    updateLocationPreferencesDto,
+    getPublicProfileParamDto
 } from "../dto/candidate.dto.js"

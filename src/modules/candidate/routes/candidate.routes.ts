@@ -12,7 +12,10 @@ import {
     addEducationDto,
     updateEducationDto,
     addExperienceDto,
-    updateExperienceDto
+    updateExperienceDto,
+    toggleOpenToWorkDto,
+    updateSalaryPreferencesDto,
+    updateLocationPreferencesDto
  } from "../dto/candidate.dto.js";
 import { upload } from "../../../common/uploads/index.js";
 
@@ -170,5 +173,29 @@ candidateRoutes.delete(
     authMiddleware,
     authorize("CANDIDATE"),
     CandidateController.deleteExperience
+)
+
+candidateRoutes.patch(
+    "/open-to-work",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(toggleOpenToWorkDto, 'body'),
+    CandidateController.toggleOpenToWork
+)
+
+candidateRoutes.patch(
+    "/salary-preferences",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(updateSalaryPreferencesDto, 'body'),
+    CandidateController.updateSalaryPreferences
+)
+
+candidateRoutes.patch(
+    "/location-preferences",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(updateLocationPreferencesDto, 'body'),
+    CandidateController.updateLocationPreferences
 )
 export default candidateRoutes;
