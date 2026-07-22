@@ -1,4 +1,4 @@
-import type { ExperienceLevel, Gender, GradingSystem } from "@prisma/client";
+import type { ExperienceLevel, Gender, GradingSystem, EmploymentType } from "@prisma/client";
 
 export interface CandidateProfileView {
     id: string;
@@ -70,6 +70,21 @@ export interface CandidateEducationView {
     gradingSystem: GradingSystem;
     gradeText: string | null;
     grade: number | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface CandidateExperienceView {
+    id: string;
+    candidateId: string;
+    companyName: string;
+    designation: string;
+    employmentType: EmploymentType;
+    description: string | null;
+    location: string | null;
+    startDate: Date;
+    endDate: Date | null;
+    currentlyWorking: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

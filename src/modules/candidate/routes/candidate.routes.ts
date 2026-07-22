@@ -10,7 +10,9 @@ import {
     updateSkillDto,
     skillsIdsDto,
     addEducationDto,
-    updateEducationDto
+    updateEducationDto,
+    addExperienceDto,
+    updateExperienceDto
  } from "../dto/candidate.dto.js";
 import { upload } from "../../../common/uploads/index.js";
 
@@ -131,5 +133,42 @@ candidateRoutes.delete(
     authMiddleware,
     authorize("CANDIDATE"),
     CandidateController.deleteEducation
+)
+
+candidateRoutes.post(
+    "/experiences",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(addExperienceDto, 'body'),
+    CandidateController.addExperience
+)
+
+candidateRoutes.get(
+    "/experiences",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.getExperiences
+)
+
+candidateRoutes.get(
+    "/experiences/:experienceId",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.getExperienceById
+)
+
+candidateRoutes.patch(
+    "/experiences/:experienceId",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    validate(updateExperienceDto, 'body'),
+    CandidateController.updateExperience
+)
+
+candidateRoutes.delete(
+    "/experiences/:experienceId",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.deleteExperience
 )
 export default candidateRoutes;

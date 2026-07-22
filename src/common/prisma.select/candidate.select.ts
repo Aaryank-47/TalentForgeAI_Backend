@@ -66,3 +66,18 @@ export const education = {
     createdAt: true,
     updatedAt: true
 } as const
+
+export const experience = {
+    id: true,
+    candidateId: true,
+    companyName: true,
+    designation: true,
+    employmentType: true,
+    description: true,
+    location: true,
+    startDate: true,
+    endDate: true,
+    currentlyWorking: true,
+    createdAt: true,
+    updatedAt: true
+} as const

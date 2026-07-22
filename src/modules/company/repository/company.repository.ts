@@ -399,4 +399,17 @@ export class CompanyRepository {
             select: companySelect,
         });
     }
+
+    static async findCompanyByName(
+        companyName: string
+    ): Promise<Company | null> {
+        return prisma.company.findFirst({
+            where: {
+                companyName: {
+                    equals: companyName,
+                    mode: 'insensitive'
+                }
+            }
+        });
+    }
 }

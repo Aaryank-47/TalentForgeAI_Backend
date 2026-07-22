@@ -1,13 +1,14 @@
 import { AuthRepository } from "../../auth/repositories/auth.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
-import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView } from "../interfaces/candidate.interface.js"
+import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView, CandidateExperienceView } from "../interfaces/candidate.interface.js"
 import { CandidateRepository } from "../repository/candidate.repository.js";
-import type { UpdateCandidateProfileDto, SingleSkillDto, AddEducationDto, UpdateEducationDto } from "../dto/candidate.dto.js"
+import type { UpdateCandidateProfileDto, SingleSkillDto, AddEducationDto, UpdateEducationDto, AddExperienceDto, UpdateExperienceDto } from "../dto/candidate.dto.js"
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
 import type { Resume } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { deleteFileFromCloudinary } from "../../../common/uploads/index.js";
 import { extractPublicId } from "../../company/utils/company.utils.js";
+import { CompanyRepository } from "../../company/repository/company.repository.js";
 
 
 export class CandidateService {
@@ -330,5 +331,97 @@ export class CandidateService {
 
         const deletedEducation = await CandidateRepository.deleteEducation(educationId);
         return deletedEducation;
+    }
+
+    static async addExperience(
+        candidateId: string,
+        data: AddExperienceDto
+    ): Promise<CandidateExperienceView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const companyExists = await CompanyRepository.findCompanyByName(data.companyName);
+        if (!companyExists) {
+            throw new NotFoundError(`Company "${data.companyName}" not found`);
+        }
+
+        const candidateRecordId = candidate.profile.id;
+        const newExperience = await CandidateRepository.addExperience(candidateRecordId, data);
+        return newExperience;
+    }
+
+    static async getExperiences(
+        candidateId: string
+    ): Promise<CandidateExperienceView[]> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const experiences = await CandidateRepository.findAllExperiences(candidate.profile.id);
+        return experiences;
+    }
+
+    static async getExperienceById(
+        experienceId: string,
+        candidateId: string
+    ): Promise<CandidateExperienceView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const experience = await CandidateRepository.findExperienceBelongToUser(candidateId, experienceId);
+        if (!experience) {
+            throw new NotFoundError('Experience record not found or does not belong to candidate');
+        }
+
+        return experience;
+    }
+
+    static async updateExperience(
+        candidateId: string,
+        experienceId: string,
+        data: UpdateExperienceDto
+    ): Promise<CandidateExperienceView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const experience = await CandidateRepository.findExperienceBelongToUser(candidateId, experienceId);
+        if (!experience) {
+            throw new NotFoundError('Experience record not found or does not belong to candidate');
+        }
+
+        if (data.companyName) {
+            const companyExists = await CompanyRepository.findCompanyByName(data.companyName);
+            if (!companyExists) {
+                throw new NotFoundError(`Company "${data.companyName}" not found`);
+            }
+        }
+
+        const updatedExperience = await CandidateRepository.updateExperience(experienceId, data);
+        return updatedExperience;
+    }
+
+    static async deleteExperience(
+        candidateId: string,
+        experienceId: string
+    ): Promise<CandidateExperienceView> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const experience = await CandidateRepository.findExperienceBelongToUser(candidateId, experienceId);
+        if (!experience) {
+            throw new NotFoundError('Experience record not found or does not belong to candidate');
+        }
+
+        const deletedExperience = await CandidateRepository.deleteExperience(experienceId);
+        return deletedExperience;
     }
 }

@@ -249,5 +249,75 @@ export class CandidateController {
             data: deletedEducation
         });
     }
+
+    static async addExperience(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const experienceData = req.body;
+        const newExperience = await CandidateService.addExperience(candidateId, experienceData);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Experience added successfully",
+            data: newExperience
+        });
+    }
+
+    static async getExperiences(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const experiences = await CandidateService.getExperiences(candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Experiences fetched successfully",
+            data: experiences
+        });
+    }
+
+    static async getExperienceById(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { experienceId } = req.params;
+        const experience = await CandidateService.getExperienceById(experienceId as string, candidateId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Experience details fetched successfully",
+            data: experience
+        });
+    }
+
+    static async updateExperience(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { experienceId } = req.params;
+        const updateData = req.body;
+        const updatedExperience = await CandidateService.updateExperience(candidateId, experienceId as string, updateData);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Experience updated successfully",
+            data: updatedExperience
+        });
+    }
+
+    static async deleteExperience(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { experienceId } = req.params;
+        const deletedExperience = await CandidateService.deleteExperience(candidateId, experienceId as string);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Experience deleted successfully",
+            data: deletedExperience
+        });
+    }
 }
 

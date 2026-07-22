@@ -1,6 +1,6 @@
-import { candidateProfileSelect, resume, skill, education } from "../../../common/prisma.select/candidate.select.js";
-import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView } from "../interfaces/candidate.interface.js";
-import type { UpdateCandidateProfileDto, AddEducationDto, UpdateEducationDto } from "../dto/candidate.dto.js";
+import { candidateProfileSelect, resume, skill, education, experience } from "../../../common/prisma.select/candidate.select.js";
+import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView, CandidateExperienceView } from "../interfaces/candidate.interface.js";
+import type { UpdateCandidateProfileDto, AddEducationDto, UpdateEducationDto, AddExperienceDto, UpdateExperienceDto } from "../dto/candidate.dto.js";
 import prisma from "../../../config/database.js";
 import { toCandidateUpdateInput } from "../mappper/candidate.mapper.js";
 import { removeUndefined } from "../../../common/helper/object.helper.js";
@@ -322,6 +322,80 @@ export class CandidateRepository {
                 id: educationId
             },
             select: education
+        });
+    }
+
+    static async addExperience(
+        candidateId: string,
+        data: AddExperienceDto
+    ): Promise<CandidateExperienceView> {
+        return prisma.candidateExperience.create({
+            data: removeUndefined({
+                candidateId,
+                ...data
+            }) as Prisma.CandidateExperienceUncheckedCreateInput,
+            select: experience
+        });
+    }
+
+    static async findAllExperiences(
+        candidateId: string
+    ): Promise<CandidateExperienceView[]> {
+        return prisma.candidateExperience.findMany({
+            where: {
+                candidateId
+            },
+            select: experience
+        });
+    }
+
+    static async findExperienceById(
+        experienceId: string
+    ): Promise<CandidateExperienceView | null> {
+        return prisma.candidateExperience.findFirst({
+            where: {
+                id: experienceId
+            },
+            select: experience
+        });
+    }
+
+    static async findExperienceBelongToUser(
+        userId: string,
+        experienceId: string
+    ): Promise<CandidateExperienceView | null> {
+        return prisma.candidateExperience.findFirst({
+            where: {
+                id: experienceId,
+                candidate: {
+                    userId: userId
+                }
+            },
+            select: experience
+        });
+    }
+
+    static async updateExperience(
+        experienceId: string,
+        data: UpdateExperienceDto
+    ): Promise<CandidateExperienceView> {
+        return prisma.candidateExperience.update({
+            where: {
+                id: experienceId
+            },
+            data: removeUndefined(data) as Prisma.CandidateExperienceUpdateInput,
+            select: experience
+        });
+    }
+
+    static async deleteExperience(
+        experienceId: string
+    ): Promise<CandidateExperienceView> {
+        return prisma.candidateExperience.delete({
+            where: {
+                id: experienceId
+            },
+            select: experience
         });
     }
 }

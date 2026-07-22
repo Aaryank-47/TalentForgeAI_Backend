@@ -29,7 +29,13 @@ import {
     degreeValidator,
     fieldOfStudyValidator,
     startDateValidator,
-    endDateValidator
+    endDateValidator,
+    experienceDesignationValidator,
+    employmentTypeValidator,
+    experienceDescriptionValidator,
+    experienceStartDateValidator,
+    experienceEndDateValidator,
+    isCurrentJobValidator
 } from "../../../common/validators/validators.js";
 
 export const candidateIdParamDto = z.object({
@@ -147,3 +153,38 @@ export const updateEducationDto = educationBaseSchema.partial().refine(data => {
 });
 
 export type UpdateEducationDto = z.infer<typeof updateEducationDto>;
+
+export const experienceBaseSchema = z.object({
+    companyName: z.string().trim().min(2, "Company name must be at least 2 characters long").max(100, "Company name must be at most 100 characters long"),
+    designation: experienceDesignationValidator,
+    employmentType: employmentTypeValidator,
+    description: experienceDescriptionValidator,
+    location: z.string().trim().min(2, "Location must be at least 2 characters long").max(100, "Location must be at most 100 characters long").optional(),
+    startDate: experienceStartDateValidator,
+    endDate: experienceEndDateValidator,
+    currentlyWorking: isCurrentJobValidator.default(false)
+});
+
+export const addExperienceDto = experienceBaseSchema.refine(data => {
+    if (!data.currentlyWorking && !data.endDate) {
+        return false;
+    }
+    return true;
+}, {
+    message: "End date is required if you are not currently working",
+    path: ["endDate"]
+});
+
+export type AddExperienceDto = z.infer<typeof addExperienceDto>;
+
+export const updateExperienceDto = experienceBaseSchema.partial().refine(data => {
+    if (data.currentlyWorking === false && !data.endDate) {
+        return false;
+    }
+    return true;
+}, {
+    message: "End date is required if you are not currently working",
+    path: ["endDate"]
+});
+
+export type UpdateExperienceDto = z.infer<typeof updateExperienceDto>;
