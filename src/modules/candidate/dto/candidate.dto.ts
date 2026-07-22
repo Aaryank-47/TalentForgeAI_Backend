@@ -85,3 +85,10 @@ export const addSkillsDto = z.object({
 });
 
 export type AddSkillsDto = z.infer<typeof addSkillsDto>;
+
+export const updateSkillDto = z.object({
+    skillName: skillNameValidator.optional(),
+    skillExperience: skillExperienceValidator.optional()
+})
+
+export type UpdateSkillDto = z.infer<typeof updateSkillDto>;

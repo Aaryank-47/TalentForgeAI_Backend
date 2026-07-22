@@ -145,5 +145,26 @@ export class CandidateController {
             data: skills
         });
     }
+
+    static async updateSkill(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { skillId } = req.params as {skillId: string};
+        const { skillName, skillExperience } = req.body;
+        console.log("Requested From Body : "+ JSON.stringify(req.body));
+        const updatedSkills = await CandidateService.updateSkills(
+            candidateId, 
+            skillId, 
+            skillName, 
+            skillExperience
+        );
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Skills updated successfully",
+            data: updatedSkills
+        });
+    }
 }
 

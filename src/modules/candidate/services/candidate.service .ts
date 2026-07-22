@@ -172,4 +172,30 @@ export class CandidateService {
         const allSkills = await CandidateRepository.findAllSkillsByCandidateId(candidate.profile.id);
         return allSkills;
     }
+
+    static async updateSkills(
+        candidateId: string,
+        skillId: string,
+        skillName: string,
+        skillExperience: number
+    ):Promise<SkillsView>{
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if(!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)){
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const skillExistence = await CandidateRepository.findSkillById(skillId);
+        if(!skillExistence){
+            throw new NotFoundError("Skill not found");
+        }
+
+    const skill = CandidateRepository.findSkillBelongToUser(candidateId, skillId);
+        if(!skill){
+            throw new ConflictError("Skill doesn't belong to this user");
+        }
+
+        const updateSkill = await CandidateRepository.updateSkill(skillId,skillName ,skillExperience);
+        
+        return updateSkill
+    }
 }

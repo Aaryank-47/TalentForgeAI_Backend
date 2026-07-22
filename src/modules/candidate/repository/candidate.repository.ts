@@ -1,4 +1,4 @@
-import { candidateProfileSelect, resume } from "../../../common/prisma.select/candidate.select.js";
+import { candidateProfileSelect, resume, skill } from "../../../common/prisma.select/candidate.select.js";
 import type { CandidateProfileView, ResumeView, SkillsView } from "../interfaces/candidate.interface.js";
 import type { UpdateCandidateProfileDto } from "../dto/candidate.dto.js";
 import prisma from "../../../config/database.js";
@@ -133,6 +133,17 @@ export class CandidateRepository {
         });
     }
 
+    static async findSkillById(
+        skillId:string
+    ):Promise<SkillsView | null>{
+        return prisma.candidateSkill.findFirst({
+            where:{
+                id:skillId
+            },
+            select: skill
+        })
+    }
+
     static async findSkillsNameViaCandidate(
         skillName: string,
         candidateId: string
@@ -142,12 +153,7 @@ export class CandidateRepository {
                 name: skillName,
                 candidateId: candidateId
             },
-            select: {
-                id: true,
-                name: true,
-                yearsOfExperience: true,
-                candidateId: true
-            }
+            select: skill
         });
     }
 
@@ -162,12 +168,7 @@ export class CandidateRepository {
                 name,
                 yearsOfExperience
             },
-            select: {
-                id: true,
-                name: true,
-                yearsOfExperience: true,
-                candidateId: true
-            }
+            select: skill
         });
     }
 
@@ -178,6 +179,19 @@ export class CandidateRepository {
             where:{
                 candidateId:candidateId
             },
+            select: skill
+        })
+    }
+
+    static async findSkillBelongToUser(
+        candidateId: string,
+        skillId: string
+    ):Promise<SkillsView | null>{
+        return prisma.candidateSkill.findFirst({
+            where:{
+                id: skillId,
+                candidateId: candidateId
+            },
             select: {
                 id: true,
                 name: true,
@@ -186,4 +200,25 @@ export class CandidateRepository {
             }
         })
     }
+
+    static async updateSkill(
+        skillId:string,
+        skillsName: string,
+        yearsOfExperience: number
+    ):Promise<SkillsView>{
+        return prisma.candidateSkill.update({
+            where: {
+                id: skillId
+            },
+            data: {
+                name: skillsName,
+                yearsOfExperience
+            },
+            select: skill
+        })
+    }
+
+    // static async deleteSkill(
+    //     skillId: string
+    // ):Promise<SkillsView>{}
 }

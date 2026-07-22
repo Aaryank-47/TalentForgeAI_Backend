@@ -43,3 +43,10 @@ export const resume = {
     fileSize: true,
     uploadedAt: true,
 } as const
+
+export const skill ={
+    id: true,
+    name: true,
+    yearsOfExperience: true,
+    candidateId: true
+} as const
