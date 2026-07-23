@@ -418,7 +418,7 @@ model Application {
 
   coverLetter String?
 
-  createdAt           DateTime  @default(now())
+  appliedAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   lastStatusUpdatedAt DateTime?
 

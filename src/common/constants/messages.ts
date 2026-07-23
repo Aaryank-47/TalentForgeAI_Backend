@@ -67,5 +67,14 @@ export const MESSAGE = {
     JOB_STATUS_UPDATED: "Job status updated successfully.",
     JOB_MEMBER_ASSIGNED: "Company member assigned to job successfully.",
     JOB_MEMBERS_LISTED: "Assigned company members fetched successfully.",
-    JOB_MEMBER_REMOVED: "Company member removed from job successfully."
+    JOB_MEMBER_REMOVED: "Company member removed from job successfully.",
+
+    // Application
+    APPLICATION_APPLIED: "Application submitted successfully.",
+    APPLICATION_FETCHED: "Application details fetched successfully.",
+    APPLICATION_NOT_FOUND: "Application not found.",
+    APPLICATION_DELETED: "Application deleted successfully.",
+    APPLICATION_UPDATED: "Application updated successfully.",
+    APPLICATION_NOT_APPLIED: "Application not found.",
+    APPLICATION_ALREADY_APPLIED: "Application already submitted.",
 } as const;

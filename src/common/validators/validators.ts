@@ -386,6 +386,7 @@ export const benefitsValidator = z.array(
 
 // Resume
 
+export const resumeIdValidator = uuidValidator;
 export const candidateIdValidator = uuidValidator;
 export const resumeFileValidator = z
   .string()
@@ -400,9 +401,8 @@ export const resumeTitleValidator = z
 
 
 // Application
-
+export const applicationIdValidator = uuidValidator;
 export const jobIdValidator = uuidValidator;
-export const resumeIdValidator = uuidValidator;
 export const coverLetterValidator = z
   .string()
   .trim()
