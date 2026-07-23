@@ -1,8 +1,12 @@
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { MESSAGE } from "../../../common/constants/messages.js";
 import type { Request, Response } from "express";
-import  { ApplicationService } from "../services/application.C.services.js";
-import type { ApplyJobDto } from "../dto/application.dto.js"
+import { ApplicationService } from "../services/application.C.services.js";
+import type {
+    ApplyJobDto,
+    WithdrawApplicationDto,
+    ApplicationIdParamDto
+} from "../dto/application.dto.js"
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 
@@ -72,6 +76,27 @@ export class ApplicationController {
             statusCode: HTTP_STATUS.OK,
             message: MESSAGE.APPLICATION_FETCHED,
             data: application,
+        });
+    }
+
+    static async withdrawApplication(
+        req: Request<ApplicationIdParamDto, any, WithdrawApplicationDto>,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const { applicationId } = req.params;
+        const {status, withdrawReason} = req.body;
+
+        if (typeof applicationId !== "string") {
+            throw new BadRequestError("Application ID is required");
+        }
+
+        await ApplicationService.withdrawApplication(userId, applicationId, status, withdrawReason as string);
+
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            statusCode: HTTP_STATUS.OK,
+            message: MESSAGE.APPLICATION_WITHDRAWN,
         });
     }
 }

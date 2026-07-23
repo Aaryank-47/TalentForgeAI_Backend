@@ -5,6 +5,7 @@ import { JobStatus, ApplicationStatus } from "../../../common/enums/all_enums.js
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import { CandidateRepository } from "../../candidate/repository/candidate.repository.js";
 import type { ApplicationView } from "../interfaces/application.interface.js"
+import type { WithdrawApplicationDto } from "../dto/application.dto.js";
 
 export class ApplicationService {
     static async applyJob(
@@ -102,5 +103,32 @@ export class ApplicationService {
         }
 
         return application;
+    }
+
+    static async withdrawApplication(
+        userId: string,
+        applicationId: string,
+        status: ApplicationStatus,
+        withdrawReason: string,
+    ):Promise<void>{
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const application = await ApplicationRepository.getCandidateApplicationDetails(
+            candidate.profile.id,
+            applicationId
+        );
+
+        if (!application) {
+            throw new NotFoundError("Application not found");
+        }
+
+        if (application.status !== ApplicationStatus.APPLIED) {
+            throw new BadRequestError("Application cannot be withdrawn");
+        }
+
+        await ApplicationRepository.updateApplicationStatus(applicationId, status, withdrawReason);
     }
 }

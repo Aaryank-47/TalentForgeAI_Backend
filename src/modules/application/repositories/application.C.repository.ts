@@ -34,13 +34,13 @@ export class ApplicationRepository {
     }
 
     static async createApplication(
-        data:{
-            candidateId:string,
-            jobId:string,
-            resumeId:string,
-            status:ApplicationStatus
+        data: {
+            candidateId: string,
+            jobId: string,
+            resumeId: string,
+            status: ApplicationStatus
         }
-    ){
+    ) {
         return prisma.application.create({
             data
         })
@@ -155,4 +155,17 @@ export class ApplicationRepository {
         });
     }
 
+    static async updateApplicationStatus(
+        applicationId: string,
+        status: ApplicationStatus,
+        withdrawReason?: string,
+    ): Promise<void> {
+        await prisma.application.update({
+            where: { id: applicationId },
+            data: {
+                status,
+                ...(withdrawReason !== undefined ? { withdrawReason } : {})
+            }
+        });
+    }
 }

@@ -1,10 +1,15 @@
 import { ApplicationController } from "../controller/application.C.controller.js";
 import { Router } from "express";
-import { applyJobDto } from "../dto/application.dto.js";
+import {
+    applyJobDto,
+    withdrawApplicationDto,
+    applicationIdParamDto
+} from "../dto/application.dto.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { UserRole } from "../../../common/enums/all_enums.js";
+
 
 const applicationRoutes = Router();
 
@@ -30,4 +35,12 @@ applicationRoutes.get(
     ApplicationController.getCandidateApplicationDetails
 )
 
+applicationRoutes.patch(
+    "/candidate/withdraw/:applicationId",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    validate(applicationIdParamDto, "params"),
+    validate(withdrawApplicationDto, "body"),
+    ApplicationController.withdrawApplication
+)
 export default applicationRoutes;
