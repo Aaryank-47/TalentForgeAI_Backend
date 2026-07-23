@@ -1,4 +1,4 @@
-import { ApplicationRepository } from "../repositories/application.C.repository.js";
+import { ApplicationRepository } from "../repositories/application.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { JobStatus, ApplicationStatus } from "../../../common/enums/all_enums.js";
@@ -110,7 +110,7 @@ export class ApplicationService {
         applicationId: string,
         status: ApplicationStatus,
         withdrawReason: string,
-    ):Promise<void>{
+    ): Promise<void> {
         const candidate = await AuthRepository.findProfileByUserId(userId);
         if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
             throw new NotFoundError('Candidate not found');

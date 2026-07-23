@@ -168,4 +168,119 @@ export class ApplicationRepository {
             }
         });
     }
+
+    static async getJobApplications(params: {
+        jobId: string;
+        page: number;
+        limit: number;
+        status?: string | undefined;
+        search?: string | undefined;
+    }) {
+        const { jobId, page, limit, status, search } = params;
+        const skip = (page - 1) * limit;
+
+        const where: any = {
+            jobId,
+        };
+
+        if (status) {
+            if (status === ApplicationStatus.WITHDRAWN) {
+                where.status = {
+                    equals: "NONE",
+                };
+            } else {
+                where.status = status;
+            }
+        } else {
+            where.status = {
+                not: ApplicationStatus.WITHDRAWN,
+            };
+        }
+
+        if (search) {
+            where.candidate = {
+                OR: [
+                    {
+                        fullName: {
+                            contains: search,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        user: {
+                            email: {
+                                contains: search,
+                                mode: 'insensitive',
+                            },
+                        },
+                    },
+                ],
+            };
+        }
+
+        const [applications, total] = await Promise.all([
+            prisma.application.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: {
+                    appliedAt: 'desc',
+                },
+                include: {
+                    candidate: {
+                        include: {
+                            user: {
+                                select: {
+                                    email: true,
+                                    status: true,
+                                }
+                            }
+                        }
+                    },
+                    resume: true,
+                },
+            }),
+            prisma.application.count({ where }),
+        ]);
+
+        return {
+            applications,
+            total,
+        };
+    }
+
+    static async getJobApplicationDetails(applicationId: string) {
+        return prisma.application.findUnique({
+            where: {
+                id: applicationId,
+            },
+            include: {
+                candidate: {
+                    include: {
+                        user: {
+                            select: {
+                                email: true,
+                                status: true,
+                            },
+                        },
+                        educations: true,
+                        experiences: true,
+                        skills: true,
+                    },
+                },
+                resume: true,
+                job: {
+                    include: {
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                logo: true,
+                            }
+                        },
+                    },
+                },
+            },
+        });
+    }
 }

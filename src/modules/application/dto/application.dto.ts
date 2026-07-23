@@ -36,3 +36,9 @@ export const applicationIdParamDto = z.object({
 })
 
 export type ApplicationIdParamDto = z.infer<typeof applicationIdParamDto>
+
+export const jobIdParamDto = z.object({
+    jobId: jobIdValidator,
+})
+
+export type JobIdParamDto = z.infer<typeof jobIdParamDto>
