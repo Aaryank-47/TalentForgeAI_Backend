@@ -2,7 +2,7 @@ import { AccountStatus, UserRole, CompanyMemberRole, type Prisma } from "@prisma
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js"
-import type { EmployerCompanyInput } from "../../employer/interfaces/employer.interface.js";
+import type { EmployerCompanyInput } from "../interfaces/auth.interface.js";
 import { createUniqueSlugSeed } from "../utils/auth.utils.js";
 import { userSelect, loginUserSelect } from "../../../common/prisma.select/user.select.js"
 import { candidateSelect, candidateProfileSelect } from "../../../common/prisma.select/candidate.select.js"
