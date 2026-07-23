@@ -46,4 +46,113 @@ export class ApplicationRepository {
         })
     }
 
+    static async getCandidateApplications(params: {
+        candidateId: string;
+        page: number;
+        limit: number;
+        status?: string | undefined;
+        search?: string | undefined;
+    }) {
+        const { candidateId, page, limit, status, search } = params;
+        const skip = (page - 1) * limit;
+
+        const where: any = {
+            candidateId,
+        };
+
+        if (status) {
+            where.status = status;
+        }
+
+        if (search) {
+            where.job = {
+                OR: [
+                    {
+                        title: {
+                            contains: search,
+                            mode: 'insensitive',
+                        },
+                    },
+                    {
+                        company: {
+                            companyName: {
+                                contains: search,
+                                mode: 'insensitive',
+                            },
+                        },
+                    },
+                ],
+            };
+        }
+
+        const [applications, total] = await Promise.all([
+            prisma.application.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: {
+                    appliedAt: 'desc',
+                },
+                include: {
+                    job: {
+                        select: {
+                            id: true,
+                            title: true,
+                            employmentType: true,
+                            workplaceType: true,
+                            location: true,
+                            minimumSalary: true,
+                            maximumSalary: true,
+                            salaryPeriod: true,
+                            company: {
+                                select: {
+                                    id: true,
+                                    companyName: true,
+                                    logo: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            }),
+            prisma.application.count({ where }),
+        ]);
+
+        return {
+            applications,
+            total,
+        };
+    }
+
+    static async getCandidateApplicationDetails(candidateId: string, applicationId: string) {
+        return prisma.application.findFirst({
+            where: {
+                id: applicationId,
+                candidateId,
+            },
+            include: {
+                job: {
+                    include: {
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                logo: true,
+                                website: true,
+                                description: true,
+                            },
+                        },
+                    },
+                },
+                resume: {
+                    select: {
+                        id: true,
+                        resumeName: true,
+                        resumeUrl: true,
+                    },
+                },
+            },
+        });
+    }
+
 }

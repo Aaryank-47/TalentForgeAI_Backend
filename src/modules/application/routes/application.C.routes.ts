@@ -16,4 +16,18 @@ applicationRoutes.post(
     ApplicationController.applyJob
 )
 
+applicationRoutes.get(
+    "/candidate/my/applications",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    ApplicationController.getCandidateApplications
+)
+
+applicationRoutes.get(
+    "/candidate/my/application/:applicationId",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    ApplicationController.getCandidateApplicationDetails
+)
+
 export default applicationRoutes;

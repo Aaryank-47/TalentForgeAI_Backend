@@ -56,4 +56,51 @@ export class ApplicationService {
 
         return newApplication;
     }
+
+    static async getCandidateApplications(
+        userId: string,
+        filters: {
+            page?: number | undefined;
+            limit?: number | undefined;
+            status?: string | undefined;
+            search?: string | undefined;
+        }
+    ) {
+        const candidateProfile = await AuthRepository.findProfileByUserId(userId);
+        if (!candidateProfile || !candidateProfile.profile || !('isOpenToWork' in candidateProfile.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const page = filters.page ? Math.max(1, filters.page) : 1;
+        const limit = filters.limit ? Math.max(1, filters.limit) : 10;
+
+        return await ApplicationRepository.getCandidateApplications({
+            candidateId: candidateProfile.profile.id,
+            page,
+            limit,
+            status: filters.status,
+            search: filters.search,
+        });
+    }
+
+    static async getCandidateApplicationDetails(
+        userId: string,
+        applicationId: string
+    ) {
+        const candidateProfile = await AuthRepository.findProfileByUserId(userId);
+        if (!candidateProfile || !candidateProfile.profile || !('isOpenToWork' in candidateProfile.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const application = await ApplicationRepository.getCandidateApplicationDetails(
+            candidateProfile.profile.id,
+            applicationId
+        );
+
+        if (!application) {
+            throw new NotFoundError("Application not found");
+        }
+
+        return application;
+    }
 }
