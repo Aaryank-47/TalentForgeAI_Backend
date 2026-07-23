@@ -120,6 +120,18 @@ enum GradingSystem {
   OTHER
 }
 
+enum ApplicationStatus {
+  APPLIED
+  INREVIEW
+  SCREENING
+  SHORTLISTED
+  INTERVIEW
+  OFFERED
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
 model User {
   id                          String          @id @default(cuid())
   email                       String          @unique
@@ -398,18 +410,35 @@ model JobMember {
 model Application {
   id String @id @default(cuid())
 
-  jobId String
-  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
-
   candidateId String
-  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  jobId       String
+  resumeId    String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status ApplicationStatus @default(APPLIED)
 
-  @@unique([jobId, candidateId])
-  @@index([jobId])
+  coverLetter String?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastStatusUpdatedAt DateTime?
+
+  withdrawnAt    DateTime?
+  withdrawReason String?
+
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  hiredAt DateTime?
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume    Resume    @relation(fields: [resumeId], references: [id])
+
+  @@unique([candidateId, jobId])
   @@index([candidateId])
+  @@index([jobId])
+  @@index([status])
+  @@index([jobId, status])
 }
 
 model Resume {
@@ -420,6 +449,9 @@ model Resume {
   resumeUrl   String
   fileSize    Int
   uploadedAt  DateTime  @default(now())
+  deletedAt   DateTime?
+
+  applications Application[]
 
   @@index([candidateId])
 }
