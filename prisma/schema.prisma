@@ -216,18 +216,20 @@ model Candidate {
 }
 
 model Employer {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName       String
-  phoneNumber    String?
-  designation    String?
-  department     String?
-  profilePicture String?
-  linkedinUrl    String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                   String                @id @default(cuid())
+  userId               String                @unique
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName             String
+  phoneNumber          String?
+  designation          String?
+  department           String?
+  profilePicture       String?
+  linkedinUrl          String?
+  isActive             Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  assignedApplications ApplicationPipeline[]
+  pipelineHistories    PipelineHistory[]
 }
 
 model Company {
@@ -263,6 +265,7 @@ model Company {
   restoredBy        String?
   jobs              Job[]
   companyMembers    CompanyMember[]
+  pipelines         Pipeline[]
 }
 
 model CompanyMember {
@@ -348,6 +351,7 @@ model Job {
   benefits     JobBenefit[]
   members      JobMember[]
   applications Application[]
+  pipeline     Pipeline?
 
   @@index([companyId])
   @@index([status])
@@ -430,9 +434,10 @@ model Application {
 
   hiredAt DateTime?
 
-  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  resume    Resume    @relation(fields: [resumeId], references: [id])
+  candidate           Candidate            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job                 Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume              Resume               @relation(fields: [resumeId], references: [id])
+  applicationPipeline ApplicationPipeline?
 
   @@unique([candidateId, jobId])
   @@index([candidateId])
@@ -505,4 +510,80 @@ model CandidateExperience {
 
   @@index([candidateId])
   @@index([companyName])
+}
+
+enum PipelineStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Pipeline {
+  id          String          @id @default(cuid())
+  companyId   String
+  company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  jobId       String          @unique
+  job         Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      PipelineStatus  @default(ACTIVE)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  stages      PipelineStage[]
+
+  @@index([companyId])
+}
+
+model PipelineStage {
+  id                    String                @id @default(cuid())
+  pipelineId            String
+  pipeline              Pipeline              @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  name                  String
+  description           String?
+  order                 Int
+  color                 String?
+  isFinal               Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  applications          ApplicationPipeline[]
+  pipelineHistoriesFrom PipelineHistory[]     @relation("FromStage")
+  pipelineHistoriesTo   PipelineHistory[]     @relation("ToStage")
+
+  @@index([pipelineId])
+}
+
+model ApplicationPipeline {
+  id                 String            @id @default(cuid())
+  applicationId      String            @unique
+  application        Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  pipelineStageId    String
+  stage              PipelineStage     @relation(fields: [pipelineStageId], references: [id], onDelete: Cascade)
+  assignedEmployerId String?
+  assignedEmployer   Employer?         @relation(fields: [assignedEmployerId], references: [id])
+  remarks            String?
+  movedAt            DateTime          @default(now())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  histories          PipelineHistory[]
+
+  @@index([pipelineStageId])
+  @@index([assignedEmployerId])
+}
+
+model PipelineHistory {
+  id                    String              @id @default(cuid())
+  applicationPipelineId String
+  applicationPipeline   ApplicationPipeline @relation(fields: [applicationPipelineId], references: [id], onDelete: Cascade)
+  fromStageId           String?
+  fromStage             PipelineStage?      @relation("FromStage", fields: [fromStageId], references: [id])
+  toStageId             String
+  toStage               PipelineStage       @relation("ToStage", fields: [toStageId], references: [id])
+  movedByEmployerId     String
+  movedBy               Employer            @relation(fields: [movedByEmployerId], references: [id])
+  comment               String?
+  createdAt             DateTime            @default(now())
+
+  @@index([applicationPipelineId])
+  @@index([fromStageId])
+  @@index([toStageId])
+  @@index([movedByEmployerId])
 }
