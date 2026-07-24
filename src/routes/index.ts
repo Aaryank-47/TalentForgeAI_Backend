@@ -15,7 +15,7 @@ router.use("/companies", companyRoutes);
 router.use("/jobs", jobRoutes);
 router.use("/candidate", candidateRoutes);
 router.use("/candidates", candidatesRoutes);
-router.use("/applications", applicationRoutes);
+router.use("/candidate/applications", applicationRoutes);
 router.use("/employer/applications", recruiterApplicationRoutes);
 
 export default router;
