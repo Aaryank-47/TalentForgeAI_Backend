@@ -17,30 +17,31 @@ import {
     employerFullNameValidator
 } from "../../../common/validators/validators.js";
 
+export class RegisterCompanyOwnerDto {
+    static companyOwnerCompany = z.object({
+        companyName: companyNameValidator,
+        slug: z.string().trim().min(1).max(180).optional(),
+        email: emailValidator,
+        phoneNumber: companyPhoneNumberValidator,
+        website: companyWebsiteValidator,
+        logo: companyLogoValidator,
+        coverImage: companyCoverImageValidator,
+        description: companyDescriptionValidator,
+        industry: companyIndustryValidator,
+        companySize: companySizeValidator,
+        foundedYear: foundedYearValidator,
+        headquarters: headquartersValidator,
+        linkedinUrl: companyLinkedInUrlValidator,
+        twitterUrl: twitterUrlValidator,
+    });
 
-export const companyOwnerCompanyDto = z.object({
-    companyName: companyNameValidator,
-    slug: z.string().trim().min(1).max(180).optional(),
-    email: emailValidator,
-    phoneNumber: companyPhoneNumberValidator,
-    website: companyWebsiteValidator,
-    logo: companyLogoValidator,
-    coverImage: companyCoverImageValidator,
-    description: companyDescriptionValidator,
-    industry: companyIndustryValidator,
-    companySize: companySizeValidator,
-    foundedYear: foundedYearValidator,
-    headquarters: headquartersValidator,
-    linkedinUrl: companyLinkedInUrlValidator,
-    twitterUrl: twitterUrlValidator,
-});
+    static registerCompanyOwner = z.object({
+        email: emailValidator,
+        password: passwordValidator,
+        fullName: employerFullNameValidator,
+        company: RegisterCompanyOwnerDto.companyOwnerCompany,
+    });
+}
 
-export const registerCompanyOwnerDto = z.object({
-    email: emailValidator,
-    password: passwordValidator,
-    fullName: employerFullNameValidator,
-    company: companyOwnerCompanyDto,
-});
-
-export type RegisterCompanyOwnerDto = z.infer<typeof registerCompanyOwnerDto>;
-export type CompanyOwnerCompanyDto = z.infer<typeof companyOwnerCompanyDto>;
+export type RegisterCompanyOwnerDtoType = z.infer<typeof RegisterCompanyOwnerDto.registerCompanyOwner>;
+export type CompanyOwnerCompanyDto = z.infer<typeof RegisterCompanyOwnerDto.companyOwnerCompany>;

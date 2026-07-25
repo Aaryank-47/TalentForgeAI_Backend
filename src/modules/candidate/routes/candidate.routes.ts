@@ -3,20 +3,7 @@ import { CandidateController } from "../controllers/candidate.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js"
-import { 
-    updateCandidateProfileDto, 
-    deleteResumesDto, 
-    addSkillsDto,
-    updateSkillDto,
-    skillsIdsDto,
-    addEducationDto,
-    updateEducationDto,
-    addExperienceDto,
-    updateExperienceDto,
-    toggleOpenToWorkDto,
-    updateSalaryPreferencesDto,
-    updateLocationPreferencesDto
- } from "../dto/candidate.dto.js";
+import { CandidateDto } from "../dto/candidate.dto.js";
 import { upload } from "../../../common/uploads/index.js";
 
 const candidateRoutes = Router();
@@ -30,7 +17,7 @@ candidateRoutes.patch(
     "/me",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(updateCandidateProfileDto, 'body'),
+    validate(CandidateDto.updateCandidateProfile, 'body'),
     CandidateController.updateCandidateProfile
 );
 candidateRoutes.get(
@@ -66,7 +53,7 @@ candidateRoutes.delete(
     "/resumes",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(deleteResumesDto, 'body'),
+    validate(CandidateDto.deleteResumes, 'body'),
     CandidateController.deleteResumes
 )
 
@@ -74,7 +61,7 @@ candidateRoutes.post(
     "/me/skills",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(addSkillsDto, 'body'),
+    validate(CandidateDto.addSkills, 'body'),
     CandidateController.addSkills
 )
 
@@ -89,7 +76,7 @@ candidateRoutes.patch(
     "/me/skills/:skillId",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(updateSkillDto, 'body'),
+    validate(CandidateDto.updateSkill, 'body'),
     CandidateController.updateSkill
 )
 
@@ -97,7 +84,7 @@ candidateRoutes.delete(
     "/me/skills/delete",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(skillsIdsDto, 'body'),
+    validate(CandidateDto.skillsIds, 'body'),
     CandidateController.deleteSkills
 )
 
@@ -105,7 +92,7 @@ candidateRoutes.post(
     "/educations",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(addEducationDto, 'body'),
+    validate(CandidateDto.addEducation, 'body'),
     CandidateController.addEducation
 )
 
@@ -127,7 +114,7 @@ candidateRoutes.patch(
     "/educations/:educationId",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(updateEducationDto, 'body'),
+    validate(CandidateDto.updateEducation, 'body'),
     CandidateController.updateEducation
 )
 
@@ -142,7 +129,7 @@ candidateRoutes.post(
     "/experiences",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(addExperienceDto, 'body'),
+    validate(CandidateDto.addExperience, 'body'),
     CandidateController.addExperience
 )
 
@@ -164,7 +151,7 @@ candidateRoutes.patch(
     "/experiences/:experienceId",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(updateExperienceDto, 'body'),
+    validate(CandidateDto.updateExperience, 'body'),
     CandidateController.updateExperience
 )
 
@@ -179,7 +166,7 @@ candidateRoutes.patch(
     "/open-to-work",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(toggleOpenToWorkDto, 'body'),
+    validate(CandidateDto.toggleOpenToWork, 'body'),
     CandidateController.toggleOpenToWork
 )
 
@@ -187,7 +174,7 @@ candidateRoutes.patch(
     "/salary-preferences",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(updateSalaryPreferencesDto, 'body'),
+    validate(CandidateDto.updateSalaryPreferences, 'body'),
     CandidateController.updateSalaryPreferences
 )
 
@@ -195,7 +182,7 @@ candidateRoutes.patch(
     "/location-preferences",
     authMiddleware,
     authorize("CANDIDATE"),
-    validate(updateLocationPreferencesDto, 'body'),
+    validate(CandidateDto.updateLocationPreferences, 'body'),
     CandidateController.updateLocationPreferences
 )
 export default candidateRoutes;

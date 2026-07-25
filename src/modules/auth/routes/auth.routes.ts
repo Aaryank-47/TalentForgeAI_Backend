@@ -2,19 +2,9 @@ import { Router } from "express";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { AuthController } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
-import {
-    registerCandidateDto,
-    registerEmployerDto,
-    registerCompanyOwnerDto,
-    loginDto,
-    logoutAllDevicesDto,
-    changePasswordDto,
-    forgotPasswordDto,
-    verifyOtpDto,
-    resetPasswordDto,
-    verifyEmailDto,
-    resendVerificationDto
-} from "../validators/auth.validator.js";
+import { CandidateDto } from "../dto/Candidate.dto.js";
+import { RegisterEmployerDto } from "../dto/registerEmployer.dto.js";
+import { RegisterCompanyOwnerDto } from "../dto/registerCompanyOwner.dto.js";
 
 import { 
     loginRateLimiter,
@@ -29,28 +19,28 @@ const router = Router();
 router.post(
     "/register/candidate",
     registerRateLimiter,
-    validate(registerCandidateDto, "body"),
+    validate(CandidateDto.registerCandidate, "body"),
     AuthController.registerCandidate
 );
 
 router.post(
     "/register/employer",
     registerRateLimiter,
-    validate(registerEmployerDto, "body"),
+    validate(RegisterEmployerDto.registerEmployer, "body"),
     AuthController.registerEmployer
 );
 
 router.post(
     "/register/company-owner",
     registerRateLimiter,
-    validate(registerCompanyOwnerDto, "body"),
+    validate(RegisterCompanyOwnerDto.registerCompanyOwner, "body"),
     AuthController.registerCompanyOwner
 );
 
 router.post(
     "/login",
     loginRateLimiter,
-    validate(loginDto, "body"),
+    validate(CandidateDto.login, "body"),
     AuthController.login
 );
 
@@ -72,7 +62,7 @@ router.post(
 
 router.post(
     "/deviceLimit/logout/all-devices",
-    validate(logoutAllDevicesDto, "body"),
+    validate(CandidateDto.logoutAllDevices, "body"),
     AuthController.logoutAllDevicesByEmail
 )
 
@@ -85,35 +75,35 @@ router.get(
 router.post(
     "/change/password",
     authMiddleware,
-    validate(changePasswordDto, "body"),
+    validate(CandidateDto.changePassword, "body"),
     AuthController.changePassword
 )
 
 router.post(
     "/forgot/password",
     forgotPasswordRateLimiter,
-    validate(forgotPasswordDto, "body"),
+    validate(CandidateDto.forgotPassword, "body"),
     AuthController.forgotPassword
 )
 
 router.post(
     "/verify/otp",
     verifyOtpRateLimiter,
-    validate(verifyOtpDto, "body"),
+    validate(CandidateDto.verifyOtp, "body"),
     AuthController.verifyOtp
 )
 
 router.post(
     "/verify-email",
     resendVerificationRateLimiter,
-    validate(verifyEmailDto, "body"),
+    validate(CandidateDto.verifyEmail, "body"),
     AuthController.verifyEmail
 )
 
 router.post(
     "/resend-verification",
     resendVerificationRateLimiter,
-    validate(resendVerificationDto, "body"),
+    validate(CandidateDto.resendVerification, "body"),
     AuthController.resendVerificationEmail
 )
 
@@ -121,6 +111,6 @@ export default router;
 
 router.post(
     "/reset/password",
-    validate(resetPasswordDto, "body"),
+    validate(CandidateDto.resetPassword, "body"),
     AuthController.resetPassword
 )

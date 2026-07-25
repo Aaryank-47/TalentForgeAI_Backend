@@ -22,133 +22,130 @@ import {
     uuidValidator
 } from "../../../common/validators/validators.js";
 
-export const jobCreationDto = z.object({
-    title: jobTitleValidator,
-    description: jobDescriptionValidator,
-    employmentType: employmentTypeValidator,
-    workplaceType: workplaceTypeValidator,
-    vacancies: jobVacanciesValidator,
-    location: locationValidator,
-    minExperience: minimumExperienceValidator,
-    maxExperience: maximumExperienceValidator,
-    minimumSalary: minimumSalaryValidator,
-    maximumSalary: maximumSalaryValidator,
-    salaryPeriod: salaryPeriodValidator,
-    hideSalary: hideSalaryValidator,
-    applicationDeadline: applicationDeadlineValidator,
-    skills: skillsValidator,
-    benefits: benefitsValidator,
-})
-.refine(
-    (data) => {
-        if (data.minExperience !== undefined && data.maxExperience !== undefined) {
-            return data.minExperience <= data.maxExperience;
+export class JobsDto {
+    static createJob = z.object({
+        title: jobTitleValidator,
+        description: jobDescriptionValidator,
+        employmentType: employmentTypeValidator,
+        workplaceType: workplaceTypeValidator,
+        vacancies: jobVacanciesValidator,
+        location: locationValidator,
+        minExperience: minimumExperienceValidator,
+        maxExperience: maximumExperienceValidator,
+        minimumSalary: minimumSalaryValidator,
+        maximumSalary: maximumSalaryValidator,
+        salaryPeriod: salaryPeriodValidator,
+        hideSalary: hideSalaryValidator,
+        applicationDeadline: applicationDeadlineValidator,
+        skills: skillsValidator,
+        benefits: benefitsValidator,
+    })
+    .refine(
+        (data) => {
+            if (data.minExperience !== undefined && data.maxExperience !== undefined) {
+                return data.minExperience <= data.maxExperience;
+            }
+            return true;
+        },
+        {
+            message: "Minimum experience cannot be greater than maximum experience",
+            path: ["minExperience"],
         }
-        return true;
-    },
-    {
-        message: "Minimum experience cannot be greater than maximum experience",
-        path: ["minExperience"],
-    }
-)
-.refine(
-    (data) => {
-        if (data.minimumSalary !== undefined && data.maximumSalary !== undefined) {
-            return data.minimumSalary <= data.maximumSalary;
+    )
+    .refine(
+        (data) => {
+            if (data.minimumSalary !== undefined && data.maximumSalary !== undefined) {
+                return data.minimumSalary <= data.maximumSalary;
+            }
+            return true;
+        },
+        {
+            message: "Minimum salary cannot be greater than maximum salary",
+            path: ["minimumSalary"],
         }
-        return true;
-    },
-    {
-        message: "Minimum salary cannot be greater than maximum salary",
-        path: ["minimumSalary"],
-    }
-);
+    );
 
-export type JobCreationDto = z.infer<typeof jobCreationDto>;
-
-export const jobUpdateDto = z.object({
-    title: jobTitleValidator.optional(),
-    description: jobDescriptionValidator.optional(),
-    employmentType: employmentTypeValidator.optional(),
-    workplaceType: workplaceTypeValidator.optional(),
-    vacancies: jobVacanciesValidator.optional(),
-    location: locationValidator.optional(),
-    minExperience: minimumExperienceValidator.optional(),
-    maxExperience: maximumExperienceValidator.optional(),
-    minimumSalary: minimumSalaryValidator.optional(),
-    maximumSalary: maximumSalaryValidator.optional(),
-    salaryPeriod: salaryPeriodValidator.optional(),
-    hideSalary: hideSalaryValidator.optional(),
-    applicationDeadline: applicationDeadlineValidator.optional(),
-    skills: skillsValidator.optional(),
-    benefits: benefitsValidator.optional(),
-})
-.refine(
-    (data) => {
-        if (data.minExperience !== undefined && data.maxExperience !== undefined) {
-            return data.minExperience <= data.maxExperience;
+    static updateJob = z.object({
+        title: jobTitleValidator.optional(),
+        description: jobDescriptionValidator.optional(),
+        employmentType: employmentTypeValidator.optional(),
+        workplaceType: workplaceTypeValidator.optional(),
+        vacancies: jobVacanciesValidator.optional(),
+        location: locationValidator.optional(),
+        minExperience: minimumExperienceValidator.optional(),
+        maxExperience: maximumExperienceValidator.optional(),
+        minimumSalary: minimumSalaryValidator.optional(),
+        maximumSalary: maximumSalaryValidator.optional(),
+        salaryPeriod: salaryPeriodValidator.optional(),
+        hideSalary: hideSalaryValidator.optional(),
+        applicationDeadline: applicationDeadlineValidator.optional(),
+        skills: skillsValidator.optional(),
+        benefits: benefitsValidator.optional(),
+    })
+    .refine(
+        (data) => {
+            if (data.minExperience !== undefined && data.maxExperience !== undefined) {
+                return data.minExperience <= data.maxExperience;
+            }
+            return true;
+        },
+        {
+            message: "Minimum experience cannot be greater than maximum experience",
+            path: ["minExperience"],
         }
-        return true;
-    },
-    {
-        message: "Minimum experience cannot be greater than maximum experience",
-        path: ["minExperience"],
-    }
-)
-.refine(
-    (data) => {
-        if (data.minimumSalary !== undefined && data.maximumSalary !== undefined) {
-            return data.minimumSalary <= data.maximumSalary;
+    )
+    .refine(
+        (data) => {
+            if (data.minimumSalary !== undefined && data.maximumSalary !== undefined) {
+                return data.minimumSalary <= data.maximumSalary;
+            }
+            return true;
+        },
+        {
+            message: "Minimum salary cannot be greater than maximum salary",
+            path: ["minimumSalary"],
         }
-        return true;
-    },
-    {
-        message: "Minimum salary cannot be greater than maximum salary",
-        path: ["minimumSalary"],
-    }
-);
+    );
 
-export type JobUpdateDto = z.infer<typeof jobUpdateDto>;
+    static jobDetailsParam = z.object({
+        companyId: companyIdValidator,
+        jobId: jobIdValidator,
+    });
 
-export const jobDetailsParamDto = z.object({
-    companyId: companyIdValidator,
-    jobId: jobIdValidator,
-});
+    static statusUpdate = z.object({
+        status: jobStatusValidator,
+    });
 
-export type JobDetailsParamDto = z.infer<typeof jobDetailsParamDto>;
+    static assignRecruiterToJob = z.object({
+        jobId: jobIdValidator,
+        recruiterId: userIdValidator,
+    });
 
-export const statusUpdateDto = z.object({
-    status: jobStatusValidator,
-});
+    static assignCompanyMemberToJob = z.object({
+        companyMemberId: uuidValidator,
+    });
 
-export type StatusUpdateDto = z.infer<typeof statusUpdateDto>;
+    static jobAssignmentMemberParams = z.object({
+        companyId: companyIdValidator,
+        jobId: jobIdValidator,
+    });
 
-export const assignRecruiterToJobDto = z.object({
-    jobId: jobIdValidator,
-    recruiterId: userIdValidator,
-});
+    static listAssignedMembersParams = z.object({
+        companyId: companyIdValidator,
+        jobId: jobIdValidator,
+    });
 
-export type AssignRecruiterToJobDto = z.infer<typeof assignRecruiterToJobDto>;
+    static removeAssignedCompanyMembers = z.object({
+        companyMemberIds: z.array(uuidValidator).min(1, "At least one company member ID must be provided"),
+    });
+}
 
-export const assignCompanyMemberToJobDto = z.object({
-    companyMemberId: uuidValidator,
-});
-
-export type AssignCompanyMemberToJobDto = z.infer<typeof assignCompanyMemberToJobDto>;
-
-export const jobAssignmentMemberParamsDto = z.object({
-    companyId: companyIdValidator,
-    jobId: jobIdValidator,
-});
-
-export type JobAssignmentMemberParamsDto = z.infer<typeof jobAssignmentMemberParamsDto>;
-
-export const listAssignedMembersParamsDto = jobAssignmentMemberParamsDto;
-
-export type ListAssignedMembersParamsDto = z.infer<typeof listAssignedMembersParamsDto>;
-
-export const removeAssignedCompanyMembersDto = z.object({
-    companyMemberIds: z.array(uuidValidator).min(1, "At least one company member ID must be provided"),
-});
-
-export type RemoveAssignedCompanyMembersDto = z.infer<typeof removeAssignedCompanyMembersDto>;
+export type JobCreationDto = z.infer<typeof JobsDto.createJob>;
+export type JobUpdateDto = z.infer<typeof JobsDto.updateJob>;
+export type JobDetailsParamDto = z.infer<typeof JobsDto.jobDetailsParam>;
+export type StatusUpdateDto = z.infer<typeof JobsDto.statusUpdate>;
+export type AssignRecruiterToJobDto = z.infer<typeof JobsDto.assignRecruiterToJob>;
+export type AssignCompanyMemberToJobDto = z.infer<typeof JobsDto.assignCompanyMemberToJob>;
+export type JobAssignmentMemberParamsDto = z.infer<typeof JobsDto.jobAssignmentMemberParams>;
+export type ListAssignedMembersParamsDto = z.infer<typeof JobsDto.listAssignedMembersParams>;
+export type RemoveAssignedCompanyMembersDto = z.infer<typeof JobsDto.removeAssignedCompanyMembers>;

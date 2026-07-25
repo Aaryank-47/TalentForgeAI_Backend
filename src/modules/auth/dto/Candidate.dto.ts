@@ -1,64 +1,58 @@
 import { z } from "zod";
 import { emailValidator, passwordValidator } from "../../../common/validators/validators.js";
 
-export const registerCandidateDto = z.object({
-    email: emailValidator,
-    password: passwordValidator,
-    fullName: z.string().trim().min(1, "Full name is required").max(100)
-});
+export class CandidateDto {
+    static registerCandidate = z.object({
+        email: emailValidator,
+        password: passwordValidator,
+        fullName: z.string().trim().min(1, "Full name is required").max(100)
+    });
 
-export type RegisterCandidateDto = z.infer<typeof registerCandidateDto>;
+    static login = z.object({
+        email: emailValidator,
+        password: passwordValidator
+    });
 
-export const loginDto = z.object({
-    email: emailValidator,
-    password: passwordValidator
-});
+    static logoutAllDevices = z.object({
+        email: emailValidator,
+        password: passwordValidator
+    });
 
-export type LoginDto = z.infer<typeof loginDto>;
+    static changePassword = z.object({
+        oldPassword: passwordValidator,
+        newPassword: passwordValidator
+    });
 
-export const logoutAllDevicesDto = z.object({
-    email: emailValidator,
-    password: passwordValidator
-});
+    static forgotPassword = z.object({
+        email: emailValidator
+    });
 
-export type LogoutAllDevicesDto = z.infer<typeof logoutAllDevicesDto>;
+    static verifyOtp = z.object({
+        email: emailValidator,
+        otp: z.string().length(6, "OTP must be 6 digits"),
+    });
 
-export const changePasswordDto = z.object({
-    oldPassword: passwordValidator,
-    newPassword: passwordValidator
-});
+    static resetPassword = z.object({
+        token: z.string().min(1, "Reset password token is required"),
+        newPassword: passwordValidator
+    });
 
-export type ChangePasswordDto = z.infer<typeof changePasswordDto>;
+    static verifyEmail = z.object({
+        email: emailValidator,
+        otp: z.string().length(6, "OTP must be 6 digits"),
+    });
 
-export const forgotPasswordDto = z.object({
-    email: emailValidator
-})
+    static resendVerification = z.object({
+        email: emailValidator,
+    });
+}
 
-export type ForgotPasswordDto = z.infer<typeof forgotPasswordDto>;
-
-export const verifyOtpDto = z.object({
-    email: emailValidator,
-    otp: z.string().length(6, "OTP must be 6 digits"),
-})
-
-export type VerifyOtpDto = z.infer<typeof verifyOtpDto>;
-
-export const resetPasswordDto = z.object({
-    token: z.string().min(1, "Reset password token is required"),
-    newPassword: passwordValidator
-});
-
-export type ResetPasswordDto = z.infer<typeof resetPasswordDto>;
-
-export const verifyEmailDto = z.object({
-    email: emailValidator,
-    otp: z.string().length(6, "OTP must be 6 digits"),
-});
-
-export type VerifyEmailDto = z.infer<typeof verifyEmailDto>;
-
-export const resendVerificationDto = z.object({
-    email: emailValidator,
-});
-
-export type ResendVerificationDto = z.infer<typeof resendVerificationDto>;
+export type RegisterCandidateDto = z.infer<typeof CandidateDto.registerCandidate>;
+export type LoginDto = z.infer<typeof CandidateDto.login>;
+export type LogoutAllDevicesDto = z.infer<typeof CandidateDto.logoutAllDevices>;
+export type ChangePasswordDto = z.infer<typeof CandidateDto.changePassword>;
+export type ForgotPasswordDto = z.infer<typeof CandidateDto.forgotPassword>;
+export type VerifyOtpDto = z.infer<typeof CandidateDto.verifyOtp>;
+export type ResetPasswordDto = z.infer<typeof CandidateDto.resetPassword>;
+export type VerifyEmailDto = z.infer<typeof CandidateDto.verifyEmail>;
+export type ResendVerificationDto = z.infer<typeof CandidateDto.resendVerification>;

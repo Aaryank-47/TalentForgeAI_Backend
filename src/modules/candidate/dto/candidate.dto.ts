@@ -38,78 +38,7 @@ import {
     isCurrentJobValidator
 } from "../../../common/validators/validators.js";
 
-export const candidateIdParamDto = z.object({
-    candidateId: candidateIdValidator,
-});
-
-export type CandidateIdParamDto = z.infer<typeof candidateIdParamDto>;
-
-export const updateCandidateProfileDto = z.object({
-    fullName: candidateFullNameValidator.optional(),
-    phoneNumber: phoneNumberValidator.optional(),
-    profilePicture: profilePictureValidator.optional(),
-    headline: headlineValidator.optional(),
-    bio: bioValidator.optional(),
-    dateOfBirth: dateOfBirthValidator.optional(),
-    gender: genderValidator.optional(),
-    experienceLevel: experienceLevelValidator.optional(),
-    currentLocation: currentLocationValidator.optional(),
-    preferredLocation: preferredLocationValidator.optional(),
-    currentCompany: currentCompanyValidator.optional(),
-    currentDesignation: currentDesignationValidator.optional(),
-    totalExperience: totalExperienceValidator.optional(),
-    expectedSalary: expectedSalaryValidator.optional(),
-    currentSalary: currentSalaryValidator.optional(),
-    noticePeriod: noticePeriodValidator.optional(),
-    resumeUrl: resumeFileValidator.optional(),
-    linkedinUrl: linkedInUrlValidator.optional(),
-    githubUrl: githubUrlValidator.optional(),
-    portfolioUrl: portfolioUrlValidator.optional(),
-    websiteUrl: websiteUrlValidator.optional(),
-    isOpenToWork: isOpenToWorkValidator.optional()
-});
-
-export type UpdateCandidateProfileDto = z.infer<typeof updateCandidateProfileDto>;
-
-export const resumeUploadDto = z.object({
-    resume: resumeFileValidator
-})
-
-export type ResumeUploadDto = z.infer<typeof resumeUploadDto>
-
-export const deleteResumesDto = z.object({
-    resumeIds: z.array(z.string()).min(1, "At least one resume ID is required")
-});
-
-export type DeleteResumesDto = z.infer<typeof deleteResumesDto>;
-
-export const singleSkillDto = z.object({
-    skillName: skillNameValidator,
-    skillExperience: skillExperienceValidator
-});
-
-export type SingleSkillDto = z.infer<typeof singleSkillDto>;
-
-export const addSkillsDto = z.object({
-    skills: z.array(singleSkillDto).min(1, "At least one skill is required")
-});
-
-export type AddSkillsDto = z.infer<typeof addSkillsDto>;
-
-export const updateSkillDto = z.object({
-    skillName: skillNameValidator.optional(),
-    skillExperience: skillExperienceValidator.optional()
-})
-
-export type UpdateSkillDto = z.infer<typeof updateSkillDto>;
-
-export const skillsIdsDto = z.object({
-    skillIds: z.array(z.string()).min(1, "At least one skill ID is required")
-})
-
-export type SkillsIdsDto = z.infer<typeof skillsIdsDto>;
-
-export const educationBaseSchema = z.object({
+const educationBaseSchema = z.object({
     collegeName: collegeValidator,
     degree: degreeValidator,
     fieldOfStudy: fieldOfStudyValidator,
@@ -130,31 +59,7 @@ export const educationBaseSchema = z.object({
     grade: z.number().optional()
 });
 
-export const addEducationDto = educationBaseSchema.refine(data => {
-    if (!data.currentlyStudying && !data.endDate) {
-        return false;
-    }
-    return true;
-}, {
-    message: "End date is required if you are not currently studying",
-    path: ["endDate"]
-});
-
-export type AddEducationDto = z.infer<typeof addEducationDto>;
-
-export const updateEducationDto = educationBaseSchema.partial().refine(data => {
-    if (data.currentlyStudying === false && !data.endDate) {
-        return false;
-    }
-    return true;
-}, {
-    message: "End date is required if you are not currently studying",
-    path: ["endDate"]
-});
-
-export type UpdateEducationDto = z.infer<typeof updateEducationDto>;
-
-export const experienceBaseSchema = z.object({
+const experienceBaseSchema = z.object({
     companyName: z.string().trim().min(2, "Company name must be at least 2 characters long").max(100, "Company name must be at most 100 characters long"),
     designation: experienceDesignationValidator,
     employmentType: employmentTypeValidator,
@@ -165,53 +70,137 @@ export const experienceBaseSchema = z.object({
     currentlyWorking: isCurrentJobValidator.default(false)
 });
 
-export const addExperienceDto = experienceBaseSchema.refine(data => {
-    if (!data.currentlyWorking && !data.endDate) {
-        return false;
-    }
-    return true;
-}, {
-    message: "End date is required if you are not currently working",
-    path: ["endDate"]
+const singleSkillSchema = z.object({
+    skillName: skillNameValidator,
+    skillExperience: skillExperienceValidator
 });
 
-export type AddExperienceDto = z.infer<typeof addExperienceDto>;
+export class CandidateDto {
+    static candidateIdParam = z.object({
+        candidateId: candidateIdValidator,
+    });
 
-export const updateExperienceDto = experienceBaseSchema.partial().refine(data => {
-    if (data.currentlyWorking === false && !data.endDate) {
-        return false;
-    }
-    return true;
-}, {
-    message: "End date is required if you are not currently working",
-    path: ["endDate"]
-});
+    static updateCandidateProfile = z.object({
+        fullName: candidateFullNameValidator.optional(),
+        phoneNumber: phoneNumberValidator.optional(),
+        profilePicture: profilePictureValidator.optional(),
+        headline: headlineValidator.optional(),
+        bio: bioValidator.optional(),
+        dateOfBirth: dateOfBirthValidator.optional(),
+        gender: genderValidator.optional(),
+        experienceLevel: experienceLevelValidator.optional(),
+        currentLocation: currentLocationValidator.optional(),
+        preferredLocation: preferredLocationValidator.optional(),
+        currentCompany: currentCompanyValidator.optional(),
+        currentDesignation: currentDesignationValidator.optional(),
+        totalExperience: totalExperienceValidator.optional(),
+        expectedSalary: expectedSalaryValidator.optional(),
+        currentSalary: currentSalaryValidator.optional(),
+        noticePeriod: noticePeriodValidator.optional(),
+        resumeUrl: resumeFileValidator.optional(),
+        linkedinUrl: linkedInUrlValidator.optional(),
+        githubUrl: githubUrlValidator.optional(),
+        portfolioUrl: portfolioUrlValidator.optional(),
+        websiteUrl: websiteUrlValidator.optional(),
+        isOpenToWork: isOpenToWorkValidator.optional()
+    });
 
-export type UpdateExperienceDto = z.infer<typeof updateExperienceDto>;
+    static resumeUpload = z.object({
+        resume: resumeFileValidator
+    });
 
-export const toggleOpenToWorkDto = z.object({
-    isOpenToWork: z.boolean()
-});
+    static deleteResumes = z.object({
+        resumeIds: z.array(z.string()).min(1, "At least one resume ID is required")
+    });
 
-export type ToggleOpenToWorkDto = z.infer<typeof toggleOpenToWorkDto>;
+    static singleSkill = singleSkillSchema;
 
-export const updateSalaryPreferencesDto = z.object({
-    expectedSalary: expectedSalaryValidator.optional(),
-    currentSalary: currentSalaryValidator.optional(),
-    noticePeriod: noticePeriodValidator.optional()
-});
+    static addSkills = z.object({
+        skills: z.array(singleSkillSchema).min(1, "At least one skill is required")
+    });
 
-export type UpdateSalaryPreferencesDto = z.infer<typeof updateSalaryPreferencesDto>;
+    static updateSkill = z.object({
+        skillName: skillNameValidator.optional(),
+        skillExperience: skillExperienceValidator.optional()
+    });
 
-export const updateLocationPreferencesDto = z.object({
-    preferredLocation: preferredLocationValidator.optional(),
-    currentLocation: currentLocationValidator.optional()
-});
+    static skillsIds = z.object({
+        skillIds: z.array(z.string()).min(1, "At least one skill ID is required")
+    });
 
-export type UpdateLocationPreferencesDto = z.infer<typeof updateLocationPreferencesDto>;
+    static addEducation = educationBaseSchema.refine(data => {
+        if (!data.currentlyStudying && !data.endDate) {
+            return false;
+        }
+        return true;
+    }, {
+        message: "End date is required if you are not currently studying",
+        path: ["endDate"]
+    });
 
-export const getPublicProfileParamDto = z.object({
-    candidateId: candidateIdValidator
-});
+    static updateEducation = educationBaseSchema.partial().refine(data => {
+        if (data.currentlyStudying === false && !data.endDate) {
+            return false;
+        }
+        return true;
+    }, {
+        message: "End date is required if you are not currently studying",
+        path: ["endDate"]
+    });
 
-export type GetPublicProfileParamDto = z.infer<typeof getPublicProfileParamDto>;
+    static addExperience = experienceBaseSchema.refine(data => {
+        if (!data.currentlyWorking && !data.endDate) {
+            return false;
+        }
+        return true;
+    }, {
+        message: "End date is required if you are not currently working",
+        path: ["endDate"]
+    });
+
+    static updateExperience = experienceBaseSchema.partial().refine(data => {
+        if (data.currentlyWorking === false && !data.endDate) {
+            return false;
+        }
+        return true;
+    }, {
+        message: "End date is required if you are not currently working",
+        path: ["endDate"]
+    });
+
+    static toggleOpenToWork = z.object({
+        isOpenToWork: z.boolean()
+    });
+
+    static updateSalaryPreferences = z.object({
+        expectedSalary: expectedSalaryValidator.optional(),
+        currentSalary: currentSalaryValidator.optional(),
+        noticePeriod: noticePeriodValidator.optional()
+    });
+
+    static updateLocationPreferences = z.object({
+        preferredLocation: preferredLocationValidator.optional(),
+        currentLocation: currentLocationValidator.optional()
+    });
+
+    static getPublicProfileParam = z.object({
+        candidateId: candidateIdValidator
+    });
+}
+
+export type CandidateIdParamDto = z.infer<typeof CandidateDto.candidateIdParam>;
+export type UpdateCandidateProfileDto = z.infer<typeof CandidateDto.updateCandidateProfile>;
+export type ResumeUploadDto = z.infer<typeof CandidateDto.resumeUpload>;
+export type DeleteResumesDto = z.infer<typeof CandidateDto.deleteResumes>;
+export type SingleSkillDto = z.infer<typeof CandidateDto.singleSkill>;
+export type AddSkillsDto = z.infer<typeof CandidateDto.addSkills>;
+export type UpdateSkillDto = z.infer<typeof CandidateDto.updateSkill>;
+export type SkillsIdsDto = z.infer<typeof CandidateDto.skillsIds>;
+export type AddEducationDto = z.infer<typeof CandidateDto.addEducation>;
+export type UpdateEducationDto = z.infer<typeof CandidateDto.updateEducation>;
+export type AddExperienceDto = z.infer<typeof CandidateDto.addExperience>;
+export type UpdateExperienceDto = z.infer<typeof CandidateDto.updateExperience>;
+export type ToggleOpenToWorkDto = z.infer<typeof CandidateDto.toggleOpenToWork>;
+export type UpdateSalaryPreferencesDto = z.infer<typeof CandidateDto.updateSalaryPreferences>;
+export type UpdateLocationPreferencesDto = z.infer<typeof CandidateDto.updateLocationPreferences>;
+export type GetPublicProfileParamDto = z.infer<typeof CandidateDto.getPublicProfileParam>;

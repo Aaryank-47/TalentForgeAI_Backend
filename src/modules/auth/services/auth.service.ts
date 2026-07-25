@@ -3,8 +3,8 @@ import { Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
 import type { RegisterCandidateDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
-import type { RegisterEmployerDto } from "../dto/registerEmployer.dto.js";
-import type { RegisterCompanyOwnerDto } from "../dto/registerCompanyOwner.dto.js";
+import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
+import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
 import type { RegisterCandidateResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult, CandidateLoginProfileView, EmployerLoginProfileView } from "../interfaces/auth.interface.js";
@@ -365,7 +365,7 @@ export class AuthService {
     }
 
     static async registerEmployer(
-        payload: RegisterEmployerDto
+        payload: RegisterEmployerDtoType
     ): Promise<RegisterEmployerResult> {
         const existingUser = await AuthRepository.findUserByEmail(payload.email);
 
@@ -410,7 +410,7 @@ export class AuthService {
     }
 
     static async registerCompanyOwner(
-        payload: RegisterCompanyOwnerDto
+        payload: RegisterCompanyOwnerDtoType
     ): Promise<RegisterCompanyOwnerResult> {
         const existingUser = await AuthRepository.findUserByEmail(payload.email);
 

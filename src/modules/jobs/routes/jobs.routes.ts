@@ -8,17 +8,8 @@ import { ensureActiveCompany } from "../../../common/middleware/ensureActiveComp
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { 
-    jobCreationDto, 
-    jobDetailsParamDto, 
-    jobUpdateDto, 
-    statusUpdateDto,
-    assignCompanyMemberToJobDto,
-    jobAssignmentMemberParamsDto,
-    listAssignedMembersParamsDto,
-    removeAssignedCompanyMembersDto
-} from "../validators/jobs.validate.js";
-import { companyIdParamDto } from "../../company/validators/company.validators.js"
+import { JobsDto } from "../dto/jobs.dto.js";
+import { CompanyDto } from "../../company/dto/company.dto.js"
 
 const router = Router();
 
@@ -26,8 +17,8 @@ router.post(
     "/company/:companyId/job",
     authMiddleware,
     authorize("EMPLOYER","ADMIN"),
-    validate(companyIdParamDto, "params"),
-    validate(jobCreationDto, "body"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(JobsDto.createJob, "body"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
@@ -38,14 +29,14 @@ router.post(
 router.get(
     "/company/:companyId/job/posts",
     authMiddleware,
-    validate(companyIdParamDto, "params"),
+    validate(CompanyDto.companyIdParam, "params"),
     JobController.listCompanyJobs
 );
 
 router.get(
     "/company/:companyId/jobs/:jobId",
     authMiddleware,
-    validate(jobDetailsParamDto, "params"),
+    validate(JobsDto.jobDetailsParam, "params"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
@@ -57,8 +48,8 @@ router.patch(
     "/company/:companyId/job/:jobId/update",
     authMiddleware,
     authorize("EMPLOYER","ADMIN"),
-    validate(jobDetailsParamDto, "params"),
-    validate(jobUpdateDto, "body"),
+    validate(JobsDto.jobDetailsParam, "params"),
+    validate(JobsDto.updateJob, "body"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
@@ -70,8 +61,8 @@ router.patch(
     "/company/:companyId/job/:jobId/status",
     authMiddleware,
     authorize("EMPLOYER","ADMIN"),
-    validate(jobDetailsParamDto, "params"),
-    validate(statusUpdateDto, "body"),
+    validate(JobsDto.jobDetailsParam, "params"),
+    validate(JobsDto.statusUpdate, "body"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
@@ -83,8 +74,8 @@ router.post(
     "/companies/:companyId/jobs/:jobId/assignments/members",
     authMiddleware,
     authorize("EMPLOYER", "ADMIN"),
-    validate(jobAssignmentMemberParamsDto, "params"),
-    validate(assignCompanyMemberToJobDto, "body"),
+    validate(JobsDto.jobAssignmentMemberParams, "params"),
+    validate(JobsDto.assignCompanyMemberToJob, "body"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
@@ -96,7 +87,7 @@ router.get(
     "/companies/:companyId/jobs/:jobId/assignments/members",
     authMiddleware,
     authorize("EMPLOYER", "ADMIN"),
-    validate(listAssignedMembersParamsDto, "params"),
+    validate(JobsDto.listAssignedMembersParams, "params"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
@@ -108,8 +99,8 @@ router.delete(
     "/companies/:companyId/jobs/:jobId/remove/assigned/members",
     authMiddleware,
     authorize("EMPLOYER", "ADMIN"),
-    validate(jobAssignmentMemberParamsDto, "params"),
-    validate(removeAssignedCompanyMembersDto, "body"),
+    validate(JobsDto.jobAssignmentMemberParams, "params"),
+    validate(JobsDto.removeAssignedCompanyMembers, "body"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
