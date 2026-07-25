@@ -13,9 +13,6 @@ export const updateApplicationStatusDto = z.object({
     applicationId: applicationIdValidator,
     status: z.enum([
         ApplicationStatus.INREVIEW,
-        ApplicationStatus.SHORTLISTED,
-        ApplicationStatus.INTERVIEW,
-        ApplicationStatus.OFFERED,
         ApplicationStatus.HIRED,
         ApplicationStatus.REJECTED,
         ApplicationStatus.WITHDRAWN

@@ -29,13 +29,9 @@ export enum JobStatus {
 export enum ApplicationStatus {
     APPLIED = "APPLIED",
     INREVIEW = "INREVIEW",
-    SCREENING = "SCREENING",
-    SHORTLISTED = "SHORTLISTED",
-    INTERVIEW = "INTERVIEW",
-    OFFERED = "OFFERED",
+    WITHDRAWN = "WITHDRAWN",
     HIRED = "HIRED",
-    REJECTED = "REJECTED",
-    WITHDRAWN = "WITHDRAWN"
+    REJECTED = "REJECTED"
 }
 
 export enum InterviewStatus {

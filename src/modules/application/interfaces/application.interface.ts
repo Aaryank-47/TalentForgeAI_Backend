@@ -16,9 +16,6 @@ export interface ApplicationOverview {
     totalWithdraw: number;
     applicationStages: {
         INREVIEW: number;
-        SHORTLISTED: number;
-        INTERVIEW: number;
-        OFFERED: number;
         HIRED: number;
         REJECTED: number;
         WITHDRAWN: number;

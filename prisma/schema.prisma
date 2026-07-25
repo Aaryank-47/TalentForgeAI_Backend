@@ -123,13 +123,9 @@ enum GradingSystem {
 enum ApplicationStatus {
   APPLIED
   INREVIEW
-  SCREENING
-  SHORTLISTED
-  INTERVIEW
-  OFFERED
+  WITHDRAWN
   HIRED
   REJECTED
-  WITHDRAWN
 }
 
 model User {
@@ -228,8 +224,8 @@ model Employer {
   isActive             Boolean               @default(true)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
-  assignedApplications ApplicationPipeline[]
-  pipelineHistories    PipelineHistory[]
+  assignedApplications ApplicationWorkflow[]
+  workflowHistories    WorkflowHistory[]
 }
 
 model Company {
@@ -265,7 +261,8 @@ model Company {
   restoredBy        String?
   jobs              Job[]
   companyMembers    CompanyMember[]
-  pipelines         Pipeline[]
+  workflows         Workflow[]
+  stageLibraries    StageLibrary[]
 }
 
 model CompanyMember {
@@ -351,12 +348,14 @@ model Job {
   benefits     JobBenefit[]
   members      JobMember[]
   applications Application[]
-  pipeline     Pipeline?
+  workflowId   String?
+  workflow     Workflow?     @relation(fields: [workflowId], references: [id])
 
   @@index([companyId])
   @@index([status])
   @@index([employmentType])
   @@index([workplaceType])
+  @@index([workflowId])
 }
 
 model JobSkill {
@@ -437,7 +436,7 @@ model Application {
   candidate           Candidate            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   job                 Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
   resume              Resume               @relation(fields: [resumeId], references: [id])
-  applicationPipeline ApplicationPipeline?
+  applicationWorkflow ApplicationWorkflow?
 
   @@unique([candidateId, jobId])
   @@index([candidateId])
@@ -512,77 +511,102 @@ model CandidateExperience {
   @@index([companyName])
 }
 
-enum PipelineStatus {
+enum WorkflowStatus {
   ACTIVE
   INACTIVE
 }
 
-model Pipeline {
+model Workflow {
   id          String          @id @default(cuid())
   companyId   String
   company     Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  jobId       String          @unique
-  job         Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
   name        String
   description String?
-  status      PipelineStatus  @default(ACTIVE)
+  isDefault   Boolean         @default(false)
+  status      WorkflowStatus  @default(ACTIVE)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
-  stages      PipelineStage[]
+  stages      WorkflowStage[]
+  jobs        Job[]
 
+  @@unique([companyId, name])
   @@index([companyId])
 }
 
-model PipelineStage {
+enum StageType {
+  SYSTEM
+  CUSTOM
+}
+
+model StageLibrary {
+  id             String          @id @default(cuid())
+  companyId      String?
+  company        Company?        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  type           StageType
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  workflowStages WorkflowStage[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model WorkflowStage {
   id                    String                @id @default(cuid())
-  pipelineId            String
-  pipeline              Pipeline              @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
-  name                  String
-  description           String?
+  workflowId            String
+  workflow              Workflow              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stageLibraryId        String
+  stageLibrary          StageLibrary          @relation(fields: [stageLibraryId], references: [id], onDelete: Cascade)
   order                 Int
-  color                 String?
+  isEnabled             Boolean               @default(true)
   isFinal               Boolean               @default(false)
   createdAt             DateTime              @default(now())
   updatedAt             DateTime              @updatedAt
-  applications          ApplicationPipeline[]
-  pipelineHistoriesFrom PipelineHistory[]     @relation("FromStage")
-  pipelineHistoriesTo   PipelineHistory[]     @relation("ToStage")
+  applicationWorkflows  ApplicationWorkflow[]
+  workflowHistoriesFrom WorkflowHistory[]     @relation("FromStage")
+  workflowHistoriesTo   WorkflowHistory[]     @relation("ToStage")
 
-  @@index([pipelineId])
+  @@unique([workflowId, order])
+  @@unique([workflowId, stageLibraryId])
+  @@index([workflowId])
+  @@index([stageLibraryId])
 }
 
-model ApplicationPipeline {
+model ApplicationWorkflow {
   id                 String            @id @default(cuid())
   applicationId      String            @unique
   application        Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  pipelineStageId    String
-  stage              PipelineStage     @relation(fields: [pipelineStageId], references: [id], onDelete: Cascade)
+  workflowStageId    String
+  workflowStage      WorkflowStage     @relation(fields: [workflowStageId], references: [id], onDelete: Cascade)
   assignedEmployerId String?
   assignedEmployer   Employer?         @relation(fields: [assignedEmployerId], references: [id])
   remarks            String?
   movedAt            DateTime          @default(now())
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
-  histories          PipelineHistory[]
+  workflowHistories  WorkflowHistory[]
 
-  @@index([pipelineStageId])
+  @@index([workflowStageId])
   @@index([assignedEmployerId])
 }
 
-model PipelineHistory {
+model WorkflowHistory {
   id                    String              @id @default(cuid())
-  applicationPipelineId String
-  applicationPipeline   ApplicationPipeline @relation(fields: [applicationPipelineId], references: [id], onDelete: Cascade)
+  applicationWorkflowId String
+  applicationWorkflow   ApplicationWorkflow @relation(fields: [applicationWorkflowId], references: [id], onDelete: Cascade)
   fromStageId           String?
-  fromStage             PipelineStage?      @relation("FromStage", fields: [fromStageId], references: [id])
+  fromStage             WorkflowStage?      @relation("FromStage", fields: [fromStageId], references: [id])
   toStageId             String
-  toStage               PipelineStage       @relation("ToStage", fields: [toStageId], references: [id])
+  toStage               WorkflowStage       @relation("ToStage", fields: [toStageId], references: [id])
   movedByEmployerId     String
   movedBy               Employer            @relation(fields: [movedByEmployerId], references: [id])
   comment               String?
   createdAt             DateTime            @default(now())
 
-  @@index([applicationPipelineId])
+  @@index([applicationWorkflowId])
   @@index([fromStageId])
   @@index([toStageId])
   @@index([movedByEmployerId])
