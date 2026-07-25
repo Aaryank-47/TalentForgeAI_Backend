@@ -7,6 +7,7 @@ import candidateRoutes from '../modules/candidate/routes/candidate.routes.js';
 import candidatesRoutes from '../modules/candidate/routes/candidates.routes.js';
 import applicationRoutes from '../modules/application/routes/application.C.routes.js';
 import recruiterApplicationRoutes from '../modules/application/routes/application.R.routes.js';
+import hiringWorkflowRoutes from '../modules/hiring-workflow/routes/stage-library.routes.js';
 const router = Router();
 
 router.use('/health', healthRoutes);
@@ -17,5 +18,6 @@ router.use("/candidate", candidateRoutes);
 router.use("/candidates", candidatesRoutes);
 router.use("/candidate/applications", applicationRoutes);
 router.use("/employer/applications", recruiterApplicationRoutes);
+router.use("/hiring-workflow/stage-library", hiringWorkflowRoutes);
 
 export default router;

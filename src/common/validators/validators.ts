@@ -1,4 +1,16 @@
 import { z } from "zod";
+import {
+  Gender,
+  ExperienceLevel,
+  CompanyVisibility,
+  EmploymentType,
+  SalaryPeriod,
+  WorkplaceType,
+  JobStatus,
+  JobVisibility,
+  WorkflowStatus,
+  StageType
+} from "@prisma/client";
 
 // user
 export const uuidValidator = z.string().cuid("Please enter a valid UUID");
@@ -74,22 +86,9 @@ export const dateOfBirthValidator = z
     message: "Date of birth cannot be in the future",
   });
 
-export const genderValidator = z.enum([
-  "MALE",
-  "FEMALE",
-  "OTHER",
-  "PREFER_NOT_TO_SAY",
-]).optional();
+export const genderValidator = z.nativeEnum(Gender).optional();
 
-export const experienceLevelValidator = z.enum([
-  "FRESHER",
-  "INTERN",
-  "JUNIOR",
-  "MID_LEVEL",
-  "SENIOR",
-  "LEAD",
-  "ARCHITECT",
-]).optional();
+export const experienceLevelValidator = z.nativeEnum(ExperienceLevel).optional();
 
 export const currentLocationValidator = z
   .string()
@@ -268,9 +267,7 @@ export const twitterUrlValidator = z
   .url("Please enter a valid Twitter/X URL")
   .optional();
 
-export const companyVisibilityValidator = z
-  .enum(["PUBLIC", "PRIVATE"])
-  .optional();
+export const companyVisibilityValidator = z.nativeEnum(CompanyVisibility).optional();
 
 
 // Job
@@ -289,15 +286,7 @@ export const jobDescriptionValidator = z
   .min(20, "Job description must be at least 20 characters long")
   .max(10000, "Job description must be at most 10000 characters long");
 
-export const employmentTypeValidator = z.enum([
-  "FULL_TIME",
-  "PART_TIME",
-  "CONTRACT",
-  "INTERN",
-  "FREELANCE",
-  "TEMPORARY",
-  "APPRENTICESHIP",
-]);
+export const employmentTypeValidator = z.nativeEnum(EmploymentType);
 
 export const minimumExperienceValidator = z
   .number()
@@ -323,35 +312,13 @@ export const maximumSalaryValidator = z
   .min(0, "Maximum salary cannot be negative")
   .optional();
 
-export const salaryPeriodValidator = z
-  .enum([
-    "HOURLY",
-    "MONTHLY",
-    "YEARLY",
-  ])
-  .optional();
+export const salaryPeriodValidator = z.nativeEnum(SalaryPeriod).optional();
 
-export const workplaceTypeValidator = z.enum([
-  "REMOTE",
-  "HYBRID",
-  "ONSITE",
-]);
+export const workplaceTypeValidator = z.nativeEnum(WorkplaceType);
 
-export const jobStatusValidator = z.enum([
-  "DRAFT",
-  "PUBLISHED",
-  "PAUSED",
-  "CLOSED",
-  "FILLED",
-  "EXPIRED",
-  "ARCHIVED",
-]);
+export const jobStatusValidator = z.nativeEnum(JobStatus);
 
-export const jobVisibilityValidator = z.enum([
-  "PUBLIC",
-  "PRIVATE",
-  "INTERNAL",
-]);
+export const jobVisibilityValidator = z.nativeEnum(JobVisibility);
 
 export const jobVacanciesValidator = z
   .number()
@@ -501,3 +468,59 @@ export const refreshTokenValidator = z
   .string()
   .trim()
   .min(1, "Refresh token is required");
+
+
+// Hiring Workflow / Workflow
+export const workflowIdValidator = uuidValidator;
+export const workflowNameValidator = z
+  .string()
+  .trim()
+  .min(2, "Workflow name must be at least 2 characters long")
+  .max(100, "Workflow name must be at most 100 characters long");
+export const workflowDescriptionValidator = z
+  .string()
+  .trim()
+  .max(500, "Workflow description must be at most 500 characters long")
+  .optional();
+export const workflowStatusValidator = z.nativeEnum(WorkflowStatus);
+export const workflowIsDefaultValidator = z.boolean();
+
+// Stage Library
+export const stageLibraryIdValidator = uuidValidator;
+export const stageNameValidator = z
+  .string()
+  .trim()
+  .min(2, "Stage name must be at least 2 characters long")
+  .max(100, "Stage name must be at most 100 characters long");
+export const stageDescriptionValidator = z
+  .string()
+  .trim()
+  .max(500, "Stage description must be at most 500 characters long")
+  .optional();
+export const stageTypeValidator = z.nativeEnum(StageType);
+export const stageIsActiveValidator = z.boolean();
+
+// Workflow Stage
+export const workflowStageIdValidator = uuidValidator;
+export const stageOrderValidator = z
+  .number()
+  .int("Stage order must be an integer")
+  .nonnegative("Stage order cannot be negative");
+export const stageIsEnabledValidator = z.boolean();
+export const stageIsFinalValidator = z.boolean();
+
+// Application Workflow
+export const applicationWorkflowIdValidator = uuidValidator;
+export const remarksValidator = z
+  .string()
+  .trim()
+  .max(1000, "Remarks must be at most 1000 characters long")
+  .optional();
+
+// Workflow History
+export const workflowHistoryIdValidator = uuidValidator;
+export const commentValidator = z
+  .string()
+  .trim()
+  .max(1000, "Comment must be at most 1000 characters long")
+  .optional();

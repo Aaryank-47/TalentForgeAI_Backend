@@ -42,3 +42,13 @@ export enum InterviewStatus {
     CANCELLED = "CANCELLED",
     NO_SHOW = "NO_SHOW"
 }
+
+export enum WorkflowStatus {
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE"
+}
+
+export enum StageType {
+    SYSTEM = "SYSTEM",
+    CUSTOM = "CUSTOM"
+}
