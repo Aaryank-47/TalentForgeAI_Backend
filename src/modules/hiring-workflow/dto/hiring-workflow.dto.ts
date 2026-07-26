@@ -66,11 +66,8 @@ export class WorkflowDto{
     });
 
     static updateStageLibrary = z.object({
-        id: stageLibraryIdValidator,
         name: stageNameValidator,
-        description: stageDescriptionValidator,
-        type: stageTypeValidator,
-        isActive: stageIsActiveValidator,
+        type: stageTypeValidator
     });
 
     static deleteStageLibrary = z.object({
@@ -79,6 +76,10 @@ export class WorkflowDto{
 
     static getStageLibraryById = z.object({
         id: stageLibraryIdValidator,
+    });
+
+    static stageIdParam = z.object({
+        stageId: stageLibraryIdValidator,
     });
 
     static getStageLibrariesByCompany = z.object({

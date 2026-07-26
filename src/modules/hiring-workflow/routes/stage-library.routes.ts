@@ -13,7 +13,7 @@ const StageLibRoutes = Router();
 StageLibRoutes.post(
     "/system-stage",
     authMiddleware,
-    authorize("ADMIN","SUPER_ADMIN"),
+    authorize("ADMIN", "SUPER_ADMIN"),
     validate(WorkflowDto.createCustomStage, "body"),
     StageLibController.createSystemStages
 );
@@ -36,6 +36,18 @@ StageLibRoutes.get(
     loadCompanyMembership,
     authorizedCompanyMember("OWNER"),
     StageLibController.getAllsystemAndCustomStages
+)
+
+StageLibRoutes.patch(
+    "/company/:companyId/stage/:stageId",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.stageIdParam, "params"),
+    validate(WorkflowDto.updateStageLibrary, "body"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER"),
+    StageLibController.updateCustomStage
 )
 
 export default StageLibRoutes;

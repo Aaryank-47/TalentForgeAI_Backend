@@ -45,4 +45,18 @@ export class StageLibServices {
         return [...SystemStages, ...companyStages];
     }
 
+    static async updateCustomStage(
+        anme : string,
+        type: StageType,
+        stageId: string,
+        companyId: string
+    ): Promise<CreateCustomStageView>{
+        
+        const stage = await StageLibRepositories.getStageById(stageId);
+        if(!stage) throw new NotFoundError("Stage not found");
+        if(stage.companyId !== companyId) throw new Error("Unauthorized");
+        
+        const updatedStage = await StageLibRepositories.updateStage(stageId, {name: anme, type: type});
+        return updatedStage;
+    }
 }

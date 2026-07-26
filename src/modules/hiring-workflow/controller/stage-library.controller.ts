@@ -51,4 +51,20 @@ export class StageLibController {
             });
         }
     )
+
+    static updateCustomStage = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        )=>{
+            const { companyId } = req.params;
+            const { stageId } = req.params;
+            const { name, type } = req.body;    
+            
+            const updatedStage = await StageLibServices.updateCustomStage(name, type, stageId as string, companyId as string);
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Custom stage updated successfully", updatedStage)
+            );
+        }
+    )
 }

@@ -72,4 +72,36 @@ export class StageLibRepositories {
             }
         })
     }
+
+    static async getStageById(
+        stageId: string,
+    ):Promise<CreateCustomStageView | null>{
+        return await prisma.stageLibrary.findUnique({
+            where: {
+                id: stageId
+            }
+        })
+    }
+
+    static async updateStage(
+        stageId: string,
+        data: {
+            name: string;
+            type: StageType;
+        }
+    ):Promise<CreateCustomStageView>{
+        return await prisma.stageLibrary.update({
+            where: {
+                id: stageId,
+                type: StageType.CUSTOM
+            },
+            data: data,
+            select: {
+                id: true,
+                name: true,
+                type: true,
+                companyId: true
+            }
+        })
+    }
 }
