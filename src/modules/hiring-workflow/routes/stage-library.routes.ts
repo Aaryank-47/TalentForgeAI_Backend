@@ -61,4 +61,12 @@ StageLibRoutes.delete(
     StageLibController.deleteCustomStage
 )
 
+StageLibRoutes.delete(
+    "/system-stage/:stageId",
+    authMiddleware,
+    authorize("ADMIN", "SUPER_ADMIN"),
+    validate(WorkflowDto.stageIdParam, "params"),
+    StageLibController.deleteSystemStage
+)
+
 export default StageLibRoutes;

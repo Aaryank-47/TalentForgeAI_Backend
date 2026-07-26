@@ -76,4 +76,19 @@ export class StageLibServices {
 
         await StageLibRepositories.deleteStage(stageId);
     }
+
+    static async deleteSystemStage(stageId: string): Promise<void> {
+        const stage = await StageLibRepositories.getStageById(stageId);
+        if (!stage) throw new NotFoundError("Stage not found");
+        if (stage.type !== StageType.SYSTEM) {
+            throw new ForbiddenError("Only system stages can be deleted using this endpoint");
+        }
+
+        const isUsed = await StageLibRepositories.isStageUsedInWorkflow(stageId);
+        if (isUsed) {
+            throw new ConflictError("Stage is currently in use in a workflow and cannot be deleted");
+        }
+
+        await StageLibRepositories.deleteStage(stageId);
+    }
 }

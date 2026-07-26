@@ -82,4 +82,18 @@ export class StageLibController {
             );
         }
     )
+
+    static deleteSystemStage = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        )=>{
+            const { stageId } = req.params;
+            
+            await StageLibServices.deleteSystemStage(stageId as string);
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "System stage deleted successfully")
+            );
+        }
+    )
 }
