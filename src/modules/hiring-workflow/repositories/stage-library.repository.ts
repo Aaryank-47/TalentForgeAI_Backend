@@ -18,16 +18,16 @@ export class StageLibRepositories {
         })
     }
 
-    static async createCustomStage(
+    static async createStage(
         name: string,
-        companyId:string,
+        companyId:string | null,
         type:StageType = StageType.CUSTOM,
     ):Promise<CreateCustomStageView>{
         return await prisma.stageLibrary.create({
             data:{
                 name,
                 type,
-                companyId
+                companyId: companyId || null
             },
              
             select:{

@@ -2,7 +2,7 @@ import { StageType } from "@prisma/client";
 
 export interface CreateCustomStageInput {
     name: string;
-    companyId: string;
+    companyId?: string;
     type?: StageType;
 }
 

@@ -11,6 +11,13 @@ import { CompanyDto } from "../../company/dto/company.dto.js";
 const StageLibRoutes = Router();
 
 StageLibRoutes.post(
+    "/system-stage",
+    authMiddleware,
+    authorize("ADMIN","SUPER_ADMIN"),
+    validate(WorkflowDto.createCustomStage, "body"),
+    StageLibController.createSystemStages
+);
+StageLibRoutes.post(
     "/company/:companyId/custom-stage",
     authMiddleware,
     authorize("EMPLOYER", "ADMIN"),

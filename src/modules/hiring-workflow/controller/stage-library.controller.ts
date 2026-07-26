@@ -7,8 +7,24 @@ import { StageLibServices } from "../services/stage-library.service.js";
 
 
 export class StageLibController {
+    static createSystemStages = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        )=>{
+            const { name , type } = req.body;
+            const newSystemStage = await StageLibServices.createSystemStage(name, type);
+            res.status(HTTP_STATUS.CREATED).json(
+                new ApiResponse(true, "System stage created successfully", newSystemStage)
+            );
+        }
+    )
+
     static createCustomStage = asyncHandler(
-        async (req: Request, res: Response) => {
+        async (
+            req: Request, 
+            res: Response
+        ) => {
             const newStage = await StageLibServices.createCustomStage({
                 ...req.body,
                 companyId: req.params.companyId,

@@ -8,15 +8,30 @@ import type {
 } from "../interfaces/hiring-workflow.interface.js"
 
 export class StageLibServices {
+    static async createSystemStage(
+        name: string,
+        type: StageType = StageType.SYSTEM
+    ):Promise<CreateCustomStageView> {
+        const stageName = await StageLibRepositories.getStageByName(name,type);
+        if(stageName) throw new ConflictError(`${type} with name ${name} already exists`);
+
+        const  newStage = await StageLibRepositories.createStage(
+            name,
+            null,
+            type,
+        );
+        return newStage;
+    }
+
     static async createCustomStage(
         payload: CreateCustomStageInput,
     ):Promise<CreateCustomStageView> {
         const stageName = await StageLibRepositories.getStageByName(payload.name,payload.type);
         if(stageName) throw new ConflictError(`${payload.type} with name ${payload.name} already exists`);
 
-        const  newStage = await StageLibRepositories.createCustomStage(
+        const  newStage = await StageLibRepositories.createStage(
             payload.name,
-            payload.companyId,
+            payload.companyId ||"",
             payload.type,
         );
         return newStage;
