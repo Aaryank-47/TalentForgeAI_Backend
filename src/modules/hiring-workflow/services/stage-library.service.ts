@@ -1,6 +1,7 @@
 import { StageLibRepositories } from "../repositories/stage-library.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { StageType } from "@prisma/client";
 import type { 
     CreateCustomStageInput,
     CreateCustomStageView
@@ -21,5 +22,12 @@ export class StageLibServices {
         return newStage;
     }
 
+    static async getCustomAndSystemStages(
+        companyId: string,
+    ):Promise<CreateCustomStageView[]>{
+        const SystemStages = await StageLibRepositories.getStagesByType(StageType.SYSTEM);
+        const companyStages = await StageLibRepositories.getStagesByCompanyIdAndType(companyId);
+        return [...SystemStages, ...companyStages];
+    }
 
 }

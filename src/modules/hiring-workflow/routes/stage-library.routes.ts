@@ -21,4 +21,14 @@ StageLibRoutes.post(
     StageLibController.createCustomStage
 );
 
+StageLibRoutes.get(
+    "/company/:companyId/stages",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER"),
+    StageLibController.getAllsystemAndCustomStages
+)
+
 export default StageLibRoutes;

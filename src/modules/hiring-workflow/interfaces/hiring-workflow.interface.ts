@@ -10,7 +10,7 @@ export interface CreateCustomStageView{
     id: string;
     name: string;
     type: StageType;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
     companyId: string | null;
 }

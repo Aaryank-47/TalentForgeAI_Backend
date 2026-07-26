@@ -4,6 +4,7 @@ export const MESSAGE = {
     SUCCESS: "Operation completed successfully.",
     SERVER_ERROR: "Internal Server Error.",
     ROUTE_NOT_FOUND: "Route not found.",
+    DATA_FETCHED_SUCCESSFULLY: "Data fetched successfully.",
 
     // Authentication
     LOGIN_SUCCESS: "Login successful.",

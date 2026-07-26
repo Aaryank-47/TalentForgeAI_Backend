@@ -40,4 +40,36 @@ export class StageLibRepositories {
             }
         })
     }
+
+    static async getStagesByType(
+        type: StageType
+    ):Promise<CreateCustomStageView[]>{
+        return await prisma.stageLibrary.findMany({
+            where: {
+                type: type
+            },
+            select:{
+                id: true,
+                name: true,
+                type: true,
+                companyId: true,
+            }
+        })
+    }
+
+    static async getStagesByCompanyIdAndType(
+        companyId: string
+    ):Promise<CreateCustomStageView[]>{
+        return await prisma.stageLibrary.findMany({
+            where: {
+                companyId: companyId
+            },
+            select:{
+                id: true,
+                name: true,
+                type: true,
+                companyId: true,
+            }
+        })
+    }
 }
