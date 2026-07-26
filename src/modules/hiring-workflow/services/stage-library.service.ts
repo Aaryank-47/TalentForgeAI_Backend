@@ -1,6 +1,7 @@
 import { StageLibRepositories } from "../repositories/stage-library.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { StageType } from "@prisma/client";
 import type { 
     CreateCustomStageInput,
@@ -58,5 +59,21 @@ export class StageLibServices {
         
         const updatedStage = await StageLibRepositories.updateStage(stageId, {name: anme, type: type});
         return updatedStage;
+    }
+
+    static async deleteCustomStage(
+        stageId: string,
+        companyId: string
+    ): Promise<void> {
+        const stage = await StageLibRepositories.getStageById(stageId);
+        if (!stage) throw new NotFoundError("Stage not found");
+        if (stage.companyId !== companyId) throw new ForbiddenError("You do not have permission to delete this stage");
+
+        const isUsed = await StageLibRepositories.isStageUsedInWorkflow(stageId);
+        if (isUsed) {
+            throw new ConflictError("Stage is currently in use in a workflow and cannot be deleted");
+        }
+
+        await StageLibRepositories.deleteStage(stageId);
     }
 }

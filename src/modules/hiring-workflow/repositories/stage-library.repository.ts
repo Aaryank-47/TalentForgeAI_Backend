@@ -104,4 +104,21 @@ export class StageLibRepositories {
             }
         })
     }
+
+    static async isStageUsedInWorkflow(stageId: string): Promise<boolean> {
+        const count = await prisma.workflowStage.count({
+            where: {
+                stageLibraryId: stageId
+            }
+        });
+        return count > 0;
+    }
+
+    static async deleteStage(stageId: string): Promise<void> {
+        await prisma.stageLibrary.delete({
+            where: {
+                id: stageId
+            }
+        });
+    }
 }

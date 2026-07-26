@@ -50,4 +50,15 @@ StageLibRoutes.patch(
     StageLibController.updateCustomStage
 )
 
+StageLibRoutes.delete(
+    "/company/:companyId/stage/:stageId",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.stageIdParam, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER"),
+    StageLibController.deleteCustomStage
+)
+
 export default StageLibRoutes;

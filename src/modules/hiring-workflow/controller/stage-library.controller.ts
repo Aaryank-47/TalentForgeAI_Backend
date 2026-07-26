@@ -67,4 +67,19 @@ export class StageLibController {
             );
         }
     )
+
+    static deleteCustomStage = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        )=>{
+            const { companyId } = req.params;
+            const { stageId } = req.params;
+            
+            await StageLibServices.deleteCustomStage(stageId as string, companyId as string);
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Custom stage deleted successfully")
+            );
+        }
+    )
 }
