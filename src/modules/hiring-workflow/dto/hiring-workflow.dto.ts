@@ -86,6 +86,10 @@ export class WorkflowDto{
         stageId: stageLibraryIdValidator,
     });
 
+    static workflowIdParam = z.object({
+        workflowId: workflowIdValidator,
+    });
+
     static getStageLibrariesByCompany = z.object({
         companyId: uuidValidator,
     });
@@ -209,6 +213,7 @@ export type UpdateWorkflowDto = z.infer<typeof WorkflowDto.updateWorkflow>;
 export type DeleteWorkflowDto = z.infer<typeof WorkflowDto.deleteWorkflow>;
 export type GetWorkflowByIdDto = z.infer<typeof WorkflowDto.getWorkflowById>;
 export type GetWorkflowsByCompanyDto = z.infer<typeof WorkflowDto.getWorkflowsByCompany>;
+export type WorkflowIdParamDto = z.infer<typeof WorkflowDto.workflowIdParam>;
 
 export type CreateStageLibraryDto = z.infer<typeof WorkflowDto.createStageLibrary>;
 export type UpdateStageLibraryDto = z.infer<typeof WorkflowDto.updateStageLibrary>;

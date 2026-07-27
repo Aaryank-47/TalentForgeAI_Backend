@@ -41,5 +41,21 @@ export class WorkflowController {
                 new ApiResponse(true, "Workflows fetched successfully", workflows)
             );
         }
-    )
+    );
+
+    static getWorkflowDetails = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { companyId, workflowId } = req.params;
+            const workflowDetails = await WorkflowServices.getWorkflowDetails(
+                workflowId as string,
+                companyId as string
+            );
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Workflow details fetched successfully", workflowDetails)
+            );
+        }
+    );
 }

@@ -1,7 +1,7 @@
 import prisma from "../../../config/database.js"
 import { StageType, WorkflowStatus } from "@prisma/client"
 import { ConflictError } from "../../../common/errors/ConflictError.js"
-import type { CreateWorkflowView } from "../interfaces/hiring-workflow.interface.js"
+import type { CreateWorkflowView, GetWorkflowDetailsByIdView, CompanyWorkflowView } from "../interfaces/hiring-workflow.interface.js"
 
 export class WorkflowRepository {
     static async findWorkflowNameExistingInCompany(
@@ -79,7 +79,7 @@ export class WorkflowRepository {
     static async getWorkflowsByCompanyId(
         companyId: string,
         status: WorkflowStatus
-    ): Promise<any> {
+    ): Promise<CompanyWorkflowView[]> {
         return await prisma.workflow.findMany({
             where: {
                 companyId: companyId,
@@ -106,6 +106,48 @@ export class WorkflowRepository {
                     },
                     orderBy: {
                         order: "asc"
+                    }
+                }
+            }
+        })
+    }
+
+    static async getWorkflowById(workflowId : string): Promise<any> {
+        return await prisma.workflow.findUnique({
+            where : {
+                id : workflowId
+            }
+        })
+    }
+
+    static async getWorkflowDetails(
+        workflowId : string
+    ): Promise<GetWorkflowDetailsByIdView | null> {
+        return await prisma.workflow.findUnique({
+            where : {
+                id : workflowId
+            },
+            select : {
+                id : true,
+                companyId : true,
+                name : true,
+                description : true,
+                status : true,
+                createdAt : true,
+                updatedAt : true,
+                stages : {
+                    select : {
+                        id : true,
+                        workflowId : true,
+                        stageLibraryId : true,
+                        order : true,
+                        stageLibrary : {
+                            select : {
+                                id : true,
+                                name : true,
+                                type : true
+                            }
+                        }
                     }
                 }
             }

@@ -2,7 +2,7 @@ import { WorkflowRepository } from "../repositories/workflow.repository.js"
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
 import { ConflictError } from "../../../common/errors/ConflictError.js"
-import type { CreateWorkflowView } from "../interfaces/hiring-workflow.interface.js"
+import type { CreateWorkflowView, GetWorkflowDetailsByIdView, CompanyWorkflowView } from "../interfaces/hiring-workflow.interface.js"
 import { CompanyRepository } from "../../company/repository/company.repository.js"
 import { WorkflowStatus } from "@prisma/client"
 
@@ -38,7 +38,7 @@ export class WorkflowServices {
     static async getAllCompanyWorkflows(
         companyId: string,
         status: WorkflowStatus
-    ): Promise<any> {
+    ): Promise<CompanyWorkflowView[]> {
         const company = await CompanyRepository.findCompanyById(companyId);
         if (!company) {
             throw new NotFoundError("Company not exists");
@@ -47,5 +47,28 @@ export class WorkflowServices {
         const workflows = await WorkflowRepository.getWorkflowsByCompanyId(companyId, status);
 
         return workflows
+    }
+
+    static async getWorkflowDetails(
+        workflowId: string,
+        companyId : string
+    ): Promise<GetWorkflowDetailsByIdView> {
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not exists");
+        }
+        const workflow = await WorkflowRepository.getWorkflowById(workflowId);
+        if (!workflow) {
+            throw new NotFoundError("Workflow not exists");
+        }
+        if(workflow.companyId !== companyId){
+            throw new ForbiddenError("You are not authorized to access this workflow");
+        }
+        
+        const workflowDetails = await WorkflowRepository.getWorkflowDetails(workflowId);
+        if (!workflowDetails) {
+            throw new NotFoundError("Workflow not exists");
+        }
+        return workflowDetails
     }
 }

@@ -30,6 +30,17 @@ WorkflowRoutes.get(
     loadCompanyMembership,
     authorizedCompanyMember("OWNER", "ADMIN"),
     WorkflowController.getAllWorkflows
-)
+);
+
+WorkflowRoutes.get(
+    "/company/:companyId/workflow/:workflowId",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.workflowIdParam, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN"),
+    WorkflowController.getWorkflowDetails
+);
 
 export default WorkflowRoutes;

@@ -1,4 +1,4 @@
-import { StageType } from "@prisma/client";
+import { StageType, WorkflowStatus } from "@prisma/client";
 
 export interface CreateCustomStageInput {
     name: string;
@@ -31,4 +31,37 @@ export interface CreateWorkflowView {
     status: string;
     createdAt: Date;
     updatedAt: Date;
+}
+
+export interface GetWorkflowDetailsByIdView {
+    id: string;
+    companyId: string;
+    name: string;
+    description: string | null;
+    status: WorkflowStatus;
+    createdAt: Date;
+    updatedAt: Date;
+    stages: StageView[];
+}
+
+export interface StageView {
+    id: string;
+    workflowId: string;
+    stageLibraryId: string;
+    order?: number;
+    stageLibrary: StageLibraryView;
+}
+
+export interface StageLibraryView {
+    id: string;
+    name: string;
+    type: StageType;
+}
+
+export interface CompanyWorkflowView {
+    id: string;
+    name: string;
+    description: string | null;
+    status: WorkflowStatus;
+    stages: StageView[];
 }
