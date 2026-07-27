@@ -1,5 +1,5 @@
 import prisma from "../../../config/database.js"
-import { StageType } from "@prisma/client"
+import { StageType, WorkflowStatus } from "@prisma/client"
 import { ConflictError } from "../../../common/errors/ConflictError.js"
 import type { CreateWorkflowView } from "../interfaces/hiring-workflow.interface.js"
 
@@ -23,6 +23,7 @@ export class WorkflowRepository {
         description: string,
         stages: string[],
         companyId: string,
+        status: WorkflowStatus
     ): Promise<CreateWorkflowView> {
         return prisma.$transaction(
             async (tx) => {
@@ -67,10 +68,47 @@ export class WorkflowRepository {
                         companyId: companyId,
                         stages: {
                             create: workflowStagesData
-                        }
+                        },
+                        status: status
                     }
                 })
             }
         )
+    }
+
+    static async getWorkflowsByCompanyId(
+        companyId: string,
+        status: WorkflowStatus
+    ): Promise<any> {
+        return await prisma.workflow.findMany({
+            where: {
+                companyId: companyId,
+                status: status
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                status: true,
+                stages: {
+                    select: {
+                        id: true,
+                        workflowId: true,
+                        stageLibraryId: true,
+                        order: true,
+                        stageLibrary: {
+                            select: {
+                                id: true,
+                                name: true,
+                                type: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        order: "asc"
+                    }
+                }
+            }
+        })
     }
 }

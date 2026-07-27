@@ -21,4 +21,15 @@ WorkflowRoutes.post(
     WorkflowController.createWorkflow
 );
 
+WorkflowRoutes.get(
+    "/company/:companyId/workflows",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.getWorkflowsByStatus, "query"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN"),
+    WorkflowController.getAllWorkflows
+)
+
 export default WorkflowRoutes;

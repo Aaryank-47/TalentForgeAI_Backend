@@ -18,7 +18,8 @@ import {
     remarksValidator,
     workflowHistoryIdValidator,
     commentValidator,
-    stageLibraryIdValidator
+    stageLibraryIdValidator,
+    companyIdValidator
 } from "../../../common/validators/validators.js"
 
 
@@ -38,6 +39,10 @@ export class WorkflowDto{
         status: workflowStatusValidator,
         isDefault: workflowIsDefaultValidator,
     });
+
+    static getWorkflowsByStatus = z.object({
+        status: workflowStatusValidator
+    })
 
     static deleteWorkflow = z.object({
         id: workflowIdValidator,
