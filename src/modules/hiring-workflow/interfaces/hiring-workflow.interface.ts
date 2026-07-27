@@ -14,3 +14,21 @@ export interface CreateCustomStageView{
     updatedAt?: Date;
     companyId: string | null;
 }
+
+export interface CreateWorkflowInput {
+    name: string;
+    description: string;
+    stages: string[];
+    companyId: string;
+}
+
+export interface CreateWorkflowView {
+    id: string;
+    companyId: string;
+    name: string;
+    description: string | null;
+    isDefault: boolean;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+}

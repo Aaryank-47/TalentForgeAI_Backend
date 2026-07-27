@@ -211,7 +211,7 @@ export class AuthRepository {
     }
     static async findCompanyById(companyId) {
         return prisma.company.findUnique({
-            where: { id: companyId },
+            where: { id: co0mpanyId },
             select: companySelect,
         });
     }
