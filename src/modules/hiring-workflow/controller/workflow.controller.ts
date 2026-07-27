@@ -58,4 +58,57 @@ export class WorkflowController {
             );
         }
     );
+
+    static updateWorkflow = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { companyId, workflowId } = req.params;
+            const { name, description, isDefault, stages } = req.body;
+            const updatedWorkflow = await WorkflowServices.updateWorkflow(
+                workflowId as string,
+                name,
+                description,
+                !!isDefault,
+                stages,
+                companyId as string
+            );
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Workflow updated successfully", updatedWorkflow)
+            );
+        }
+    );
+
+    static deleteWorkflow = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { companyId, workflowId } = req.params;
+            await WorkflowServices.deleteWorkflow(
+                workflowId as string,
+                companyId as string
+            );
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Workflow deleted successfully", null)
+            );
+        }
+    );
+
+    static setDefaultWorkflow = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { companyId, workflowId } = req.params;
+            const updatedWorkflow = await WorkflowServices.setDefaultWorkflow(
+                workflowId as string,
+                companyId as string
+            );
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Default workflow set successfully", updatedWorkflow)
+            );
+        }
+    );
 }

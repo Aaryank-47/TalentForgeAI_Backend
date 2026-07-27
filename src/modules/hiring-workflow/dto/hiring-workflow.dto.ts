@@ -35,9 +35,14 @@ export class WorkflowDto{
 
     static updateWorkflow = z.object({
         name: workflowNameValidator,
-        description: workflowDescriptionValidator,
-        status: workflowStatusValidator,
-        isDefault: workflowIsDefaultValidator,
+        description: workflowDescriptionValidator.optional(),
+        isDefault: z.boolean().optional(),
+        stages: z.array(
+            z.object({
+                stageLibraryId: stageLibraryIdValidator,
+                order: stageOrderValidator,
+            })
+        ).min(1, "At least one stage is required"),
     });
 
     static getWorkflowsByStatus = z.object({

@@ -43,4 +43,38 @@ WorkflowRoutes.get(
     WorkflowController.getWorkflowDetails
 );
 
+WorkflowRoutes.put(
+    "/company/:companyId/workflow/:workflowId",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.workflowIdParam, "params"),
+    validate(WorkflowDto.updateWorkflow, "body"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN"),
+    WorkflowController.updateWorkflow
+);
+
+WorkflowRoutes.delete(
+    "/company/:companyId/workflow/:workflowId",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.workflowIdParam, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN"),
+    WorkflowController.deleteWorkflow
+);
+
+WorkflowRoutes.patch(
+    "/company/:companyId/workflow/:workflowId/default",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.workflowIdParam, "params"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN"),
+    WorkflowController.setDefaultWorkflow
+);
+
 export default WorkflowRoutes;

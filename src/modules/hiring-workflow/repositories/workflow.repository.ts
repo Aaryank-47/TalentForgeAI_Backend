@@ -148,9 +148,143 @@ export class WorkflowRepository {
                                 type : true
                             }
                         }
+                    },
+                    orderBy: {
+                        order: "asc"
                     }
                 }
             }
         })
+    }
+
+    static async updateWorkflow(
+        workflowId: string,
+        name: string,
+        description: string | undefined,
+        isDefault: boolean,
+        stages: { stageLibraryId: string; order: number }[],
+        companyId: string
+    ): Promise<GetWorkflowDetailsByIdView | null> {
+        return await prisma.$transaction(async (tx) => {
+            if (isDefault) {
+                await tx.workflow.updateMany({
+                    where: { companyId, isDefault: true },
+                    data: { isDefault: false }
+                });
+            }
+
+            await tx.workflow.update({
+                where: { id: workflowId },
+                data: {
+                    name,
+                    description: description ?? null,
+                    isDefault
+                }
+            });
+
+            await tx.workflowStage.deleteMany({
+                where: { workflowId }
+            });
+
+            await tx.workflowStage.createMany({
+                data: stages.map((s) => ({
+                    workflowId,
+                    stageLibraryId: s.stageLibraryId,
+                    order: s.order
+                }))
+            });
+
+            return await tx.workflow.findUnique({
+                where: { id: workflowId },
+                select: {
+                    id: true,
+                    companyId: true,
+                    name: true,
+                    description: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    stages: {
+                        select: {
+                            id: true,
+                            workflowId: true,
+                            stageLibraryId: true,
+                            order: true,
+                            stageLibrary: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    type: true
+                                }
+                            }
+                        },
+                        orderBy: {
+                            order: "asc"
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    static async isWorkflowUsedInJobs(workflowId: string): Promise<boolean> {
+        const count = await prisma.job.count({
+            where: { workflowId }
+        });
+        return count > 0;
+    }
+
+    static async deleteWorkflow(workflowId: string): Promise<void> {
+        await prisma.workflow.delete({
+            where: { id: workflowId }
+        });
+    }
+
+    static async setDefaultWorkflow(
+        workflowId: string,
+        companyId: string
+    ): Promise<GetWorkflowDetailsByIdView | null> {
+        return await prisma.$transaction(async (tx) => {
+            await tx.workflow.updateMany({
+                where: { companyId, isDefault: true },
+                data: { isDefault: false }
+            });
+
+            await tx.workflow.update({
+                where: { id: workflowId },
+                data: { isDefault: true }
+            });
+
+            return await tx.workflow.findUnique({
+                where: { id: workflowId },
+                select: {
+                    id: true,
+                    companyId: true,
+                    name: true,
+                    description: true,
+                    status: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    stages: {
+                        select: {
+                            id: true,
+                            workflowId: true,
+                            stageLibraryId: true,
+                            order: true,
+                            stageLibrary: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    type: true
+                                }
+                            }
+                        },
+                        orderBy: {
+                            order: "asc"
+                        }
+                    }
+                }
+            });
+        });
     }
 }

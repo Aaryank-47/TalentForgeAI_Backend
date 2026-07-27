@@ -71,4 +71,102 @@ export class WorkflowServices {
         }
         return workflowDetails
     }
+
+    static async updateWorkflow(
+        workflowId: string,
+        name: string,
+        description: string | undefined,
+        isDefault: boolean,
+        stages: { stageLibraryId: string; order: number }[],
+        companyId: string
+    ): Promise<GetWorkflowDetailsByIdView> {
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not exists");
+        }
+
+        const workflow = await WorkflowRepository.getWorkflowById(workflowId);
+        if (!workflow) {
+            throw new NotFoundError("Workflow not exists");
+        }
+
+        if (workflow.companyId !== companyId) {
+            throw new ForbiddenError("You are not authorized to edit this workflow");
+        }
+
+        const nameAlreadyExists = await WorkflowRepository.findWorkflowNameExistingInCompany(
+            name,
+            companyId
+        );
+        if (nameAlreadyExists && nameAlreadyExists.id !== workflowId) {
+            throw new ConflictError("Workflow name already exists");
+        }
+
+        const updatedWorkflow = await WorkflowRepository.updateWorkflow(
+            workflowId,
+            name,
+            description,
+            isDefault,
+            stages,
+            companyId
+        );
+
+        if (!updatedWorkflow) {
+            throw new NotFoundError("Workflow not exists");
+        }
+
+        return updatedWorkflow;
+    }
+
+    static async deleteWorkflow(
+        workflowId: string,
+        companyId: string
+    ): Promise<void> {
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not exists");
+        }
+
+        const workflow = await WorkflowRepository.getWorkflowById(workflowId);
+        if (!workflow) {
+            throw new NotFoundError("Workflow not exists");
+        }
+
+        if (workflow.companyId !== companyId) {
+            throw new ForbiddenError("You are not authorized to delete this workflow");
+        }
+
+        const isUsed = await WorkflowRepository.isWorkflowUsedInJobs(workflowId);
+        if (isUsed) {
+            throw new ConflictError("Cannot delete workflow because it is associated with jobs");
+        }
+
+        await WorkflowRepository.deleteWorkflow(workflowId);
+    }
+
+    static async setDefaultWorkflow(
+        workflowId: string,
+        companyId: string
+    ): Promise<GetWorkflowDetailsByIdView> {
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (!company) {
+            throw new NotFoundError("Company not exists");
+        }
+
+        const workflow = await WorkflowRepository.getWorkflowById(workflowId);
+        if (!workflow) {
+            throw new NotFoundError("Workflow not exists");
+        }
+
+        if (workflow.companyId !== companyId) {
+            throw new ForbiddenError("You are not authorized to access this workflow");
+        }
+
+        const updatedWorkflow = await WorkflowRepository.setDefaultWorkflow(workflowId, companyId);
+        if (!updatedWorkflow) {
+            throw new NotFoundError("Workflow not exists");
+        }
+
+        return updatedWorkflow;
+    }
 }
