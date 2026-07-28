@@ -47,6 +47,15 @@ export class JobsRepository {
                             }
                         }
                     }
+                },
+                workflow: {
+                    include: {
+                        stages: {
+                            include: {
+                                stageLibrary: true
+                            }
+                        }
+                    }
                 }
             }
         });

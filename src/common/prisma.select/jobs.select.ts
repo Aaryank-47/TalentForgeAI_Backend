@@ -52,4 +52,32 @@ export const JobSelect = {
             benefit: true,
         },
     },
+
+    workflowId: true,
+    workflow: {
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            status: true,
+            stages: {
+                select: {
+                    id: true,
+                    workflowId: true,
+                    stageLibraryId: true,
+                    order: true,
+                    stageLibrary: {
+                        select: {
+                            id: true,
+                            name: true,
+                            type: true
+                        }
+                    }
+                },
+                orderBy: {
+                    order: "asc"
+                }
+            }
+        }
+    }
 } as const;

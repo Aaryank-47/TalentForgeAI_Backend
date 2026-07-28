@@ -7,7 +7,7 @@ export function toJobCreateInput(
     slug: string,
     createdById: string
 ): Prisma.JobCreateInput {
-    return {
+    const input: Prisma.JobCreateInput = {
         company: {
             connect: {
                 id: companyId,
@@ -39,7 +39,17 @@ export function toJobCreateInput(
                 benefit,
             })),
         },
+    };
+
+    if (data.workflowId) {
+        input.workflow = {
+            connect: {
+                id: data.workflowId,
+            },
+        };
     }
+
+    return input;
 }
 
 export function toJobUpdateInput(

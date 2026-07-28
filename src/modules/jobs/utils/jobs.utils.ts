@@ -55,6 +55,7 @@ export function toJobView(
         isPublished: job.status === JobStatus.PUBLISHED,
         companyMemberRole,
         author,
+        workflow: job.workflow
     };
 }
-
+

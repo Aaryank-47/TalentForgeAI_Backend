@@ -4,7 +4,8 @@ import type {
     WorkplaceType,
     SalaryPeriod,
     JobSkill as Skill,
-    JobBenefit as Benefit
+    JobBenefit as Benefit,
+    Workflow
 } from "@prisma/client";
 import type { AuthUserView } from "../../auth/interfaces/auth.interface.js";
 
@@ -33,6 +34,7 @@ export interface JobView extends Job {
     benefits: Benefit[];
     companyMemberRole: CompanyMemberRole;
     author: AuthUserView;
+    workflow: Workflow;
 }
 
 export interface JobsListView {

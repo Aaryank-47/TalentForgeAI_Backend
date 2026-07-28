@@ -10,6 +10,7 @@ import { JobsRepository } from "../repository/jobs.repository.js";
 import type { JobsListView, JobAssignedMemberView } from "../../jobs/interfaces/jobs.interface.js"
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
+import { WorkflowRepository } from "../../hiring-workflow/repositories/workflow.repository.js";
 
 export class createJobService {
     static async createJob(
@@ -28,6 +29,15 @@ export class createJobService {
             jobPayload.title,
             company.companyName
         );
+
+        const workflow = await WorkflowRepository.getWorkflowById(jobPayload.workflowId);
+        if (!workflow) {
+            throw new NotFoundError("Workflow not found");
+        }
+
+        if (workflow.companyId !== companyId) {
+            throw new NotFoundError("Workflow does not belong to this company");
+        }
 
         const job = await JobsRepository.createJob(companyId, jobPayload, createSlug, userId);
 

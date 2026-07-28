@@ -19,7 +19,8 @@ import {
     benefitsValidator,
     jobStatusValidator,
     userIdValidator,
-    uuidValidator
+    uuidValidator,
+    workflowIdValidator
 } from "../../../common/validators/validators.js";
 
 export class JobsDto {
@@ -39,6 +40,7 @@ export class JobsDto {
         applicationDeadline: applicationDeadlineValidator,
         skills: skillsValidator,
         benefits: benefitsValidator,
+        workflowId: workflowIdValidator
     })
     .refine(
         (data) => {

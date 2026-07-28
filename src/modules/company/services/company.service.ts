@@ -786,8 +786,8 @@ export class CompanyService {
             throw new ForbiddenError("Only the company owner can activate this company.");
         }
 
-        if (company.status !== CompanyStatus.INACTIVE) {
-            throw new ConflictError("Company is not inactive.");
+        if (company.status === CompanyStatus.ACTIVE) {
+            throw new ConflictError("Company is already active.");
         }
 
         const activated = await CompanyRepository.activateCompany(companyId);
