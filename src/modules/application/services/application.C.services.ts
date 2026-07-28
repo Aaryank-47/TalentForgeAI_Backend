@@ -5,7 +5,7 @@ import { JobStatus, ApplicationStatus } from "../../../common/enums/all_enums.js
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import { CandidateRepository } from "../../candidate/repository/candidate.repository.js";
 import type { ApplicationView } from "../interfaces/application.interface.js"
-import type { WithdrawApplicationDto } from "../dto/application.dto.js";
+import { ApplicationWorkflowRepository } from "../../hiring-workflow/repositories/application-workflow.repository.js";
 
 export class ApplicationService {
     static async applyJob(
@@ -54,6 +54,20 @@ export class ApplicationService {
             resumeId: resume.id,
             status: ApplicationStatus.APPLIED
         })
+
+        let firstStage = null;
+        if (job.workflowId) {
+            firstStage = await ApplicationWorkflowRepository.getFirstWorkflowStage(job.workflowId);
+        } else {
+            firstStage = await ApplicationWorkflowRepository.getDefaultWorkflowStageForCompany(job.companyId);
+        }
+
+        if (firstStage) {
+            await ApplicationWorkflowRepository.createApplicationWorkflow({
+                applicationId: newApplication.id,
+                workflowStageId: firstStage.id
+            });
+        }
 
         return newApplication;
     }

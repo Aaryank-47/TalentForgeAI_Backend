@@ -601,8 +601,8 @@ model WorkflowHistory {
   fromStage             WorkflowStage?      @relation("FromStage", fields: [fromStageId], references: [id])
   toStageId             String
   toStage               WorkflowStage       @relation("ToStage", fields: [toStageId], references: [id])
-  movedByEmployerId     String
-  movedBy               Employer            @relation(fields: [movedByEmployerId], references: [id])
+  movedByEmployerId     String?
+  movedBy               Employer?           @relation(fields: [movedByEmployerId], references: [id])
   comment               String?
   createdAt             DateTime            @default(now())
 

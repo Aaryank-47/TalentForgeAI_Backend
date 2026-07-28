@@ -3,6 +3,19 @@ import { ApplicationStatus } from "../../../common/enums/all_enums.js";
 
 export class ApplicationRepository {
 
+    static async getAppliationById(
+        applicationId: string
+    ){
+        return prisma.application.findUnique({
+            where: {
+                id: applicationId
+            },
+            include: {
+                job: true
+            }
+        })
+    }
+
     static async getResume(resumeId: string) {
         return prisma.resume.findUnique({
             where: {

@@ -130,7 +130,7 @@ export class WorkflowDto{
 
     static createApplicationWorkflow = z.object({
         applicationId: uuidValidator,
-        workflowId: workflowIdValidator,
+        workflowStageId: workflowStageIdValidator,
     });
 
     static updateApplicationWorkflow = z.object({
