@@ -93,5 +93,13 @@ export function toJobUpdateInput(
         };
     }
 
+    if (jobPayload.workflowId !== undefined) {
+        data.workflow = {
+            connect: {
+                id: jobPayload.workflowId,
+            },
+        };
+    }
+
     return data;
 }

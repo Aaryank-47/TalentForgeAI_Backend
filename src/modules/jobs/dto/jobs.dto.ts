@@ -83,6 +83,7 @@ export class JobsDto {
         applicationDeadline: applicationDeadlineValidator.optional(),
         skills: skillsValidator.optional(),
         benefits: benefitsValidator.optional(),
+        workflowId: workflowIdValidator.optional(),
     })
     .refine(
         (data) => {

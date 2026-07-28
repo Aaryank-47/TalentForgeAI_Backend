@@ -93,6 +93,17 @@ export class createJobService {
             throw new NotFoundError("Company not found");
         }
 
+        if(jobPayload.workflowId !== undefined){
+            const workflow = await WorkflowRepository.getWorkflowById(jobPayload.workflowId);
+            if (!workflow) {
+                throw new NotFoundError("Workflow not found");
+            }
+
+            if (workflow.companyId !== params.companyId) {
+                throw new NotFoundError("Workflow does not belong to this company");
+            }
+        }
+
         const job = await JobsRepository.findJobById(params.jobId);
         if (!job) {
             throw new NotFoundError("Job not found");
