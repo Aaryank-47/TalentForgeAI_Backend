@@ -61,4 +61,26 @@ export class ApplicationWorkflowController {
             );
         }
     );
+
+    static bulkMoveApplicationsToNextStage = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { applicationIds, toWorkflowStageId, remarks, assignedTo } = req.body;
+            const movedByUserId = (req as any).user.id;
+
+            const updatedWorkflows = await ApplicationWorkflowService.bulkMoveApplicationsToNextStage(
+                movedByUserId,
+                applicationIds,
+                toWorkflowStageId,
+                remarks,
+                assignedTo
+            );
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Applications moved to next stage successfully in bulk", updatedWorkflows)
+            );
+        }
+    );
 }

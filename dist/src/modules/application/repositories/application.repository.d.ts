@@ -46,6 +46,28 @@ export declare class ApplicationRepository {
         rejectionReason: string | null;
         hiredAt: Date | null;
     }) | null>;
+    static getApplicationsByIds(applicationIds: string[]): Promise<({
+        job: {
+            companyId: string;
+            id: string;
+            workflowId: string | null;
+        };
+    } & {
+        id: string;
+        status: import("@prisma/client").$Enums.ApplicationStatus;
+        updatedAt: Date;
+        jobId: string;
+        candidateId: string;
+        resumeId: string;
+        coverLetter: string | null;
+        appliedAt: Date;
+        lastStatusUpdatedAt: Date | null;
+        withdrawnAt: Date | null;
+        withdrawReason: string | null;
+        rejectedAt: Date | null;
+        rejectionReason: string | null;
+        hiredAt: Date | null;
+    })[]>;
     static getJobApplicationByJobId(jobId: string): Promise<({
         candidate: {
             fullName: string;

@@ -16,6 +16,25 @@ export class ApplicationRepository {
         })
     }
 
+    static async getApplicationsByIds(
+        applicationIds: string[]
+    ) {
+        return prisma.application.findMany({
+            where: {
+                id: { in: applicationIds }
+            },
+            include: {
+                job: {
+                    select: {
+                        id: true,
+                        workflowId: true,
+                        companyId: true
+                    }
+                }
+            }
+        });
+    }
+
     static async getJobApplicationByJobId(
         jobId : string
     ){

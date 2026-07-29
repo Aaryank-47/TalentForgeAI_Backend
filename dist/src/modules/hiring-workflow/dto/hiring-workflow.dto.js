@@ -158,5 +158,11 @@ export class WorkflowDto {
         remarks: remarksValidator.optional(),
         assignedTo: uuidValidator.optional(),
     });
+    static bulkMoveApplicationsToNextStage = z.object({
+        applicationIds: z.array(uuidValidator).min(1, "At least one application ID is required"),
+        toWorkflowStageId: uuidValidator,
+        remarks: remarksValidator.optional(),
+        assignedTo: uuidValidator.optional(),
+    });
 }
 //# sourceMappingURL=hiring-workflow.dto.js.map

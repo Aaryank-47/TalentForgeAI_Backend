@@ -55,19 +55,18 @@ export declare class ApplicationWorkflowRepository {
         isEnabled: boolean;
         isFinal: boolean;
     } | null>;
-    static findEmployerByUserId(userId: string): Promise<{
-        fullName: string;
-        phoneNumber: string | null;
-        linkedinUrl: string | null;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        userId: string;
-        profilePicture: string | null;
-        designation: string | null;
-        department: string | null;
-        isActive: boolean;
-    } | null>;
     static updateApplicationWorkflow(movedByEmployerId: string, applicationId: string, fromStageId: string, toStageId: string, comment?: string, assignedTo?: string): Promise<ApplicationWorkflow>;
+    static bulkUpdateApplicationWorkflows(data: {
+        movedByEmployerId: string;
+        toStageId: string;
+        comment?: string;
+        assignedTo?: string;
+        items: Array<{
+            applicationId: string;
+            fromStageId: string;
+            applicationWorkflowId: string;
+        }>;
+    }): Promise<ApplicationWorkflow[]>;
+    static getApplicationWorkflowsByApplicationIds(applicationIds: string[]): Promise<ApplicationWorkflow[]>;
 }
 //# sourceMappingURL=application-workflow.repository.d.ts.map

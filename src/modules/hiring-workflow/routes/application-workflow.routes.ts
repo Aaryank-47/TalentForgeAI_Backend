@@ -37,4 +37,15 @@ ApplicationWorkflowRoutes.patch(
     ApplicationWorkflowController.moveApplicationToNextStage
 );
 
+ApplicationWorkflowRoutes.patch(
+    "/company/:companyId/application-workflow/bulk-move",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(CompanyDto.companyIdParam, "params"),
+    validate(WorkflowDto.bulkMoveApplicationsToNextStage, "body"),
+    loadCompanyMembership,
+    authorizedCompanyMember("OWNER", "ADMIN", "RECRUITER", "HIRING_MANAGER"),
+    ApplicationWorkflowController.bulkMoveApplicationsToNextStage
+);
+
 export default ApplicationWorkflowRoutes;

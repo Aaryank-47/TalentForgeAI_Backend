@@ -98,8 +98,7 @@ export class ApplicationWorkflowService {
         return board;
     }
     static async moveApplicationToNextStage(movedByUserId, applicationId, toworkflowStageId, remarks, assignedTo) {
-        // 1. Validate the user performing the move (must have an Employer profile)
-        const movedByEmployer = await ApplicationWorkflowRepository.findEmployerByUserId(movedByUserId);
+        const movedByEmployer = await AuthRepository.findEmployerByUserId(movedByUserId);
         if (!movedByEmployer) {
             throw new NotFoundError("Employer profile not found for the current user");
         }
@@ -116,11 +115,10 @@ export class ApplicationWorkflowService {
         }
         let assignedEmployerId = null;
         if (assignedTo) {
-            const assignedEmployer = await ApplicationWorkflowRepository.findEmployerByUserId(assignedTo);
+            const assignedEmployer = await AuthRepository.findEmployerByUserId(assignedTo);
             if (!assignedEmployer) {
                 throw new NotFoundError("Assigned employer profile not found");
             }
-            // Verify assigned user belongs to the same company
             const isMember = await CompanyRepository.findMemberByUserAndCompany(assignedTo, application.job.companyId);
             if (!isMember) {
                 throw new BadRequestError("Assigned user is not a member of this company");
@@ -134,6 +132,74 @@ export class ApplicationWorkflowService {
         const fromStageId = applicationWorkflow.workflowStageId;
         const updatedWorkflow = await ApplicationWorkflowRepository.updateApplicationWorkflow(movedByEmployer.id, applicationId, fromStageId, toworkflowStageId, remarks, assignedEmployerId || undefined);
         return updatedWorkflow;
+    }
+    static async bulkMoveApplicationsToNextStage(movedByUserId, applicationIds, toworkflowStageId, remarks, assignedTo) {
+        if (applicationIds.length === 0) {
+            throw new BadRequestError("At least one application ID is required");
+        }
+        // Resolve all shared/static data upfront in parallel (3 queries max) ──
+        const [movedByEmployer, nextWorkflowStage, applications] = await Promise.all([
+            AuthRepository.findEmployerByUserId(movedByUserId),
+            ApplicationWorkflowRepository.getWorkflowStageById(toworkflowStageId),
+            ApplicationRepository.getApplicationsByIds(applicationIds),
+        ]);
+        if (!movedByEmployer) {
+            throw new NotFoundError("Employer profile not found for the current user");
+        }
+        if (!nextWorkflowStage) {
+            throw new NotFoundError("Target workflow stage not found");
+        }
+        // Validate all applications exist and belong to the correct workflow ──
+        const foundIds = new Set(applications.map((a) => a.id));
+        const missingIds = applicationIds.filter((id) => !foundIds.has(id));
+        if (missingIds.length > 0) {
+            throw new NotFoundError(`Applications not found: ${missingIds.join(", ")}`);
+        }
+        const invalidWorkflowApp = applications.find((a) => a.job.workflowId !== nextWorkflowStage.workflowId);
+        if (invalidWorkflowApp) {
+            throw new BadRequestError(`Application ${invalidWorkflowApp.id} does not belong to the same workflow as the target stage`);
+        }
+        // Resolve optional assignedTo employer (1 query) ──
+        let assignedEmployerId = null;
+        if (assignedTo) {
+            // All applications share one company (validated above), so check membership once
+            const firstApp = applications[0];
+            const companyId = firstApp.job.companyId;
+            const [assignedEmployer, isMember] = await Promise.all([
+                AuthRepository.findEmployerByUserId(assignedTo),
+                CompanyRepository.findMemberByUserAndCompany(assignedTo, companyId),
+            ]);
+            if (!assignedEmployer) {
+                throw new NotFoundError("Assigned employer profile not found");
+            }
+            if (!isMember) {
+                throw new BadRequestError("Assigned user is not a member of this company");
+            }
+            assignedEmployerId = assignedEmployer.id;
+        }
+        // Fetch all current application workflows in ONE batch query ──
+        const existingWorkflows = await ApplicationWorkflowRepository.getApplicationWorkflowsByApplicationIds(applicationIds);
+        const workflowMap = new Map(existingWorkflows.map((aw) => [aw.applicationId, aw]));
+        const missingWorkflows = applicationIds.filter((id) => !workflowMap.has(id));
+        if (missingWorkflows.length > 0) {
+            throw new NotFoundError(`Application workflows not found for: ${missingWorkflows.join(", ")}`);
+        }
+        //Build items and execute ONE transaction (updateMany + createMany) ──
+        const items = applicationIds.map((applicationId) => {
+            const aw = workflowMap.get(applicationId);
+            return {
+                applicationId,
+                fromStageId: aw.workflowStageId,
+                applicationWorkflowId: aw.id,
+            };
+        });
+        return ApplicationWorkflowRepository.bulkUpdateApplicationWorkflows({
+            movedByEmployerId: movedByEmployer.id,
+            toStageId: toworkflowStageId,
+            ...(remarks ? { comment: remarks } : {}),
+            ...(assignedEmployerId ? { assignedTo: assignedEmployerId } : {}),
+            items,
+        });
     }
 }
 //# sourceMappingURL=application-workflow.service.js.map

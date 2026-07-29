@@ -75,13 +75,6 @@ export class ApplicationWorkflowRepository {
         }
         return workflow?.stages[0] || null;
     }
-    static async findEmployerByUserId(userId) {
-        return prisma.employer.findUnique({
-            where: {
-                userId
-            }
-        });
-    }
     static async updateApplicationWorkflow(movedByEmployerId, applicationId, fromStageId, toStageId, comment, assignedTo) {
         return prisma.$transaction(async (tx) => {
             const appWorkflow = await tx.applicationWorkflow.update({
@@ -106,6 +99,47 @@ export class ApplicationWorkflowRepository {
                 }
             });
             return appWorkflow;
+        });
+    }
+    static async bulkUpdateApplicationWorkflows(data) {
+        return prisma.$transaction(async (tx) => {
+            const now = new Date();
+            // 1. Batch-update all ApplicationWorkflow rows in one query
+            await tx.applicationWorkflow.updateMany({
+                where: {
+                    applicationId: { in: data.items.map((i) => i.applicationId) }
+                },
+                data: {
+                    workflowStageId: data.toStageId,
+                    assignedEmployerId: data.assignedTo ?? null,
+                    remarks: data.comment ?? null,
+                    movedAt: now,
+                    updatedAt: now
+                }
+            });
+            // 2. Batch-insert all WorkflowHistory rows in one query
+            await tx.workflowHistory.createMany({
+                data: data.items.map((item) => ({
+                    applicationWorkflowId: item.applicationWorkflowId,
+                    fromStageId: item.fromStageId,
+                    toStageId: data.toStageId,
+                    movedByEmployerId: data.movedByEmployerId,
+                    comment: data.comment ?? null
+                }))
+            });
+            // 3. Return the updated records in one batch read
+            return tx.applicationWorkflow.findMany({
+                where: {
+                    applicationId: { in: data.items.map((i) => i.applicationId) }
+                }
+            });
+        });
+    }
+    static async getApplicationWorkflowsByApplicationIds(applicationIds) {
+        return prisma.applicationWorkflow.findMany({
+            where: {
+                applicationId: { in: applicationIds }
+            }
         });
     }
 }

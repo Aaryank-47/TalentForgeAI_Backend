@@ -223,6 +223,13 @@ export class WorkflowDto{
         remarks: remarksValidator.optional(),
         assignedTo: uuidValidator.optional(),
     });
+
+    static bulkMoveApplicationsToNextStage = z.object({
+        applicationIds: z.array(uuidValidator).min(1, "At least one application ID is required"),
+        toWorkflowStageId: uuidValidator,
+        remarks: remarksValidator.optional(),
+        assignedTo: uuidValidator.optional(),
+    });
 }
 
 export type CreateWorkflowDto = z.infer<typeof WorkflowDto.createWorkflow>;
@@ -264,3 +271,4 @@ export type RestartStageDto = z.infer<typeof WorkflowDto.restartStage>;
 export type CreateCustomStageDto = z.infer<typeof WorkflowDto.createCustomStage>;
 export type GetHiringBoardDto = z.infer<typeof WorkflowDto.getHiringBoard>;
 export type MoveApplicationToNextStageDto = z.infer<typeof WorkflowDto.moveApplicationToNextStage>;
+export type BulkMoveApplicationsToNextStageDto = z.infer<typeof WorkflowDto.bulkMoveApplicationsToNextStage>;

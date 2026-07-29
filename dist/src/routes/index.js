@@ -21,6 +21,6 @@ router.use("/candidate/applications", applicationRoutes);
 router.use("/employer/applications", recruiterApplicationRoutes);
 router.use("/hiring-workflow/stage-library", hiringWorkflowRoutes);
 router.use("/hiring-workflow", workflowRoutes);
-router.use("/hiring-workflow", applicationWorkflowRoutes);
+router.use("/hiring-workflow/applications", applicationWorkflowRoutes);
 export default router;
 //# sourceMappingURL=index.js.map
