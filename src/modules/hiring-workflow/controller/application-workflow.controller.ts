@@ -83,4 +83,34 @@ export class ApplicationWorkflowController {
             );
         }
     );
+
+    static getCandidateWorkflow = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { applicationId } = req.params;
+
+            const workflowData = await ApplicationWorkflowService.getCandidateWorkflow(applicationId as string);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Candidate workflow retrieved successfully", workflowData)
+            );
+        }
+    );
+
+    static getWorkflowHistory = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { applicationId } = req.params;
+
+            const historyData = await ApplicationWorkflowService.getWorkflowHistory(applicationId as string);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Workflow history retrieved successfully", historyData)
+            );
+        }
+    );
 }

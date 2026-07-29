@@ -26,5 +26,15 @@ export class ApplicationWorkflowController {
         const updatedWorkflows = await ApplicationWorkflowService.bulkMoveApplicationsToNextStage(movedByUserId, applicationIds, toWorkflowStageId, remarks, assignedTo);
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Applications moved to next stage successfully in bulk", updatedWorkflows));
     });
+    static getCandidateWorkflow = asyncHandler(async (req, res) => {
+        const { applicationId } = req.params;
+        const workflowData = await ApplicationWorkflowService.getCandidateWorkflow(applicationId);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Candidate workflow retrieved successfully", workflowData));
+    });
+    static getWorkflowHistory = asyncHandler(async (req, res) => {
+        const { applicationId } = req.params;
+        const historyData = await ApplicationWorkflowService.getWorkflowHistory(applicationId);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Workflow history retrieved successfully", historyData));
+    });
 }
 //# sourceMappingURL=application-workflow.controller.js.map

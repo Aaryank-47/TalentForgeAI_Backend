@@ -264,4 +264,93 @@ export class ApplicationWorkflowService {
             items,
         });
     }
+
+    static async getCandidateWorkflow(
+        applicationId: string
+    ): Promise<{
+        currentStage: string;
+        stages: Array<{
+            name: string;
+            status: string;
+        }>;
+    }> {
+        const appWorkflow = await ApplicationWorkflowRepository.getApplicationWorkflowWithStages(applicationId);
+        if (!appWorkflow) {
+            throw new NotFoundError("Application workflow not found");
+        }
+
+        const job = appWorkflow.application.job;
+        if (!job.workflow) {
+            throw new NotFoundError("No workflow is assigned to this job");
+        }
+
+        const stages = job.workflow.stages as any[];
+        const currentStageId = appWorkflow.workflowStageId;
+
+        // Find current stage index to determine status of stages based on order
+        const currentStageIndex = stages.findIndex((s) => s.id === currentStageId);
+
+        let currentStageName = "";
+        const formattedStages = stages.map((stage, index) => {
+            let status = "PENDING";
+            if (stage.id === currentStageId) {
+                status = "CURRENT";
+                currentStageName = stage.stageLibrary.name;
+            } else if (currentStageIndex !== -1 && index < currentStageIndex) {
+                status = "COMPLETED";
+            }
+            return {
+                name: stage.stageLibrary.name,
+                status
+            };
+        });
+
+        return {
+            currentStage: currentStageName || "Unknown",
+            stages: formattedStages
+        };
+    }
+
+    static async getWorkflowHistory(
+        applicationId: string
+    ): Promise<{
+        history: Array<{
+            stage: string;
+            action: string;
+            performedBy: string;
+            remarks: string;
+            createdAt: Date;
+        }>;
+    }> {
+        const appWorkflow = await ApplicationWorkflowRepository.getApplicationWorkflowByApplicationId(applicationId);
+        if (!appWorkflow) {
+            throw new NotFoundError("Application workflow not found");
+        }
+
+        const historyItems = await ApplicationWorkflowRepository.getWorkflowHistoryByWorkflowId(appWorkflow.id);
+
+        const formattedHistory = historyItems.map((item) => {
+            let action = "MOVED";
+            if (!item.fromStageId) {
+                action = "ENTERED";
+            }
+
+            let performedBy = "Candidate";
+            if (item.movedByEmployerId && item.movedBy) {
+                performedBy = item.movedBy.fullName;
+            }
+
+            return {
+                stage: item.toStage.stageLibrary.name,
+                action,
+                performedBy,
+                remarks: item.comment ?? "",
+                createdAt: item.createdAt
+            };
+        });
+
+        return {
+            history: formattedHistory
+        };
+    }
 }

@@ -230,6 +230,10 @@ export class WorkflowDto{
         remarks: remarksValidator.optional(),
         assignedTo: uuidValidator.optional(),
     });
+
+    static applicationIdParam = z.object({
+        applicationId: uuidValidator,
+    });
 }
 
 export type CreateWorkflowDto = z.infer<typeof WorkflowDto.createWorkflow>;
@@ -272,3 +276,4 @@ export type CreateCustomStageDto = z.infer<typeof WorkflowDto.createCustomStage>
 export type GetHiringBoardDto = z.infer<typeof WorkflowDto.getHiringBoard>;
 export type MoveApplicationToNextStageDto = z.infer<typeof WorkflowDto.moveApplicationToNextStage>;
 export type BulkMoveApplicationsToNextStageDto = z.infer<typeof WorkflowDto.bulkMoveApplicationsToNextStage>;
+export type ApplicationIdParamDto = z.infer<typeof WorkflowDto.applicationIdParam>;

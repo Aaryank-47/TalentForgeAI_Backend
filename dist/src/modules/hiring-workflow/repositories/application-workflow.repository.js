@@ -142,5 +142,48 @@ export class ApplicationWorkflowRepository {
             }
         });
     }
+    static async getApplicationWorkflowWithStages(applicationId) {
+        return prisma.applicationWorkflow.findUnique({
+            where: { applicationId },
+            include: {
+                application: {
+                    include: {
+                        job: {
+                            include: {
+                                workflow: {
+                                    include: {
+                                        stages: {
+                                            include: {
+                                                stageLibrary: true
+                                            },
+                                            orderBy: {
+                                                order: "asc"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    static async getWorkflowHistoryByWorkflowId(applicationWorkflowId) {
+        return prisma.workflowHistory.findMany({
+            where: { applicationWorkflowId },
+            include: {
+                toStage: {
+                    include: {
+                        stageLibrary: true
+                    }
+                },
+                movedBy: true
+            },
+            orderBy: {
+                createdAt: "asc"
+            }
+        });
+    }
 }
 //# sourceMappingURL=application-workflow.repository.js.map

@@ -164,5 +164,8 @@ export class WorkflowDto {
         remarks: remarksValidator.optional(),
         assignedTo: uuidValidator.optional(),
     });
+    static applicationIdParam = z.object({
+        applicationId: uuidValidator,
+    });
 }
 //# sourceMappingURL=hiring-workflow.dto.js.map

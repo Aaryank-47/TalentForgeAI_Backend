@@ -193,6 +193,9 @@ export declare class WorkflowDto {
         remarks: z.ZodOptional<z.ZodOptional<z.ZodString>>;
         assignedTo: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>;
+    static applicationIdParam: z.ZodObject<{
+        applicationId: z.ZodString;
+    }, z.core.$strip>;
 }
 export type CreateWorkflowDto = z.infer<typeof WorkflowDto.createWorkflow>;
 export type UpdateWorkflowDto = z.infer<typeof WorkflowDto.updateWorkflow>;
@@ -229,4 +232,5 @@ export type CreateCustomStageDto = z.infer<typeof WorkflowDto.createCustomStage>
 export type GetHiringBoardDto = z.infer<typeof WorkflowDto.getHiringBoard>;
 export type MoveApplicationToNextStageDto = z.infer<typeof WorkflowDto.moveApplicationToNextStage>;
 export type BulkMoveApplicationsToNextStageDto = z.infer<typeof WorkflowDto.bulkMoveApplicationsToNextStage>;
+export type ApplicationIdParamDto = z.infer<typeof WorkflowDto.applicationIdParam>;
 //# sourceMappingURL=hiring-workflow.dto.d.ts.map

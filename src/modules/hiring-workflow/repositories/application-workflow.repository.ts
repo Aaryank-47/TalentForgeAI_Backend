@@ -195,4 +195,49 @@ export class ApplicationWorkflowRepository{
             }
         });
     }
+
+    static async getApplicationWorkflowWithStages(applicationId: string): Promise<any> {
+        return prisma.applicationWorkflow.findUnique({
+            where: { applicationId },
+            include: {
+                application: {
+                    include: {
+                        job: {
+                            include: {
+                                workflow: {
+                                    include: {
+                                        stages: {
+                                            include: {
+                                                stageLibrary: true
+                                            },
+                                            orderBy: {
+                                                order: "asc"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    static async getWorkflowHistoryByWorkflowId(applicationWorkflowId: string): Promise<any[]> {
+        return prisma.workflowHistory.findMany({
+            where: { applicationWorkflowId },
+            include: {
+                toStage: {
+                    include: {
+                        stageLibrary: true
+                    }
+                },
+                movedBy: true
+            },
+            orderBy: {
+                createdAt: "asc"
+            }
+        });
+    }
 }

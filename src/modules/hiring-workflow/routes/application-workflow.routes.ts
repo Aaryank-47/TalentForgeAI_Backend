@@ -48,4 +48,20 @@ ApplicationWorkflowRoutes.patch(
     ApplicationWorkflowController.bulkMoveApplicationsToNextStage
 );
 
+ApplicationWorkflowRoutes.get(
+    "/:applicationId/workflow",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(WorkflowDto.applicationIdParam, "params"),
+    ApplicationWorkflowController.getCandidateWorkflow
+);
+
+ApplicationWorkflowRoutes.get(
+    "/:applicationId/workflow/history",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(WorkflowDto.applicationIdParam, "params"),
+    ApplicationWorkflowController.getWorkflowHistory
+);
+
 export default ApplicationWorkflowRoutes;

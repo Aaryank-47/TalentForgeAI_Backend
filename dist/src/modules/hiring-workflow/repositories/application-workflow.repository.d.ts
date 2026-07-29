@@ -68,5 +68,7 @@ export declare class ApplicationWorkflowRepository {
         }>;
     }): Promise<ApplicationWorkflow[]>;
     static getApplicationWorkflowsByApplicationIds(applicationIds: string[]): Promise<ApplicationWorkflow[]>;
+    static getApplicationWorkflowWithStages(applicationId: string): Promise<any>;
+    static getWorkflowHistoryByWorkflowId(applicationWorkflowId: string): Promise<any[]>;
 }
 //# sourceMappingURL=application-workflow.repository.d.ts.map
