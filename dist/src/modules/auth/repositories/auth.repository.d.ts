@@ -258,5 +258,18 @@ export declare class AuthRepository {
         expiresAt: Date;
         revokedAt: Date | null;
     }>;
+    static findEmployerByUserId(userId: string): Promise<{
+        fullName: string;
+        phoneNumber: string | null;
+        linkedinUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        profilePicture: string | null;
+        designation: string | null;
+        department: string | null;
+        isActive: boolean;
+    } | null>;
 }
 //# sourceMappingURL=auth.repository.d.ts.map

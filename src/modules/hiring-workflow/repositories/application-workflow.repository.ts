@@ -1,4 +1,5 @@
 import prisma from "../../../config/database.js";
+import type { ApplicationWorkflow } from "@prisma/client";
 
 export class ApplicationWorkflowRepository{
     static async getWorkflowStageById(
@@ -64,14 +65,6 @@ export class ApplicationWorkflowRepository{
         })
     }
 
-    static async findEmployerByUserId(userId: string) {
-        return prisma.employer.findUnique({
-            where: {
-                userId
-            }
-        });
-    }
-
     static async getDefaultWorkflowStageForCompany(companyId: string) {
         let workflow = await prisma.workflow.findFirst({
             where: {
@@ -104,5 +97,41 @@ export class ApplicationWorkflowRepository{
         }
 
         return workflow?.stages[0] || null;
+    }
+
+    static async updateApplicationWorkflow(
+        movedByEmployerId:string,
+        applicationId:string,
+        fromStageId:string,
+        toStageId:string,
+        comment?:string,
+        assignedTo?:string
+    ): Promise<ApplicationWorkflow> {
+        return prisma.$transaction(async (tx) => {
+            const appWorkflow = await tx.applicationWorkflow.update({
+                where: {
+                    applicationId
+                },
+                data: {
+                    workflowStageId: toStageId,
+                    assignedEmployerId: assignedTo? assignedTo : null,
+                    remarks: comment? comment : null,
+                    movedAt: new Date(),
+                    updatedAt: new Date()
+                }
+            });
+
+            await tx.workflowHistory.create({
+                data: {
+                    applicationWorkflowId: appWorkflow.id,
+                    fromStageId: fromStageId ? fromStageId : null,
+                    toStageId,
+                    movedByEmployerId : movedByEmployerId ? movedByEmployerId : null,
+                    comment : comment ? comment : null
+                }
+            });
+
+            return appWorkflow;
+        });
     }
 }

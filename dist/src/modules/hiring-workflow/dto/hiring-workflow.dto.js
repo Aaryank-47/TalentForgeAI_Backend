@@ -152,5 +152,11 @@ export class WorkflowDto {
     static getHiringBoard = z.object({
         jobId: jobIdValidator,
     });
+    static moveApplicationToNextStage = z.object({
+        applicationId: uuidValidator,
+        toWorkflowStageId: uuidValidator,
+        remarks: remarksValidator.optional(),
+        assignedTo: uuidValidator.optional(),
+    });
 }
 //# sourceMappingURL=hiring-workflow.dto.js.map

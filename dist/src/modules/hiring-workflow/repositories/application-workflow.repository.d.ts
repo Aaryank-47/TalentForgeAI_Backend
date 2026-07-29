@@ -1,3 +1,4 @@
+import type { ApplicationWorkflow } from "@prisma/client";
 export declare class ApplicationWorkflowRepository {
     static getWorkflowStageById(workflowStageId: string): Promise<{
         id: string;
@@ -44,6 +45,16 @@ export declare class ApplicationWorkflowRepository {
         isEnabled: boolean;
         isFinal: boolean;
     } | null>;
+    static getDefaultWorkflowStageForCompany(companyId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        workflowId: string;
+        stageLibraryId: string;
+        order: number;
+        isEnabled: boolean;
+        isFinal: boolean;
+    } | null>;
     static findEmployerByUserId(userId: string): Promise<{
         fullName: string;
         phoneNumber: string | null;
@@ -57,15 +68,6 @@ export declare class ApplicationWorkflowRepository {
         department: string | null;
         isActive: boolean;
     } | null>;
-    static getDefaultWorkflowStageForCompany(companyId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        workflowId: string;
-        stageLibraryId: string;
-        order: number;
-        isEnabled: boolean;
-        isFinal: boolean;
-    } | null>;
+    static updateApplicationWorkflow(movedByEmployerId: string, applicationId: string, fromStageId: string, toStageId: string, comment?: string, assignedTo?: string): Promise<ApplicationWorkflow>;
 }
 //# sourceMappingURL=application-workflow.repository.d.ts.map

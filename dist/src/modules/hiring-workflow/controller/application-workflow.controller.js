@@ -14,5 +14,11 @@ export class ApplicationWorkflowController {
         const board = await ApplicationWorkflowService.getHiringBoard(jobId);
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Hiring board retrieved successfully", board));
     });
+    static moveApplicationToNextStage = asyncHandler(async (req, res) => {
+        const { applicationId, toWorkflowStageId, remarks, assignedTo } = req.body;
+        const movedByUserId = req.user.id;
+        const updatedWorkflow = await ApplicationWorkflowService.moveApplicationToNextStage(movedByUserId, applicationId, toWorkflowStageId, remarks, assignedTo);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Application moved to next stage successfully", updatedWorkflow));
+    });
 }
 //# sourceMappingURL=application-workflow.controller.js.map

@@ -39,4 +39,26 @@ export class ApplicationWorkflowController {
             );
         }
     );
+
+    static moveApplicationToNextStage = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { applicationId, toWorkflowStageId, remarks, assignedTo } = req.body;
+            const movedByUserId = (req as any).user.id;
+
+            const updatedWorkflow = await ApplicationWorkflowService.moveApplicationToNextStage(
+                movedByUserId,
+                applicationId,
+                toWorkflowStageId,
+                remarks,
+                assignedTo
+            );
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Application moved to next stage successfully", updatedWorkflow)
+            );
+        }
+    );
 }

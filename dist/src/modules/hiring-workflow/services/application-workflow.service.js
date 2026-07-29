@@ -6,6 +6,10 @@ import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { JobsRepository } from "../../jobs/repository/jobs.repository.js";
 import { JobStatus } from "@prisma/client";
 import { WorkflowRepository } from "../repositories/workflow.repository.js";
+import { AuthRepository } from "../../auth/repositories/auth.repository.js";
+import { UserRole } from "@prisma/client";
+import { CompanyMemberRole } from "@prisma/client";
+import { CompanyRepository } from "../../company/repository/company.repository.js";
 export class ApplicationWorkflowService {
     static async createApplicationWorkflow(applicationId, workflowStageId, movedByUserId) {
         const application = await ApplicationRepository.getAppliationById(applicationId);
@@ -25,7 +29,7 @@ export class ApplicationWorkflowService {
         }
         let movedByEmployerId = undefined;
         if (movedByUserId) {
-            const employer = await ApplicationWorkflowRepository.findEmployerByUserId(movedByUserId);
+            const employer = await AuthRepository.findEmployerByUserId(movedByUserId);
             if (employer) {
                 movedByEmployerId = employer.id;
             }
@@ -92,6 +96,44 @@ export class ApplicationWorkflowService {
             }
         }
         return board;
+    }
+    static async moveApplicationToNextStage(movedByUserId, applicationId, toworkflowStageId, remarks, assignedTo) {
+        // 1. Validate the user performing the move (must have an Employer profile)
+        const movedByEmployer = await ApplicationWorkflowRepository.findEmployerByUserId(movedByUserId);
+        if (!movedByEmployer) {
+            throw new NotFoundError("Employer profile not found for the current user");
+        }
+        const application = await ApplicationRepository.getAppliationById(applicationId);
+        if (!application) {
+            throw new NotFoundError("Application not found");
+        }
+        const nextWorkflowStage = await ApplicationWorkflowRepository.getWorkflowStageById(toworkflowStageId);
+        if (!nextWorkflowStage) {
+            throw new NotFoundError("Application stage not found");
+        }
+        if (application.job.workflowId !== nextWorkflowStage.workflowId) {
+            throw new BadRequestError("The workflow stage does not belong to the application's workflow");
+        }
+        let assignedEmployerId = null;
+        if (assignedTo) {
+            const assignedEmployer = await ApplicationWorkflowRepository.findEmployerByUserId(assignedTo);
+            if (!assignedEmployer) {
+                throw new NotFoundError("Assigned employer profile not found");
+            }
+            // Verify assigned user belongs to the same company
+            const isMember = await CompanyRepository.findMemberByUserAndCompany(assignedTo, application.job.companyId);
+            if (!isMember) {
+                throw new BadRequestError("Assigned user is not a member of this company");
+            }
+            assignedEmployerId = assignedEmployer.id;
+        }
+        const applicationWorkflow = await ApplicationWorkflowRepository.getApplicationWorkflowByApplicationId(applicationId);
+        if (!applicationWorkflow) {
+            throw new NotFoundError("Application workflow not found");
+        }
+        const fromStageId = applicationWorkflow.workflowStageId;
+        const updatedWorkflow = await ApplicationWorkflowRepository.updateApplicationWorkflow(movedByEmployer.id, applicationId, fromStageId, toworkflowStageId, remarks, assignedEmployerId || undefined);
+        return updatedWorkflow;
     }
 }
 //# sourceMappingURL=application-workflow.service.js.map

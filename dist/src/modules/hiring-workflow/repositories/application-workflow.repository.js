@@ -44,13 +44,6 @@ export class ApplicationWorkflowRepository {
             }
         });
     }
-    static async findEmployerByUserId(userId) {
-        return prisma.employer.findUnique({
-            where: {
-                userId
-            }
-        });
-    }
     static async getDefaultWorkflowStageForCompany(companyId) {
         let workflow = await prisma.workflow.findFirst({
             where: {
@@ -81,6 +74,39 @@ export class ApplicationWorkflowRepository {
             });
         }
         return workflow?.stages[0] || null;
+    }
+    static async findEmployerByUserId(userId) {
+        return prisma.employer.findUnique({
+            where: {
+                userId
+            }
+        });
+    }
+    static async updateApplicationWorkflow(movedByEmployerId, applicationId, fromStageId, toStageId, comment, assignedTo) {
+        return prisma.$transaction(async (tx) => {
+            const appWorkflow = await tx.applicationWorkflow.update({
+                where: {
+                    applicationId
+                },
+                data: {
+                    workflowStageId: toStageId,
+                    assignedEmployerId: assignedTo ? assignedTo : null,
+                    remarks: comment ? comment : null,
+                    movedAt: new Date(),
+                    updatedAt: new Date()
+                }
+            });
+            await tx.workflowHistory.create({
+                data: {
+                    applicationWorkflowId: appWorkflow.id,
+                    fromStageId: fromStageId ? fromStageId : null,
+                    toStageId,
+                    movedByEmployerId: movedByEmployerId ? movedByEmployerId : null,
+                    comment: comment ? comment : null
+                }
+            });
+            return appWorkflow;
+        });
     }
 }
 //# sourceMappingURL=application-workflow.repository.js.map

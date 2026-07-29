@@ -431,4 +431,12 @@ export class AuthRepository {
             data,
         });
     }
+
+    static async findEmployerByUserId(userId: string) {
+        return prisma.employer.findUnique({
+            where: {
+                userId
+            }
+        });
+    }
 }

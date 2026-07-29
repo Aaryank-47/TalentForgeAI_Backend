@@ -216,6 +216,13 @@ export class WorkflowDto{
     static getHiringBoard = z.object({
         jobId: jobIdValidator,
     });
+
+    static moveApplicationToNextStage = z.object({
+        applicationId: uuidValidator,
+        toWorkflowStageId: uuidValidator,
+        remarks: remarksValidator.optional(),
+        assignedTo: uuidValidator.optional(),
+    });
 }
 
 export type CreateWorkflowDto = z.infer<typeof WorkflowDto.createWorkflow>;
@@ -256,3 +263,4 @@ export type CancelApplicationDto = z.infer<typeof WorkflowDto.cancelApplication>
 export type RestartStageDto = z.infer<typeof WorkflowDto.restartStage>;
 export type CreateCustomStageDto = z.infer<typeof WorkflowDto.createCustomStage>;
 export type GetHiringBoardDto = z.infer<typeof WorkflowDto.getHiringBoard>;
+export type MoveApplicationToNextStageDto = z.infer<typeof WorkflowDto.moveApplicationToNextStage>;
