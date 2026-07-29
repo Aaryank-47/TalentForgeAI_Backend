@@ -1,6 +1,6 @@
 import { type Prisma } from "@prisma/client";
 import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces/auth.interface.js";
-import type { EmployerCompanyInput } from "../../employer/interfaces/employer.interface.js";
+import type { EmployerCompanyInput } from "../interfaces/auth.interface.js";
 import { companySelect } from "../../../common/prisma.select/company.select.js";
 import { employerSelect } from "../../../common/prisma.select/employer.select.js";
 import type { RegisterCandidateInput, RegisterEmployerInput, RegisterCompanyOwnerInput, AuthUserView } from "../interfaces/auth.interface.js";
@@ -57,6 +57,13 @@ export declare class AuthRepository {
         lastLoginAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        deletedAt: Date | null;
+        deletedById: string | null;
+        suspendedAt: Date | null;
+        suspendedById: string | null;
+        suspendedReason: string | null;
+        restoredAt: Date | null;
+        restoredById: string | null;
     }>;
     static updateUserPassword(userId: string, newPassword: string): Promise<{
         email: string;
@@ -72,6 +79,13 @@ export declare class AuthRepository {
         lastLoginAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        deletedAt: Date | null;
+        deletedById: string | null;
+        suspendedAt: Date | null;
+        suspendedById: string | null;
+        suspendedReason: string | null;
+        restoredAt: Date | null;
+        restoredById: string | null;
     }>;
     static findRefreshToken(token: string): Promise<{
         token: string;
@@ -102,6 +116,13 @@ export declare class AuthRepository {
         lastLoginAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        deletedAt: Date | null;
+        deletedById: string | null;
+        suspendedAt: Date | null;
+        suspendedById: string | null;
+        suspendedReason: string | null;
+        restoredAt: Date | null;
+        restoredById: string | null;
     }>;
     static findOTPByUserId(userId: string): Promise<{
         otp: string | null;
@@ -121,6 +142,13 @@ export declare class AuthRepository {
         lastLoginAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        deletedAt: Date | null;
+        deletedById: string | null;
+        suspendedAt: Date | null;
+        suspendedById: string | null;
+        suspendedReason: string | null;
+        restoredAt: Date | null;
+        restoredById: string | null;
     }>;
     static markEmailVerified(userId: string): Promise<{
         email: string;
@@ -136,6 +164,13 @@ export declare class AuthRepository {
         lastLoginAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        deletedAt: Date | null;
+        deletedById: string | null;
+        suspendedAt: Date | null;
+        suspendedById: string | null;
+        suspendedReason: string | null;
+        restoredAt: Date | null;
+        restoredById: string | null;
     }>;
     static saveResetPasswordToken(userId: string, resetPasswordToken: string, resetPasswordTokenExpiresAt: Date): Promise<{
         email: string;
@@ -151,6 +186,13 @@ export declare class AuthRepository {
         lastLoginAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        deletedAt: Date | null;
+        deletedById: string | null;
+        suspendedAt: Date | null;
+        suspendedById: string | null;
+        suspendedReason: string | null;
+        restoredAt: Date | null;
+        restoredById: string | null;
     }>;
     static findResetPasswordTokenByUserId(userId: string): Promise<{
         resetPasswordToken: string | null;
@@ -170,6 +212,13 @@ export declare class AuthRepository {
         lastLoginAt: Date | null;
         createdAt: Date;
         updatedAt: Date;
+        deletedAt: Date | null;
+        deletedById: string | null;
+        suspendedAt: Date | null;
+        suspendedById: string | null;
+        suspendedReason: string | null;
+        restoredAt: Date | null;
+        restoredById: string | null;
     }>;
     static updateNewPasswordForUser(userId: string, newPassword: string): Promise<void>;
     static createCandidateRegistration(data: RegisterCandidateInput): Promise<{

@@ -60,5 +60,6 @@ export declare class CompanyRepository {
     static updateInvitationToken(invitationId: string, token: string, expiresAt: Date): Promise<ResendInvitationResult>;
     static deactivateCompany(companyId: string): Promise<CompanyView>;
     static activateCompany(companyId: string): Promise<CompanyView>;
+    static findCompanyByName(companyName: string): Promise<Company | null>;
 }
 //# sourceMappingURL=company.repository.d.ts.map

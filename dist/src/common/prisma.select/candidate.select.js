@@ -32,4 +32,46 @@ export const candidateProfileSelect = {
     createdAt: true,
     updatedAt: true,
 };
+export const resume = {
+    id: true,
+    resumeName: true,
+    resumeUrl: true,
+    fileSize: true,
+    uploadedAt: true,
+};
+export const skill = {
+    id: true,
+    name: true,
+    yearsOfExperience: true,
+    candidateId: true
+};
+export const education = {
+    id: true,
+    candidateId: true,
+    collegeName: true,
+    degree: true,
+    fieldOfStudy: true,
+    currentlyStudying: true,
+    startDate: true,
+    endDate: true,
+    gradingSystem: true,
+    gradeText: true,
+    grade: true,
+    createdAt: true,
+    updatedAt: true
+};
+export const experience = {
+    id: true,
+    candidateId: true,
+    companyName: true,
+    designation: true,
+    employmentType: true,
+    description: true,
+    location: true,
+    startDate: true,
+    endDate: true,
+    currentlyWorking: true,
+    createdAt: true,
+    updatedAt: true
+};
 //# sourceMappingURL=candidate.select.js.map

@@ -3,6 +3,7 @@ export const MESSAGE = {
     SUCCESS: "Operation completed successfully.",
     SERVER_ERROR: "Internal Server Error.",
     ROUTE_NOT_FOUND: "Route not found.",
+    DATA_FETCHED_SUCCESSFULLY: "Data fetched successfully.",
     // Authentication
     LOGIN_SUCCESS: "Login successful.",
     LOGOUT_SUCCESS: "Logout successful.",
@@ -20,6 +21,7 @@ export const MESSAGE = {
     // User
     USER_CREATED: "User created successfully.",
     USER_UPDATED: "User updated successfully.",
+    USER_PROFILE_UPDATED: "User profile updated successfully.",
     USER_DELETED: "User deleted successfully.",
     USER_NOT_FOUND: "User not found.",
     // Validation
@@ -57,6 +59,15 @@ export const MESSAGE = {
     JOB_STATUS_UPDATED: "Job status updated successfully.",
     JOB_MEMBER_ASSIGNED: "Company member assigned to job successfully.",
     JOB_MEMBERS_LISTED: "Assigned company members fetched successfully.",
-    JOB_MEMBER_REMOVED: "Company member removed from job successfully."
+    JOB_MEMBER_REMOVED: "Company member removed from job successfully.",
+    // Application
+    APPLICATION_APPLIED: "Application submitted successfully.",
+    APPLICATION_FETCHED: "Application details fetched successfully.",
+    APPLICATION_NOT_FOUND: "Application not found.",
+    APPLICATION_DELETED: "Application deleted successfully.",
+    APPLICATION_UPDATED: "Application updated successfully.",
+    APPLICATION_NOT_APPLIED: "Application not found.",
+    APPLICATION_ALREADY_APPLIED: "Application already submitted.",
+    APPLICATION_WITHDRAWN: "Application withdrawn successfully."
 };
 //# sourceMappingURL=messages.js.map

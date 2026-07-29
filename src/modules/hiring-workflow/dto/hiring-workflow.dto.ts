@@ -19,7 +19,8 @@ import {
     workflowHistoryIdValidator,
     commentValidator,
     stageLibraryIdValidator,
-    companyIdValidator
+    companyIdValidator,
+    jobIdValidator
 } from "../../../common/validators/validators.js"
 
 
@@ -211,6 +212,10 @@ export class WorkflowDto{
         stageLibraryId: stageLibraryIdValidator,
         remarks: remarksValidator,
     });
+
+    static getHiringBoard = z.object({
+        jobId: jobIdValidator,
+    });
 }
 
 export type CreateWorkflowDto = z.infer<typeof WorkflowDto.createWorkflow>;
@@ -250,3 +255,4 @@ export type HoldApplicationDto = z.infer<typeof WorkflowDto.holdApplication>;
 export type CancelApplicationDto = z.infer<typeof WorkflowDto.cancelApplication>;
 export type RestartStageDto = z.infer<typeof WorkflowDto.restartStage>;
 export type CreateCustomStageDto = z.infer<typeof WorkflowDto.createCustomStage>;
+export type GetHiringBoardDto = z.infer<typeof WorkflowDto.getHiringBoard>;

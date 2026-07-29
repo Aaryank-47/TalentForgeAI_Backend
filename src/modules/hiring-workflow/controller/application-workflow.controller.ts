@@ -24,4 +24,19 @@ export class ApplicationWorkflowController {
             );
         }
     );
+
+    static getHiringBoard = asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const { jobId } = req.params;
+
+            const board = await ApplicationWorkflowService.getHiringBoard(jobId as string);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Hiring board retrieved successfully", board)
+            );
+        }
+    );
 }

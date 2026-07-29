@@ -65,3 +65,24 @@ export interface CompanyWorkflowView {
     status: WorkflowStatus;
     stages: StageView[];
 }
+
+export interface HiringBoardApplicationView {
+    id: string;
+    candidateId: string;
+    status: string;
+    appliedAt: Date;
+    candidate: {
+        id: string;
+        fullName: string;
+        user: {
+            email: string;
+        };
+    };
+}
+
+export interface HiringBoardView {
+    stageId: string;
+    stageName: string;
+    order: number;
+    applications: HiringBoardApplicationView[];
+}

@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { removeUndefined } from "../../../common/helper/object.helper.js";
 export function toJobCreateInput(companyId, data, slug, createdById) {
-    return {
+    const input = {
         company: {
             connect: {
                 id: companyId,
@@ -34,6 +34,14 @@ export function toJobCreateInput(companyId, data, slug, createdById) {
             })),
         },
     };
+    if (data.workflowId) {
+        input.workflow = {
+            connect: {
+                id: data.workflowId,
+            },
+        };
+    }
+    return input;
 }
 export function toJobUpdateInput(jobPayload) {
     const data = removeUndefined({
@@ -68,6 +76,13 @@ export function toJobUpdateInput(jobPayload) {
             create: jobPayload.benefits.map((benefit) => ({
                 benefit,
             })),
+        };
+    }
+    if (jobPayload.workflowId !== undefined) {
+        data.workflow = {
+            connect: {
+                id: jobPayload.workflowId,
+            },
         };
     }
     return data;

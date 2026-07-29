@@ -6,6 +6,7 @@ import { CompanyMemberRole, JobStatus, CompanyMemberStatus, Prisma } from "@pris
 import { JobsRepository } from "../repository/jobs.repository.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
+import { WorkflowRepository } from "../../hiring-workflow/repositories/workflow.repository.js";
 export class createJobService {
     static async createJob(companyId, jobPayload, userId, companyMemberRole) {
         const company = await CompanyRepository.findCompanyById(companyId);
@@ -13,6 +14,13 @@ export class createJobService {
             throw new NotFoundError("Company not found");
         }
         const createSlug = SlugHelper.generateUniqueJobSlug(jobPayload.title, company.companyName);
+        const workflow = await WorkflowRepository.getWorkflowById(jobPayload.workflowId);
+        if (!workflow) {
+            throw new NotFoundError("Workflow not found");
+        }
+        if (workflow.companyId !== companyId) {
+            throw new NotFoundError("Workflow does not belong to this company");
+        }
         const job = await JobsRepository.createJob(companyId, jobPayload, createSlug, userId);
         const author = await AuthRepository.findUserById(userId);
         if (!author) {
@@ -46,6 +54,15 @@ export class createJobService {
         const company = await CompanyRepository.findCompanyById(params.companyId);
         if (!company) {
             throw new NotFoundError("Company not found");
+        }
+        if (jobPayload.workflowId !== undefined) {
+            const workflow = await WorkflowRepository.getWorkflowById(jobPayload.workflowId);
+            if (!workflow) {
+                throw new NotFoundError("Workflow not found");
+            }
+            if (workflow.companyId !== params.companyId) {
+                throw new NotFoundError("Workflow does not belong to this company");
+            }
         }
         const job = await JobsRepository.findJobById(params.jobId);
         if (!job) {

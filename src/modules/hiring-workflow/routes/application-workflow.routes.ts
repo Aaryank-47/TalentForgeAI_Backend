@@ -15,4 +15,12 @@ ApplicationWorkflowRoutes.post(
     ApplicationWorkflowController.createApplicationWorkflow
 );
 
+ApplicationWorkflowRoutes.get(
+    "/application-workflow/hiring-board/:jobId",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(WorkflowDto.getHiringBoard, "params"),
+    ApplicationWorkflowController.getHiringBoard
+);
+
 export default ApplicationWorkflowRoutes;

@@ -1,4 +1,4 @@
-import type { CompanyMemberRole, EmploymentType, WorkplaceType, SalaryPeriod, JobSkill as Skill, JobBenefit as Benefit } from "@prisma/client";
+import type { CompanyMemberRole, EmploymentType, WorkplaceType, SalaryPeriod, JobSkill as Skill, JobBenefit as Benefit, Workflow } from "@prisma/client";
 import type { AuthUserView } from "../../auth/interfaces/auth.interface.js";
 export interface Job {
     id: string;
@@ -24,6 +24,7 @@ export interface JobView extends Job {
     benefits: Benefit[];
     companyMemberRole: CompanyMemberRole;
     author: AuthUserView;
+    workflow: Workflow;
 }
 export interface JobsListView {
     id: string;

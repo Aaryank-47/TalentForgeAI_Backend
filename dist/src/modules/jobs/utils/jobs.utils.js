@@ -35,6 +35,7 @@ export function toJobView(job, author, companyMemberRole) {
         isPublished: job.status === JobStatus.PUBLISHED,
         companyMemberRole,
         author,
+        workflow: job.workflow
     };
 }
 //# sourceMappingURL=jobs.utils.js.map

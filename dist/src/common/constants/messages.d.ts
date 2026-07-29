@@ -2,6 +2,7 @@ export declare const MESSAGE: {
     readonly SUCCESS: "Operation completed successfully.";
     readonly SERVER_ERROR: "Internal Server Error.";
     readonly ROUTE_NOT_FOUND: "Route not found.";
+    readonly DATA_FETCHED_SUCCESSFULLY: "Data fetched successfully.";
     readonly LOGIN_SUCCESS: "Login successful.";
     readonly LOGOUT_SUCCESS: "Logout successful.";
     readonly REGISTER_SUCCESS: "Registration successful. Please verify your email.";
@@ -16,6 +17,7 @@ export declare const MESSAGE: {
     readonly INVALID_TOKEN: "Invalid token.";
     readonly USER_CREATED: "User created successfully.";
     readonly USER_UPDATED: "User updated successfully.";
+    readonly USER_PROFILE_UPDATED: "User profile updated successfully.";
     readonly USER_DELETED: "User deleted successfully.";
     readonly USER_NOT_FOUND: "User not found.";
     readonly VALIDATION_FAILED: "Validation failed.";
@@ -51,5 +53,13 @@ export declare const MESSAGE: {
     readonly JOB_MEMBER_ASSIGNED: "Company member assigned to job successfully.";
     readonly JOB_MEMBERS_LISTED: "Assigned company members fetched successfully.";
     readonly JOB_MEMBER_REMOVED: "Company member removed from job successfully.";
+    readonly APPLICATION_APPLIED: "Application submitted successfully.";
+    readonly APPLICATION_FETCHED: "Application details fetched successfully.";
+    readonly APPLICATION_NOT_FOUND: "Application not found.";
+    readonly APPLICATION_DELETED: "Application deleted successfully.";
+    readonly APPLICATION_UPDATED: "Application updated successfully.";
+    readonly APPLICATION_NOT_APPLIED: "Application not found.";
+    readonly APPLICATION_ALREADY_APPLIED: "Application already submitted.";
+    readonly APPLICATION_WITHDRAWN: "Application withdrawn successfully.";
 };
 //# sourceMappingURL=messages.d.ts.map

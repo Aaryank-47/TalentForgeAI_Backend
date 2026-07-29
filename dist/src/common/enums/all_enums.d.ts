@@ -16,7 +16,7 @@ export declare enum AccountStatus {
 }
 export declare enum JobStatus {
     DRAFT = "DRAFT",
-    OPEN = "OPEN",
+    PUBLISHED = "PUBLISHED",
     PAUSED = "PAUSED",
     CLOSED = "CLOSED",
     FILLED = "FILLED",
@@ -25,15 +25,10 @@ export declare enum JobStatus {
 }
 export declare enum ApplicationStatus {
     APPLIED = "APPLIED",
-    SHORTLISTED = "SHORTLISTED",
-    ASSESSMENT_PENDING = "ASSESSMENT_PENDING",
-    ASSESSMENT_COMPLETED = "ASSESSMENT_COMPLETED",
-    INTERVIEW_SCHEDULED = "INTERVIEW_SCHEDULED",
-    INTERVIEW_COMPLETED = "INTERVIEW_COMPLETED",
-    OFFER_SENT = "OFFER_SENT",
+    INREVIEW = "INREVIEW",
+    WITHDRAWN = "WITHDRAWN",
     HIRED = "HIRED",
-    REJECTED = "REJECTED",
-    WITHDRAWN = "WITHDRAWN"
+    REJECTED = "REJECTED"
 }
 export declare enum InterviewStatus {
     SCHEDULED = "SCHEDULED",
@@ -42,5 +37,13 @@ export declare enum InterviewStatus {
     COMPLETED = "COMPLETED",
     CANCELLED = "CANCELLED",
     NO_SHOW = "NO_SHOW"
+}
+export declare enum WorkflowStatus {
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE"
+}
+export declare enum StageType {
+    SYSTEM = "SYSTEM",
+    CUSTOM = "CUSTOM"
 }
 //# sourceMappingURL=all_enums.d.ts.map

@@ -19,7 +19,7 @@ export var AccountStatus;
 export var JobStatus;
 (function (JobStatus) {
     JobStatus["DRAFT"] = "DRAFT";
-    JobStatus["OPEN"] = "OPEN";
+    JobStatus["PUBLISHED"] = "PUBLISHED";
     JobStatus["PAUSED"] = "PAUSED";
     JobStatus["CLOSED"] = "CLOSED";
     JobStatus["FILLED"] = "FILLED";
@@ -29,15 +29,10 @@ export var JobStatus;
 export var ApplicationStatus;
 (function (ApplicationStatus) {
     ApplicationStatus["APPLIED"] = "APPLIED";
-    ApplicationStatus["SHORTLISTED"] = "SHORTLISTED";
-    ApplicationStatus["ASSESSMENT_PENDING"] = "ASSESSMENT_PENDING";
-    ApplicationStatus["ASSESSMENT_COMPLETED"] = "ASSESSMENT_COMPLETED";
-    ApplicationStatus["INTERVIEW_SCHEDULED"] = "INTERVIEW_SCHEDULED";
-    ApplicationStatus["INTERVIEW_COMPLETED"] = "INTERVIEW_COMPLETED";
-    ApplicationStatus["OFFER_SENT"] = "OFFER_SENT";
+    ApplicationStatus["INREVIEW"] = "INREVIEW";
+    ApplicationStatus["WITHDRAWN"] = "WITHDRAWN";
     ApplicationStatus["HIRED"] = "HIRED";
     ApplicationStatus["REJECTED"] = "REJECTED";
-    ApplicationStatus["WITHDRAWN"] = "WITHDRAWN";
 })(ApplicationStatus || (ApplicationStatus = {}));
 export var InterviewStatus;
 (function (InterviewStatus) {
@@ -48,4 +43,14 @@ export var InterviewStatus;
     InterviewStatus["CANCELLED"] = "CANCELLED";
     InterviewStatus["NO_SHOW"] = "NO_SHOW";
 })(InterviewStatus || (InterviewStatus = {}));
+export var WorkflowStatus;
+(function (WorkflowStatus) {
+    WorkflowStatus["ACTIVE"] = "ACTIVE";
+    WorkflowStatus["INACTIVE"] = "INACTIVE";
+})(WorkflowStatus || (WorkflowStatus = {}));
+export var StageType;
+(function (StageType) {
+    StageType["SYSTEM"] = "SYSTEM";
+    StageType["CUSTOM"] = "CUSTOM";
+})(StageType || (StageType = {}));
 //# sourceMappingURL=all_enums.js.map

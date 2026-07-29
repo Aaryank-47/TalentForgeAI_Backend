@@ -10,6 +10,7 @@ export declare const phoneNumberValidator: z.ZodString;
 export declare const profilePictureValidator: z.ZodOptional<z.ZodString>;
 export declare const headlineValidator: z.ZodOptional<z.ZodString>;
 export declare const bioValidator: z.ZodOptional<z.ZodString>;
+export declare const dateOfBirthValidator: z.ZodPipe<z.ZodString, z.ZodTransform<Date, string>>;
 export declare const genderValidator: z.ZodOptional<z.ZodEnum<{
     MALE: "MALE";
     FEMALE: "FEMALE";
@@ -66,10 +67,10 @@ export declare const companyIdValidator: z.ZodString;
 export declare const jobTitleValidator: z.ZodString;
 export declare const jobDescriptionValidator: z.ZodString;
 export declare const employmentTypeValidator: z.ZodEnum<{
-    INTERN: "INTERN";
     FULL_TIME: "FULL_TIME";
     PART_TIME: "PART_TIME";
     CONTRACT: "CONTRACT";
+    INTERN: "INTERN";
     FREELANCE: "FREELANCE";
     TEMPORARY: "TEMPORARY";
     APPRENTICESHIP: "APPRENTICESHIP";
@@ -84,9 +85,9 @@ export declare const salaryPeriodValidator: z.ZodOptional<z.ZodEnum<{
     YEARLY: "YEARLY";
 }>>;
 export declare const workplaceTypeValidator: z.ZodEnum<{
+    ONSITE: "ONSITE";
     REMOTE: "REMOTE";
     HYBRID: "HYBRID";
-    ONSITE: "ONSITE";
 }>;
 export declare const jobStatusValidator: z.ZodEnum<{
     DRAFT: "DRAFT";
@@ -108,11 +109,12 @@ export declare const hideSalaryValidator: z.ZodOptional<z.ZodBoolean>;
 export declare const applicationDeadlineValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
 export declare const skillsValidator: z.ZodArray<z.ZodString>;
 export declare const benefitsValidator: z.ZodOptional<z.ZodArray<z.ZodString>>;
+export declare const resumeIdValidator: z.ZodString;
 export declare const candidateIdValidator: z.ZodString;
 export declare const resumeFileValidator: z.ZodString;
 export declare const resumeTitleValidator: z.ZodString;
+export declare const applicationIdValidator: z.ZodString;
 export declare const jobIdValidator: z.ZodString;
-export declare const resumeIdValidator: z.ZodString;
 export declare const coverLetterValidator: z.ZodOptional<z.ZodString>;
 export declare const skillNameValidator: z.ZodString;
 export declare const skillExperienceValidator: z.ZodOptional<z.ZodNumber>;
@@ -131,4 +133,28 @@ export declare const experienceEndDateValidator: z.ZodOptional<z.ZodCoercedDate<
 export declare const isCurrentJobValidator: z.ZodBoolean;
 export declare const experienceDescriptionValidator: z.ZodOptional<z.ZodString>;
 export declare const refreshTokenValidator: z.ZodString;
+export declare const workflowIdValidator: z.ZodString;
+export declare const workflowNameValidator: z.ZodString;
+export declare const workflowDescriptionValidator: z.ZodOptional<z.ZodString>;
+export declare const workflowStatusValidator: z.ZodEnum<{
+    ACTIVE: "ACTIVE";
+    INACTIVE: "INACTIVE";
+}>;
+export declare const workflowIsDefaultValidator: z.ZodBoolean;
+export declare const stageLibraryIdValidator: z.ZodString;
+export declare const stageNameValidator: z.ZodString;
+export declare const stageDescriptionValidator: z.ZodOptional<z.ZodString>;
+export declare const stageTypeValidator: z.ZodEnum<{
+    SYSTEM: "SYSTEM";
+    CUSTOM: "CUSTOM";
+}>;
+export declare const stageIsActiveValidator: z.ZodBoolean;
+export declare const workflowStageIdValidator: z.ZodString;
+export declare const stageOrderValidator: z.ZodNumber;
+export declare const stageIsEnabledValidator: z.ZodBoolean;
+export declare const stageIsFinalValidator: z.ZodBoolean;
+export declare const applicationWorkflowIdValidator: z.ZodString;
+export declare const remarksValidator: z.ZodOptional<z.ZodString>;
+export declare const workflowHistoryIdValidator: z.ZodString;
+export declare const commentValidator: z.ZodOptional<z.ZodString>;
 //# sourceMappingURL=validators.d.ts.map

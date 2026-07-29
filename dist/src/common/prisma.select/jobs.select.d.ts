@@ -38,5 +38,32 @@ export declare const JobSelect: {
             readonly benefit: true;
         };
     };
+    readonly workflowId: true;
+    readonly workflow: {
+        readonly select: {
+            readonly id: true;
+            readonly name: true;
+            readonly description: true;
+            readonly status: true;
+            readonly stages: {
+                readonly select: {
+                    readonly id: true;
+                    readonly workflowId: true;
+                    readonly stageLibraryId: true;
+                    readonly order: true;
+                    readonly stageLibrary: {
+                        readonly select: {
+                            readonly id: true;
+                            readonly name: true;
+                            readonly type: true;
+                        };
+                    };
+                };
+                readonly orderBy: {
+                    readonly order: "asc";
+                };
+            };
+        };
+    };
 };
 //# sourceMappingURL=jobs.select.d.ts.map

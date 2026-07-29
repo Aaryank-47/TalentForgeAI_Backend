@@ -18,6 +18,36 @@ export class WorkflowRepository {
         })
     }
 
+    static async getWorkflowStagesByWorkflowId(
+        workflowId: string
+    ):Promise<any>{
+        return prisma.workflow.findUnique({
+            where:{
+                id : workflowId
+            },
+            select : {
+                stages : {
+                    select : {
+                        id : true,
+                        workflowId : true,
+                        stageLibraryId : true,
+                        order : true,
+                        stageLibrary : {
+                            select : {
+                                id : true,
+                                name : true,
+                                type : true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        order: "asc"
+                    }
+                }
+            }
+        })
+    }
+
     static async createWorkflow(
         name: string,
         description: string,

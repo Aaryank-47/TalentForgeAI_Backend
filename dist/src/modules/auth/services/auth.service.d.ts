@@ -1,6 +1,6 @@
 import type { RegisterCandidateDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
-import type { RegisterEmployerDto } from "../dto/registerEmployer.dto.js";
-import type { RegisterCompanyOwnerDto } from "../dto/registerCompanyOwner.dto.js";
+import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
+import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
 import type { RegisterCandidateResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js";
 import type { AuthTokens } from "../interfaces/auth.interface.js";
@@ -18,8 +18,8 @@ export declare class AuthService {
     static forgotPassword(email: string): Promise<void>;
     static verifyOtp(payload: VerifyOtpDto): Promise<string>;
     static resetPassword(resetPasswordToken: string, newPassword: string): Promise<void>;
-    static registerEmployer(payload: RegisterEmployerDto): Promise<RegisterEmployerResult>;
-    static registerCompanyOwner(payload: RegisterCompanyOwnerDto): Promise<RegisterCompanyOwnerResult>;
+    static registerEmployer(payload: RegisterEmployerDtoType): Promise<RegisterEmployerResult>;
+    static registerCompanyOwner(payload: RegisterCompanyOwnerDtoType): Promise<RegisterCompanyOwnerResult>;
     static verifyEmail(payload: VerifyEmailDto): Promise<void>;
     static resendVerificationEmail(payload: ResendVerificationDto): Promise<void>;
 }

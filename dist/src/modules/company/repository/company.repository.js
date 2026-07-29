@@ -282,5 +282,15 @@ export class CompanyRepository {
             select: companySelect,
         });
     }
+    static async findCompanyByName(companyName) {
+        return prisma.company.findFirst({
+            where: {
+                companyName: {
+                    equals: companyName,
+                    mode: 'insensitive'
+                }
+            }
+        });
+    }
 }
 //# sourceMappingURL=company.repository.js.map

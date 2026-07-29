@@ -16,6 +16,30 @@ export class ApplicationRepository {
         })
     }
 
+    static async getJobApplicationByJobId(
+        jobId : string
+    ){
+        return prisma.application.findMany({
+            where: {
+                jobId
+            },
+            include: {
+                candidate: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        user: {
+                            select: {
+                                email: true
+                            }
+                        }
+                    }
+                },
+                applicationWorkflow: true
+            }
+        })
+    }
+
     static async getResume(resumeId: string) {
         return prisma.resume.findUnique({
             where: {
