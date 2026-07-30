@@ -4,6 +4,9 @@ export class ApplicationWorkflowRepository {
         return prisma.workflowStage.findUnique({
             where: {
                 id: workflowStageId
+            },
+            include: {
+                stageLibrary: true
             }
         });
     }

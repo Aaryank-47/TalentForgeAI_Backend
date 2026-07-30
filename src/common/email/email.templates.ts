@@ -136,4 +136,44 @@ export class emailTemplates {
             unsubscribeLink
         };
     }
+
+    static stageUpdateTemplate = (
+        candidateName: string,
+        companyName: string,
+        nextStageName: string,
+        nextRoundDate?: string
+    ): EmailTemplate => {
+        const unsubscribeLink = `${this.baseUnsubscribeLink}?type=updates`;
+        const dateHtml = nextRoundDate 
+            ? `<p style="font-size: 16px;"><strong>Scheduled Date/Time:</strong> ${new Date(nextRoundDate).toLocaleString()}</p>` 
+            : "";
+        const dateText = nextRoundDate 
+            ? `\nScheduled Date/Time: ${new Date(nextRoundDate).toLocaleString()}` 
+            : "";
+            
+        return {
+            subject: `Application Update: ${companyName}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #0056b3; padding: 20px; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 24px;">${companyName}</h2>
+                    </div>
+                    <div style="padding: 30px;">
+                        <h1 style="font-size: 22px; color: #333; margin-top: 0;">Application Stage Update</h1>
+                        <p style="font-size: 16px;">Dear ${candidateName},</p>
+                        <p style="font-size: 16px;">We are pleased to inform you that your application has been moved to the next stage of our hiring process:</p>
+                        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #0056b3; margin: 20px 0;">
+                            <p style="font-size: 18px; margin: 0 0 10px 0;"><strong>Next Round:</strong> ${nextStageName}</p>
+                            ${dateHtml}
+                        </div>
+                        <p style="font-size: 16px;">The team will be in touch with you shortly with further details. If you have any questions, please feel free to reply to this email.</p>
+                        <p style="font-size: 16px; margin-top: 25px;">Best regards,<br/>The Hiring Team at ${companyName}</p>
+                    </div>
+                    ${this.getFooterHtml(unsubscribeLink)}
+                </div>
+            `,
+            text: `Dear ${candidateName},\n\nWe are pleased to inform you that your application has been moved to the next stage: ${nextStageName}.${dateText}\n\nThe team will be in touch with you shortly with further details. If you have any questions, please feel free to reply to this email.\n\nBest regards,\nThe Hiring Team at ${companyName}${this.getFooterText(unsubscribeLink)}`,
+            unsubscribeLink
+        };
+    }
 }

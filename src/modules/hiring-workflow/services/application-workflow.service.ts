@@ -9,9 +9,9 @@ import type { ApplicationWorkflow } from "@prisma/client";
 import { WorkflowRepository } from "../repositories/workflow.repository.js";
 import type { HiringBoardView } from "../interfaces/hiring-workflow.interface.js";
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
-import { UserRole } from "@prisma/client";
-import { CompanyMemberRole } from "@prisma/client";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
+import { EmailService } from "../../../common/email/email.service.js";
+import { emailTemplates } from "../../../common/email/email.templates.js";
 
 export class ApplicationWorkflowService {
     static async createApplicationWorkflow(
@@ -125,7 +125,8 @@ export class ApplicationWorkflowService {
         applicationId: string,
         toworkflowStageId: string,
         remarks?: string,
-        assignedTo?: string
+        assignedTo?: string,
+        nextRoundDate?: string
     ): Promise<ApplicationWorkflow> {
         const movedByEmployer = await AuthRepository.findEmployerByUserId(movedByUserId);
         if (!movedByEmployer) {
@@ -174,6 +175,38 @@ export class ApplicationWorkflowService {
             assignedEmployerId || undefined
         );
 
+        // Send automated stage update email
+        const candidateEmail = (application as any).candidate?.user?.email;
+        const candidateName = (application as any).candidate?.fullName;
+        const companyName = (application as any).job?.company?.companyName || "Company";
+        const companyEmail = (application as any).job?.company?.companyEmail;
+        const nextStageName = (nextWorkflowStage as any).stageLibrary?.name || "Next Stage";
+        
+        const hrEmail = (movedByEmployer as any).user?.email;
+        const fromEmail = companyEmail || hrEmail;
+        const fromString = fromEmail ? `"${companyName}" <${fromEmail}>` : undefined;
+        const replyToString = fromEmail ? `"${companyName}" <${fromEmail}>` : undefined;
+
+        if (candidateEmail && candidateName) {
+            const emailTemplate = emailTemplates.stageUpdateTemplate(
+                candidateName,
+                companyName,
+                nextStageName,
+                nextRoundDate
+            );
+
+            EmailService.sendEmail({
+                to: candidateEmail,
+                subject: emailTemplate.subject,
+                html: emailTemplate.html,
+                ...(emailTemplate.text ? { text: emailTemplate.text } : {}),
+                ...(fromString ? { from: fromString } : {}),
+                ...(replyToString ? { replyTo: replyToString } : {})
+            }).catch((err) => {
+                console.error("Failed to send stage update email to candidate:", err);
+            });
+        }
+
         return updatedWorkflow;
     }
 
@@ -182,7 +215,8 @@ export class ApplicationWorkflowService {
         applicationIds: string[],
         toworkflowStageId: string,
         remarks?: string,
-        assignedTo?: string
+        assignedTo?: string,
+        nextRoundDate?: string
     ): Promise<ApplicationWorkflow[]> {
         if (applicationIds.length === 0) {
             throw new BadRequestError("At least one application ID is required");
@@ -256,13 +290,50 @@ export class ApplicationWorkflowService {
             };
         });
 
-        return ApplicationWorkflowRepository.bulkUpdateApplicationWorkflows({
+        const updatedWorkflows = await ApplicationWorkflowRepository.bulkUpdateApplicationWorkflows({
             movedByEmployerId: movedByEmployer.id,
             toStageId: toworkflowStageId,
             ...(remarks ? { comment: remarks } : {}),
             ...(assignedEmployerId ? { assignedTo: assignedEmployerId } : {}),
             items,
         });
+
+        // Send automated stage update emails to all candidates
+        const companyName = (applications[0] as any)?.job?.company?.companyName || "Company";
+        const companyEmail = (applications[0] as any)?.job?.company?.companyEmail;
+        const nextStageName = (nextWorkflowStage as any).stageLibrary?.name || "Next Stage";
+        
+        const hrEmail = (movedByEmployer as any).user?.email;
+        const fromEmail = companyEmail || hrEmail;
+        const fromString = fromEmail ? `"${companyName}" <${fromEmail}>` : undefined;
+        const replyToString = fromEmail ? `"${companyName}" <${fromEmail}>` : undefined;
+
+        for (const app of applications) {
+            const candidateEmail = (app as any).candidate?.user?.email;
+            const candidateName = (app as any).candidate?.fullName;
+
+            if (candidateEmail && candidateName) {
+                const emailTemplate = emailTemplates.stageUpdateTemplate(
+                    candidateName,
+                    companyName,
+                    nextStageName,
+                    nextRoundDate
+                );
+
+                EmailService.sendEmail({
+                    to: candidateEmail,
+                    subject: emailTemplate.subject,
+                    html: emailTemplate.html,
+                    ...(emailTemplate.text ? { text: emailTemplate.text } : {}),
+                    ...(fromString ? { from: fromString } : {}),
+                    ...(replyToString ? { replyTo: replyToString } : {})
+                }).catch((err) => {
+                    console.error(`Failed to send bulk stage update email to candidate ${candidateName}:`, err);
+                });
+            }
+        }
+
+        return updatedWorkflows;
     }
 
     static async getCandidateWorkflow(

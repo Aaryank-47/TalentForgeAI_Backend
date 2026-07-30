@@ -1,6 +1,17 @@
 import type { ApplicationWorkflow } from "@prisma/client";
 export declare class ApplicationWorkflowRepository {
-    static getWorkflowStageById(workflowStageId: string): Promise<{
+    static getWorkflowStageById(workflowStageId: string): Promise<({
+        stageLibrary: {
+            type: import("@prisma/client").$Enums.StageType;
+            companyId: string | null;
+            description: string | null;
+            name: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            isActive: boolean;
+        };
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -9,7 +20,7 @@ export declare class ApplicationWorkflowRepository {
         order: number;
         isEnabled: boolean;
         isFinal: boolean;
-    } | null>;
+    }) | null>;
     static getApplicationWorkflowByApplicationId(applicationId: string): Promise<{
         id: string;
         createdAt: Date;

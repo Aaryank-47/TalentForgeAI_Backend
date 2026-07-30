@@ -345,6 +345,9 @@ export class AuthRepository {
         return prisma.employer.findUnique({
             where: {
                 userId
+            },
+            include: {
+                user: true
             }
         });
     }

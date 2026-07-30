@@ -45,7 +45,7 @@ export class ApplicationWorkflowController {
             req: Request,
             res: Response
         ) => {
-            const { applicationId, toWorkflowStageId, remarks, assignedTo } = req.body;
+            const { applicationId, toWorkflowStageId, remarks, assignedTo, nextRoundDate } = req.body;
             const movedByUserId = (req as any).user.id;
 
             const updatedWorkflow = await ApplicationWorkflowService.moveApplicationToNextStage(
@@ -53,7 +53,8 @@ export class ApplicationWorkflowController {
                 applicationId,
                 toWorkflowStageId,
                 remarks,
-                assignedTo
+                assignedTo,
+                nextRoundDate
             );
 
             res.status(HTTP_STATUS.OK).json(
@@ -67,7 +68,7 @@ export class ApplicationWorkflowController {
             req: Request,
             res: Response
         ) => {
-            const { applicationIds, toWorkflowStageId, remarks, assignedTo } = req.body;
+            const { applicationIds, toWorkflowStageId, remarks, assignedTo, nextRoundDate } = req.body;
             const movedByUserId = (req as any).user.id;
 
             const updatedWorkflows = await ApplicationWorkflowService.bulkMoveApplicationsToNextStage(
@@ -75,7 +76,8 @@ export class ApplicationWorkflowController {
                 applicationIds,
                 toWorkflowStageId,
                 remarks,
-                assignedTo
+                assignedTo,
+                nextRoundDate
             );
 
             res.status(HTTP_STATUS.OK).json(

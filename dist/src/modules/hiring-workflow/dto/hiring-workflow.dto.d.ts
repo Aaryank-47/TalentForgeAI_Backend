@@ -186,12 +186,14 @@ export declare class WorkflowDto {
         toWorkflowStageId: z.ZodString;
         remarks: z.ZodOptional<z.ZodOptional<z.ZodString>>;
         assignedTo: z.ZodOptional<z.ZodString>;
+        nextRoundDate: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>;
     static bulkMoveApplicationsToNextStage: z.ZodObject<{
         applicationIds: z.ZodArray<z.ZodString>;
         toWorkflowStageId: z.ZodString;
         remarks: z.ZodOptional<z.ZodOptional<z.ZodString>>;
         assignedTo: z.ZodOptional<z.ZodString>;
+        nextRoundDate: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>;
     static applicationIdParam: z.ZodObject<{
         applicationId: z.ZodString;

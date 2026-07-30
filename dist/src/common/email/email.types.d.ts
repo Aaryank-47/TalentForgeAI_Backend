@@ -4,6 +4,8 @@ export interface EmailOptions {
     html: string;
     text?: string;
     unsubscribeLink?: string;
+    from?: string;
+    replyTo?: string;
 }
 export interface EmailTemplate {
     subject: string;

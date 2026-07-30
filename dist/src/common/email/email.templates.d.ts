@@ -8,5 +8,6 @@ export declare class emailTemplates {
     static verifyEmailOtpTemplate: (otp: string, name: string) => EmailTemplate;
     static existingUserInvitationTemplate: (companyName: string, inviterName: string, role: string, invitationLink: string) => EmailTemplate;
     static newUserInvitationTemplate: (companyName: string, inviterName: string, role: string, invitationLink: string) => EmailTemplate;
+    static stageUpdateTemplate: (candidateName: string, companyName: string, nextStageName: string, nextRoundDate?: string) => EmailTemplate;
 }
 //# sourceMappingURL=email.templates.d.ts.map

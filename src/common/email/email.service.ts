@@ -24,8 +24,8 @@ export class EmailService {
         }
 
         await this.transporter.sendMail({
-            from: `"TalentForge" <${env.gmail.user}>`,
-            replyTo: `"TalentForge Support" <${env.gmail.user}>`,
+            from: options.from || `"TalentForge" <${env.gmail.user}>`,
+            replyTo: options.replyTo || `"TalentForge Support" <${env.gmail.user}>`,
             to: options.to,
             subject: options.subject,
             html: options.html,

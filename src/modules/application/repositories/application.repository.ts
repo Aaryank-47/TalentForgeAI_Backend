@@ -11,7 +11,16 @@ export class ApplicationRepository {
                 id: applicationId
             },
             include: {
-                job: true
+                job: {
+                    include: {
+                        company: true
+                    }
+                },
+                candidate: {
+                    include: {
+                        user: true
+                    }
+                }
             }
         })
     }
@@ -28,7 +37,14 @@ export class ApplicationRepository {
                     select: {
                         id: true,
                         workflowId: true,
-                        companyId: true
+                        companyId: true,
+                        title: true,
+                        company: true
+                    }
+                },
+                candidate: {
+                    include: {
+                        user: true
                     }
                 }
             }

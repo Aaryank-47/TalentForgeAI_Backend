@@ -15,15 +15,15 @@ export class ApplicationWorkflowController {
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Hiring board retrieved successfully", board));
     });
     static moveApplicationToNextStage = asyncHandler(async (req, res) => {
-        const { applicationId, toWorkflowStageId, remarks, assignedTo } = req.body;
+        const { applicationId, toWorkflowStageId, remarks, assignedTo, nextRoundDate } = req.body;
         const movedByUserId = req.user.id;
-        const updatedWorkflow = await ApplicationWorkflowService.moveApplicationToNextStage(movedByUserId, applicationId, toWorkflowStageId, remarks, assignedTo);
+        const updatedWorkflow = await ApplicationWorkflowService.moveApplicationToNextStage(movedByUserId, applicationId, toWorkflowStageId, remarks, assignedTo, nextRoundDate);
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Application moved to next stage successfully", updatedWorkflow));
     });
     static bulkMoveApplicationsToNextStage = asyncHandler(async (req, res) => {
-        const { applicationIds, toWorkflowStageId, remarks, assignedTo } = req.body;
+        const { applicationIds, toWorkflowStageId, remarks, assignedTo, nextRoundDate } = req.body;
         const movedByUserId = req.user.id;
-        const updatedWorkflows = await ApplicationWorkflowService.bulkMoveApplicationsToNextStage(movedByUserId, applicationIds, toWorkflowStageId, remarks, assignedTo);
+        const updatedWorkflows = await ApplicationWorkflowService.bulkMoveApplicationsToNextStage(movedByUserId, applicationIds, toWorkflowStageId, remarks, assignedTo, nextRoundDate);
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Applications moved to next stage successfully in bulk", updatedWorkflows));
     });
     static getCandidateWorkflow = asyncHandler(async (req, res) => {

@@ -222,6 +222,7 @@ export class WorkflowDto{
         toWorkflowStageId: uuidValidator,
         remarks: remarksValidator.optional(),
         assignedTo: uuidValidator.optional(),
+        nextRoundDate: z.string().optional(),
     });
 
     static bulkMoveApplicationsToNextStage = z.object({
@@ -229,6 +230,7 @@ export class WorkflowDto{
         toWorkflowStageId: uuidValidator,
         remarks: remarksValidator.optional(),
         assignedTo: uuidValidator.optional(),
+        nextRoundDate: z.string().optional(),
     });
 
     static applicationIdParam = z.object({

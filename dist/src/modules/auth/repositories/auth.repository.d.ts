@@ -258,7 +258,30 @@ export declare class AuthRepository {
         expiresAt: Date;
         revokedAt: Date | null;
     }>;
-    static findEmployerByUserId(userId: string): Promise<{
+    static findEmployerByUserId(userId: string): Promise<({
+        user: {
+            email: string;
+            password: string;
+            otp: string | null;
+            id: string;
+            otpExpiresAt: Date | null;
+            resetPasswordToken: string | null;
+            resetPasswordTokenExpiresAt: Date | null;
+            role: import("@prisma/client").$Enums.UserRole;
+            status: import("@prisma/client").$Enums.AccountStatus;
+            isEmailVerified: boolean;
+            lastLoginAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            deletedById: string | null;
+            suspendedAt: Date | null;
+            suspendedById: string | null;
+            suspendedReason: string | null;
+            restoredAt: Date | null;
+            restoredById: string | null;
+        };
+    } & {
         fullName: string;
         phoneNumber: string | null;
         linkedinUrl: string | null;
@@ -270,6 +293,6 @@ export declare class AuthRepository {
         designation: string | null;
         department: string | null;
         isActive: boolean;
-    } | null>;
+    }) | null>;
 }
 //# sourceMappingURL=auth.repository.d.ts.map
