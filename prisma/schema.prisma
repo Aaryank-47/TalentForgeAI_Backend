@@ -602,7 +602,7 @@ model WorkflowHistory {
   toStageId             String
   toStage               WorkflowStage       @relation("ToStage", fields: [toStageId], references: [id])
   movedByEmployerId     String?
-  movedBy               Employer?           @relation(fields: [movedByEmployerId], references: [id])
+  movedBy               Employer?           @relation(fields: [movedByEmployerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   comment               String?
   createdAt             DateTime            @default(now())
 

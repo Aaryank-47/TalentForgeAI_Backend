@@ -10,6 +10,7 @@ import recruiterApplicationRoutes from '../modules/application/routes/applicatio
 import hiringWorkflowRoutes from '../modules/hiring-workflow/routes/stage-library.routes.js';
 import workflowRoutes from '../modules/hiring-workflow/routes/workflow.routes.js';
 import applicationWorkflowRoutes from '../modules/hiring-workflow/routes/application-workflow.routes.js';
+import assessmentItemRoutes from '../modules/assessment/routes/assessment-item.routes.js';
 const router = Router();
 
 router.use('/health', healthRoutes);
@@ -23,5 +24,6 @@ router.use("/employer/applications", recruiterApplicationRoutes);
 router.use("/hiring-workflow/stage-library", hiringWorkflowRoutes);
 router.use("/hiring-workflow", workflowRoutes);
 router.use("/hiring-workflow/applications", applicationWorkflowRoutes);
+router.use("/assessment-items", assessmentItemRoutes);
 
 export default router;
