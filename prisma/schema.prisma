@@ -160,6 +160,12 @@ model User {
   employer                    Employer?
   admin                       Admin?
   companyMemberships          CompanyMember[]
+
+  createdQuestions   Question[] @relation("QuestionCreatedBy")
+  updatedQuestions   Question[] @relation("QuestionUpdatedBy")
+  publishedQuestions Question[] @relation("QuestionPublishedBy")
+  archivedQuestions  Question[] @relation("QuestionArchivedBy")
+  deletedQuestions   Question[] @relation("QuestionDeletedBy")
 }
 
 model RefreshToken {
@@ -205,6 +211,7 @@ model Candidate {
   experiences        CandidateExperience[]
   resumes            Resume[]
   applications       Application[]
+  assessmentAttempts AssessmentAttempt[]
 
   @@index([experienceLevel])
   @@index([currentLocation])
@@ -263,22 +270,29 @@ model Company {
   companyMembers    CompanyMember[]
   workflows         Workflow[]
   stageLibraries    StageLibrary[]
+  questions         Question[]
+  assessments       Assessment[]
 }
 
 model CompanyMember {
-  id              String              @id @default(cuid())
-  userId          String
-  companyId       String
-  role            CompanyMemberRole
-  joinedAt        DateTime            @default(now())
-  status          CompanyMemberStatus @default(ACTIVE)
-  invitationToken String?             @unique
-  invitedAt       DateTime?
-  expiresAt       DateTime?
-  invitedBy       String?
-  user            User                @relation(fields: [userId], references: [id])
-  company         Company             @relation(fields: [companyId], references: [id])
-  jobMembers      JobMember[]
+  id                  String              @id @default(cuid())
+  userId              String
+  companyId           String
+  role                CompanyMemberRole
+  joinedAt            DateTime            @default(now())
+  status              CompanyMemberStatus @default(ACTIVE)
+  invitationToken     String?             @unique
+  invitedAt           DateTime?
+  expiresAt           DateTime?
+  invitedBy           String?
+  user                User                @relation(fields: [userId], references: [id])
+  company             Company             @relation(fields: [companyId], references: [id])
+  jobMembers          JobMember[]
+  questions           Question[]
+  createdAssessments  Assessment[]        @relation("AssessmentCreatedBy")
+  updatedAssessments  Assessment[]        @relation("AssessmentUpdatedBy")
+  archivedAssessments Assessment[]        @relation("AssessmentArchivedBy")
+  deletedAssessments  Assessment[]        @relation("AssessmentDeletedBy")
 
   @@unique([userId, companyId])
   @@index([companyId])
@@ -344,12 +358,13 @@ model Job {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  skills       JobSkill[]
-  benefits     JobBenefit[]
-  members      JobMember[]
-  applications Application[]
-  workflowId   String?
-  workflow     Workflow?     @relation(fields: [workflowId], references: [id])
+  skills         JobSkill[]
+  benefits       JobBenefit[]
+  members        JobMember[]
+  applications   Application[]
+  workflowId     String?
+  workflow       Workflow?       @relation(fields: [workflowId], references: [id])
+  jobAssessments JobAssessment[]
 
   @@index([companyId])
   @@index([status])
@@ -437,6 +452,7 @@ model Application {
   job                 Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
   resume              Resume               @relation(fields: [resumeId], references: [id])
   applicationWorkflow ApplicationWorkflow?
+  assessmentAttempts  AssessmentAttempt[]
 
   @@unique([candidateId, jobId])
   @@index([candidateId])
@@ -555,19 +571,20 @@ model StageLibrary {
 }
 
 model WorkflowStage {
-  id                    String                @id @default(cuid())
-  workflowId            String
-  workflow              Workflow              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  stageLibraryId        String
-  stageLibrary          StageLibrary          @relation(fields: [stageLibraryId], references: [id], onDelete: Cascade)
-  order                 Int
-  isEnabled             Boolean               @default(true)
-  isFinal               Boolean               @default(false)
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  applicationWorkflows  ApplicationWorkflow[]
-  workflowHistoriesFrom WorkflowHistory[]     @relation("FromStage")
-  workflowHistoriesTo   WorkflowHistory[]     @relation("ToStage")
+  id                       String                    @id @default(cuid())
+  workflowId               String
+  workflow                 Workflow                  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stageLibraryId           String
+  stageLibrary             StageLibrary              @relation(fields: [stageLibraryId], references: [id], onDelete: Cascade)
+  order                    Int
+  isEnabled                Boolean                   @default(true)
+  isFinal                  Boolean                   @default(false)
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  applicationWorkflows     ApplicationWorkflow[]
+  workflowHistoriesFrom    WorkflowHistory[]         @relation("FromStage")
+  workflowHistoriesTo      WorkflowHistory[]         @relation("ToStage")
+  workflowStageAssessments WorkflowStageAssessment[]
 
   @@unique([workflowId, order])
   @@unique([workflowId, stageLibraryId])
@@ -610,4 +627,452 @@ model WorkflowHistory {
   @@index([fromStageId])
   @@index([toStageId])
   @@index([movedByEmployerId])
+}
+
+enum QuestionType {
+  MCQ
+  DSA
+  MACHINE_CODING
+  PROJECT
+}
+
+enum QuestionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QuestionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionOwnership {
+  GLOBAL
+  COMPANY
+}
+
+enum TestCaseType {
+  SAMPLE
+  HIDDEN
+}
+
+model QuestionCategory {
+  id           String             @id @default(cuid())
+  name         String
+  displayOrder Int                @default(0)
+  parentId     String?
+  parent       QuestionCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     QuestionCategory[] @relation("CategoryHierarchy")
+  questions    Question[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@unique([parentId, name])
+  @@index([parentId])
+}
+
+model QuestionTag {
+  id           String           @id @default(cuid())
+  name         String           @unique
+  questionTags QuestionTagMap[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model QuestionTagMap {
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  tagId String
+  tag   QuestionTag @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([questionId, tagId])
+  @@index([questionId])
+  @@index([tagId])
+}
+
+model Question {
+  id          String @id @default(cuid())
+  title       String
+  description String
+
+  type       QuestionType
+  difficulty QuestionDifficulty
+
+  estimatedTime Int
+  defaultMarks  Float
+
+  ownership QuestionOwnership
+  status    QuestionStatus    @default(DRAFT)
+
+  code String?
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  createdByCompanyMemberId String?
+  createdByCompanyMember   CompanyMember? @relation(fields: [createdByCompanyMemberId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  createdById String?
+  createdBy   User?   @relation("QuestionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  updatedById String?
+  updatedBy   User?   @relation("QuestionUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  publishedById String?
+  publishedBy   User?   @relation("QuestionPublishedBy", fields: [publishedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  archivedById String?
+  archivedBy   User?   @relation("QuestionArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  deletedAt DateTime?
+
+  deletedById String?
+  deletedBy   User?   @relation("QuestionDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  categoryId String?
+  category   QuestionCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  publishedAt DateTime?
+  archivedAt  DateTime?
+
+  version     Int    @default(1)
+  usageCount  Int    @default(0)
+  successRate Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tags QuestionTagMap[]
+
+  mcqDetail           MCQDetail?
+  dsaDetail           DSADetail?
+  machineCodingDetail MachineCodingDetail?
+  projectDetail       ProjectDetail?
+  sectionItems        AssessmentSectionItem[]
+  answers             AssessmentAnswer[]
+
+  @@index([companyId])
+  @@index([createdByCompanyMemberId])
+  @@index([createdById])
+  @@index([companyId, status])
+  @@index([companyId, type])
+  @@index([status, type])
+  @@index([companyId, categoryId])
+  @@index([deletedAt])
+  @@index([ownership, companyId])
+  @@index([status, difficulty])
+}
+
+model MCQDetail {
+  id String @id @default(cuid())
+
+  questionId String   @unique
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  allowMultipleCorrectAnswers Boolean @default(false)
+  negativeMarks               Float   @default(0.0)
+
+  options MCQOption[]
+}
+
+model MCQOption {
+  id String @id @default(cuid())
+
+  mcqDetailId String
+  mcqDetail   MCQDetail @relation(fields: [mcqDetailId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  optionText   String
+  displayOrder Int
+
+  isCorrect Boolean @default(false)
+
+  @@unique([mcqDetailId, displayOrder])
+  @@index([mcqDetailId])
+}
+
+model DSADetail {
+  id String @id @default(cuid())
+
+  questionId String   @unique
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  starterCode       String
+  referenceSolution String
+
+  memoryLimit Int
+  timeLimit   Int
+
+  supportedLanguages DSASupportedLanguage[]
+  testCases          TestCase[]
+}
+
+model ProgrammingLanguage {
+  id String @id @default(cuid())
+
+  name String @unique
+  slug String @unique
+
+  isActive Boolean @default(true)
+
+  supportedLanguages DSASupportedLanguage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model DSASupportedLanguage {
+  dsaDetailId String
+  dsaDetail   DSADetail @relation(fields: [dsaDetailId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  programmingLanguageId String
+  programmingLanguage   ProgrammingLanguage @relation(fields: [programmingLanguageId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([dsaDetailId, programmingLanguageId])
+  @@index([dsaDetailId])
+  @@index([programmingLanguageId])
+}
+
+model TestCase {
+  id String @id @default(cuid())
+
+  dsaDetailId String
+  dsaDetail   DSADetail @relation(fields: [dsaDetailId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  input          String
+  expectedOutput String
+
+  type TestCaseType @default(SAMPLE)
+
+  explanation  String?
+  displayOrder Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([dsaDetailId, displayOrder]) // finalized version
+  @@index([dsaDetailId])
+  @@index([dsaDetailId, type])
+}
+
+model MachineCodingDetail {
+  id String @id @default(cuid())
+
+  questionId String   @unique
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  repositoryTemplate         String?
+  projectStructure           String?
+  techStack                  String?
+  implementationInstructions String
+  evaluationGuidelines       String?
+}
+
+model ProjectDetail {
+  id String @id @default(cuid())
+
+  questionId String   @unique
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  requirements           String
+  submissionInstructions String
+  deadlineHours          Int
+}
+
+enum AssessmentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AttemptStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  CANCELLED
+}
+
+enum EvaluationStatus {
+  PENDING
+  EVALUATING
+  COMPLETED
+  FAILED
+}
+
+enum ReviewStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model Assessment {
+  id              String           @id @default(cuid())
+  companyId       String
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  title           String
+  description     String?
+  instructions    String?
+  durationMinutes Int?
+  passingScore    Float?
+  status          AssessmentStatus @default(DRAFT)
+  totalMarks      Float?
+  isTemplate      Boolean          @default(false)
+
+  // Audit Fields
+  createdById  String
+  createdBy    CompanyMember  @relation("AssessmentCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  updatedById  String?
+  updatedBy    CompanyMember? @relation("AssessmentUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  archivedById String?
+  archivedBy   CompanyMember? @relation("AssessmentArchivedBy", fields: [archivedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  deletedById  String?
+  deletedBy    CompanyMember? @relation("AssessmentDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  publishedAt  DateTime?
+  archivedAt   DateTime?
+
+  // Relations
+  sections       AssessmentSection[]
+  attempts       AssessmentAttempt[]
+  jobs           JobAssessment[]
+  workflowStages WorkflowStageAssessment[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model AssessmentSection {
+  id              String                  @id @default(cuid())
+  assessmentId    String
+  assessment      Assessment              @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  title           String
+  description     String?
+  instructions    String?
+  durationMinutes Int?
+  displayOrder    Int
+  sectionType     QuestionType
+  // Relations
+  items           AssessmentSectionItem[]
+  attempts        AssessmentAttempt[]
+
+  @@unique([assessmentId, displayOrder])
+  @@index([assessmentId])
+}
+
+model AssessmentSectionItem {
+  id                    String            @id @default(cuid())
+  sectionId             String
+  section               AssessmentSection @relation(fields: [sectionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  questionId            String
+  question              Question          @relation(fields: [questionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  displayOrder          Int
+  marksOverride         Float?
+  negativeMarksOverride Float?
+  timeLimitOverride     Int?
+  isRequired            Boolean           @default(true)
+
+  @@unique([sectionId, displayOrder])
+  @@index([sectionId])
+  @@index([questionId])
+}
+
+model AssessmentAttempt {
+  id               String             @id @default(cuid())
+  candidateId      String
+  candidate        Candidate          @relation(fields: [candidateId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  applicationId    String
+  application      Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  assessmentId     String
+  assessment       Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  currentSectionId String?
+  currentSection   AssessmentSection? @relation(fields: [currentSectionId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  // Status & Telemetry
+  status                   AttemptStatus @default(NOT_STARTED)
+  startedAt                DateTime?
+  submittedAt              DateTime?
+  lastActivityAt           DateTime?
+  attemptNumber            Int           @default(1)
+  timeTakenInSeconds       Int?
+  completedDurationSeconds Int?
+
+  // Evaluation & Review
+  overallScore     Float?
+  percentage       Float?
+  passed           Boolean?
+  evaluationStatus EvaluationStatus @default(PENDING)
+  reviewStatus     ReviewStatus     @default(PENDING)
+
+  // Relations
+  answers   AssessmentAnswer[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([candidateId])
+  @@index([applicationId])
+  @@index([assessmentId])
+  @@index([status])
+}
+
+model AssessmentAnswer {
+  id          String            @id @default(cuid())
+  attemptId   String
+  attempt     AssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  questionId  String
+  question    Question          @relation(fields: [questionId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  startedAt   DateTime?
+  updatedAt   DateTime          @updatedAt
+  submittedAt DateTime?
+  // Score & Evaluation
+  score       Float?
+  isCorrect   Boolean?
+  feedback    String?
+
+  // Generic Submissions Data
+  selectedOptionIds String[]
+  attachmentUrls    String[]
+  codeResponse      String?
+  submissionUrl     String?
+  meta              Json?
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+model JobAssessment {
+  jobId        String
+  job          Job        @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@id([jobId, assessmentId])
+  @@index([jobId])
+  @@index([assessmentId])
+}
+
+model WorkflowStageAssessment {
+  workflowStageId String
+  workflowStage   WorkflowStage @relation(fields: [workflowStageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  assessmentId    String
+  assessment      Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@id([workflowStageId, assessmentId])
+  @@index([workflowStageId])
+  @@index([assessmentId])
 }

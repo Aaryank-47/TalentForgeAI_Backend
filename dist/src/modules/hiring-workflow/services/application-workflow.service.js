@@ -7,8 +7,6 @@ import { JobsRepository } from "../../jobs/repository/jobs.repository.js";
 import { JobStatus } from "@prisma/client";
 import { WorkflowRepository } from "../repositories/workflow.repository.js";
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
-import { UserRole } from "@prisma/client";
-import { CompanyMemberRole } from "@prisma/client";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
 import { EmailService } from "../../../common/email/email.service.js";
 import { emailTemplates } from "../../../common/email/email.templates.js";
