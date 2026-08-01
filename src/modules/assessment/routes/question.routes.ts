@@ -8,20 +8,51 @@ import { UserRole } from "@prisma/client";
 
 const QuestionRoutes = Router();
 
-QuestionRoutes.post(
-    "/categories",
-    authMiddleware,
-    authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-    validate(QuestionCategoryDto.createCategory, "body"),
-    QuestionController.createCategory
-);
+const registerRoutes = (router: Router, prefix: string) => {
+    router.post(
+        `${prefix}`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(QuestionCategoryDto.createCategory, "body"),
+        QuestionController.createCategory
+    );
 
-QuestionRoutes.get(
-    "/categories",
-    authMiddleware,
-    QuestionController.getAllQueCategories
-)
+    router.get(
+        `${prefix}`,
+        authMiddleware,
+        QuestionController.getAllQueCategories
+    );
 
+    router.get(
+        `${prefix}/:categoryId`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
+        validate(QuestionCategoryDto.categoryIdParams, "params"),
+        QuestionController.getCategoryById
+    );
 
+    router.patch(
+        `${prefix}/:categoryId`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(QuestionCategoryDto.categoryIdParams, "params"),
+        validate(QuestionCategoryDto.updateCategory, "body"),
+        QuestionController.updateCategory
+    );
+
+    router.delete(
+        `${prefix}/:categoryId`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(QuestionCategoryDto.categoryIdParams, "params"),
+        QuestionController.deleteCategory
+    );
+};
+
+// Register for /questions/categories (legacy prefix)
+registerRoutes(QuestionRoutes, "/categories");
+
+// Register for /assessment/question-categories
+registerRoutes(QuestionRoutes, "");
 
 export default QuestionRoutes;

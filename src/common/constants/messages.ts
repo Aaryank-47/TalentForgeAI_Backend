@@ -83,4 +83,7 @@ export const MESSAGE = {
     // Assessment / Question Category
     CATEGORY_CREATED: "Question category created successfully.",
     CATEGORY_FETCHED: "Question category fetched successfully.",
+    CATEGORY_UPDATED: "Category updated successfully.",
+    CATEGORY_DELETED: "Category deleted successfully.",
+    CATEGORY_NOT_FOUND: "Question category not found.",
 } as const;
