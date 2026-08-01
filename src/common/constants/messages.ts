@@ -78,5 +78,8 @@ export const MESSAGE = {
     APPLICATION_UPDATED: "Application updated successfully.",
     APPLICATION_NOT_APPLIED: "Application not found.",
     APPLICATION_ALREADY_APPLIED: "Application already submitted.",
-    APPLICATION_WITHDRAWN: "Application withdrawn successfully."
+    APPLICATION_WITHDRAWN: "Application withdrawn successfully.",
+
+    // Assessment / Question Category
+    CATEGORY_CREATED: "Question category created successfully."
 } as const;
