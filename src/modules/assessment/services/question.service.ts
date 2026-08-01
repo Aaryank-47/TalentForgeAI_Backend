@@ -2,6 +2,8 @@ import { QuestionRepository } from "../repositories/question.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import type { QuestionCategory } from "@prisma/client";
+import type { GetQuestionCategoriesDto } from "../dto/question.dto.js";
+import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 
 export class QuestionService {
     static async createQueCategory(
@@ -21,5 +23,19 @@ export class QuestionService {
         }
 
         return await QuestionRepository.createQueCategory(name, parentIdValue);
+    }
+
+    static async getAllQueCategories(
+        filters: GetQuestionCategoriesDto
+    ): Promise<any> {
+        const pagination = PaginationHelper.getPagination(filters);
+        const totalItems = await QuestionRepository.countQuestionCategories(filters);
+        const categories = await QuestionRepository.getAllQueCategories(filters, pagination);
+
+        return PaginationHelper.buildResponse(
+            categories,
+            pagination,
+            totalItems
+        );
     }
 }

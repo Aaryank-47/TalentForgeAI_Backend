@@ -19,4 +19,17 @@ export class QuestionController {
             });
         }
     );
+    
+    static getAllQueCategories = asyncHandler(
+        async (req: Request, res: Response) => {
+            
+            const result = await QuestionService.getAllQueCategories(req.query);
+            
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                message: MESSAGE.CATEGORY_FETCHED,
+                data: result,
+            })
+        }
+    );
 }

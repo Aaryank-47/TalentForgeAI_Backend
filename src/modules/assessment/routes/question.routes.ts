@@ -6,9 +6,9 @@ import { validate } from "../../../common/middleware/validate.middleware.js";
 import { QuestionCategoryDto } from "../dto/question.dto.js";
 import { UserRole } from "@prisma/client";
 
-const router = Router();
+const QuestionRoutes = Router();
 
-router.post(
+QuestionRoutes.post(
     "/categories",
     authMiddleware,
     authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
@@ -16,4 +16,12 @@ router.post(
     QuestionController.createCategory
 );
 
-export default router;
+QuestionRoutes.get(
+    "/categories",
+    authMiddleware,
+    QuestionController.getAllQueCategories
+)
+
+
+
+export default QuestionRoutes;

@@ -81,5 +81,6 @@ export const MESSAGE = {
     APPLICATION_WITHDRAWN: "Application withdrawn successfully.",
 
     // Assessment / Question Category
-    CATEGORY_CREATED: "Question category created successfully."
+    CATEGORY_CREATED: "Question category created successfully.",
+    CATEGORY_FETCHED: "Question category fetched successfully.",
 } as const;
