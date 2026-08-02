@@ -1,5 +1,6 @@
-import type { QuestionCategory, QuestionTag, ProgrammingLanguage } from "@prisma/client";
-import type { GetQuestionCategoriesDto, UpdateQuestionCategoryDto, GetQuestionTagsDto, UpdateQuestionTagDto, GetProgrammingLanguagesDto, UpdateProgrammingLanguageDto, CreateProgrammingLanguageDto, CreateDSASupportedLanguagesDto, DeleteDSASupportedLanguagesDto } from "../dto/question.dto.js";
+import type { Question, QuestionCategory, QuestionTag, ProgrammingLanguage } from "@prisma/client";
+import type { QuestionWithRelations } from "../interfaces/question.interface.js";
+import type { GetQuestionCategoriesDto, UpdateQuestionCategoryDto, GetQuestionTagsDto, UpdateQuestionTagDto, GetProgrammingLanguagesDto, UpdateProgrammingLanguageDto, CreateProgrammingLanguageDto, CreateDSASupportedLanguagesDto, DeleteDSASupportedLanguagesDto, CreateQuestionDto, UpdateQuestionDto, GetQuestionsQueryDto } from "../dto/question.dto.js";
 export declare class QuestionService {
     static createQueCategory(name: string, parentId?: string | null): Promise<QuestionCategory>;
     static getAllQueCategories(filters: GetQuestionCategoriesDto): Promise<any>;
@@ -19,6 +20,17 @@ export declare class QuestionService {
     static createSupportedLanguages(dto: CreateDSASupportedLanguagesDto): Promise<any>;
     static syncSupportedLanguages(dto: CreateDSASupportedLanguagesDto): Promise<any>;
     static deleteSupportedLanguages(dto: DeleteDSASupportedLanguagesDto): Promise<any>;
-    static getSupportedLanguagesByDsaId(dsaDetailId: string): Promise<any[]>;
+    static getSupportedLanguagesByQuestionId(questionId: string): Promise<any[]>;
+    static createQuestion(dto: CreateQuestionDto, user: any): Promise<Question>;
+    static getAllQuestions(filters: GetQuestionsQueryDto): Promise<{
+        data: QuestionWithRelations[];
+        pagination: any;
+    }>;
+    static getQuestionById(id: string, user: any): Promise<QuestionWithRelations>;
+    static updateQuestion(id: string, dto: UpdateQuestionDto, user: any): Promise<Question>;
+    static deleteQuestion(id: string, user: any): Promise<Question>;
+    static publishQuestion(id: string, user: any): Promise<Question>;
+    static archiveQuestion(id: string, user: any): Promise<Question>;
+    static duplicateQuestion(id: string, user: any): Promise<Question>;
 }
 //# sourceMappingURL=question.service.d.ts.map

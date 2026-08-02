@@ -163,13 +163,86 @@ export class QuestionController {
             message: MESSAGE.SUPPORTED_LANGUAGE_REMOVED,
         });
     });
-    static getSupportedLanguagesByDsaId = asyncHandler(async (req, res) => {
-        const dsaDetailId = req.params.dsaDetailId;
-        const list = await QuestionService.getSupportedLanguagesByDsaId(dsaDetailId);
+    static getSupportedLanguagesByQuestionId = asyncHandler(async (req, res) => {
+        const questionId = req.params.questionId;
+        const list = await QuestionService.getSupportedLanguagesByQuestionId(questionId);
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: MESSAGE.SUPPORTED_LANGUAGE_FETCHED,
             data: list,
+        });
+    });
+    // Question Bank Controllers
+    static createQuestion = asyncHandler(async (req, res) => {
+        const dto = req.body;
+        const result = await QuestionService.createQuestion(dto, req.user);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Question created successfully.",
+            data: result,
+        });
+    });
+    static getAllQuestions = asyncHandler(async (req, res) => {
+        const filters = req.query;
+        const result = await QuestionService.getAllQuestions(filters);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Questions fetched successfully.",
+            data: result,
+        });
+    });
+    static getQuestionById = asyncHandler(async (req, res) => {
+        const id = req.params.id;
+        const result = await QuestionService.getQuestionById(id, req.user);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Question fetched successfully.",
+            data: result,
+        });
+    });
+    static updateQuestion = asyncHandler(async (req, res) => {
+        const id = req.params.id;
+        const dto = req.body;
+        const result = await QuestionService.updateQuestion(id, dto, req.user);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Question updated successfully.",
+            data: result,
+        });
+    });
+    static deleteQuestion = asyncHandler(async (req, res) => {
+        const id = req.params.id;
+        await QuestionService.deleteQuestion(id, req.user);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Question deleted successfully.",
+        });
+    });
+    static publishQuestion = asyncHandler(async (req, res) => {
+        const id = req.params.id;
+        const result = await QuestionService.publishQuestion(id, req.user);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Question published successfully.",
+            data: result,
+        });
+    });
+    static archiveQuestion = asyncHandler(async (req, res) => {
+        const id = req.params.id;
+        const result = await QuestionService.archiveQuestion(id, req.user);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Question archived successfully.",
+            data: result,
+        });
+    });
+    static duplicateQuestion = asyncHandler(async (req, res) => {
+        const id = req.params.id;
+        const result = await QuestionService.duplicateQuestion(id, req.user);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Question duplicated successfully.",
+            data: result,
         });
     });
 }

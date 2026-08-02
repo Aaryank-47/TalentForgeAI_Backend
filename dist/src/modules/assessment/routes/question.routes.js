@@ -3,7 +3,7 @@ import { QuestionController } from "../controllers/question.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { QuestionCategoryDto, QuestionTagDto, getQuestionTagsDto, ProgrammingLanguageDto, getProgrammingLanguagesDto, DSASupportedLanguageDto } from "../dto/question.dto.js";
+import { QuestionCategoryDto, QuestionTagDto, getQuestionTagsDto, ProgrammingLanguageDto, getProgrammingLanguagesDto, DSASupportedLanguageDto, createQuestionSchema, updateQuestionSchema, getQuestionsQuerySchema, questionIdParamsSchema } from "../dto/question.dto.js";
 import { UserRole } from "@prisma/client";
 const QuestionRoutes = Router();
 const registerRoutes = (router, prefix) => {
@@ -31,7 +31,17 @@ const registerSupportedLanguageRoutes = (router, prefix) => {
     router.post(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.createSupportedLanguages);
     router.put(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.syncSupportedLanguages);
     router.delete(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.deleteSupportedLanguages, "body"), QuestionController.deleteSupportedLanguages);
-    router.get(`${prefix}/:dsaDetailId`, authMiddleware, QuestionController.getSupportedLanguagesByDsaId);
+    router.get(`${prefix}/:questionId`, authMiddleware, QuestionController.getSupportedLanguagesByQuestionId);
+};
+const registerQuestionBankRoutes = (router, prefix) => {
+    router.post(`${prefix}`, authMiddleware, validate(createQuestionSchema, "body"), QuestionController.createQuestion);
+    router.get(`${prefix}`, authMiddleware, validate(getQuestionsQuerySchema, "query"), QuestionController.getAllQuestions);
+    router.get(`${prefix}:id`, authMiddleware, validate(questionIdParamsSchema, "params"), QuestionController.getQuestionById);
+    router.patch(`${prefix}:id`, authMiddleware, validate(questionIdParamsSchema, "params"), validate(updateQuestionSchema, "body"), QuestionController.updateQuestion);
+    router.delete(`${prefix}:id`, authMiddleware, validate(questionIdParamsSchema, "params"), QuestionController.deleteQuestion);
+    router.patch(`${prefix}:id/publish`, authMiddleware, validate(questionIdParamsSchema, "params"), QuestionController.publishQuestion);
+    router.patch(`${prefix}:id/archive`, authMiddleware, validate(questionIdParamsSchema, "params"), QuestionController.archiveQuestion);
+    router.post(`${prefix}:id/duplicate`, authMiddleware, validate(questionIdParamsSchema, "params"), QuestionController.duplicateQuestion);
 };
 // Register category routes under "/categories"
 registerRoutes(QuestionRoutes, "/categories");
@@ -41,5 +51,7 @@ registerTagRoutes(QuestionRoutes, "/tags");
 registerLanguageRoutes(QuestionRoutes, "/languages");
 // Register supported language routes under "/supported-languages"
 registerSupportedLanguageRoutes(QuestionRoutes, "/supported-languages");
+// Register main Question Bank routes at root level
+registerQuestionBankRoutes(QuestionRoutes, "/");
 export default QuestionRoutes;
 //# sourceMappingURL=question.routes.js.map

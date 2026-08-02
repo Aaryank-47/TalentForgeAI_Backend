@@ -1,7 +1,17 @@
 import prisma from "../../../config/database.js";
-import type { QuestionCategory, QuestionTag, ProgrammingLanguage, DSASupportedLanguage } from "@prisma/client";
-import type { GetQuestionCategoriesDto, GetQuestionTagsDto, GetProgrammingLanguagesDto } from "../dto/question.dto.js";
+import type { Question, QuestionCategory, QuestionTag, ProgrammingLanguage, DSASupportedLanguage } from "@prisma/client";
+import type { 
+    GetQuestionCategoriesDto, 
+    GetQuestionTagsDto, 
+    GetProgrammingLanguagesDto, 
+    CreateQuestionDto, 
+    UpdateQuestionDto, 
+    GetQuestionsQueryDto 
+} from "../dto/question.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
+import type { QuestionWithRelations } from "../interfaces/question.interface.js";
+import { NotFoundError } from "../../../common/errors/NotFoundError.js";
+import { CompanyMemberStatus } from "@prisma/client";
 
 export class QuestionRepository {
     static async findQueCateogoryByName(
@@ -334,7 +344,7 @@ export class QuestionRepository {
     static async createSupportedLanguages(
         dsaDetailId: string, 
         programmingLanguageIds: string[]
-    ): Promise<any> {
+    ): Promise<{ count: number }> {
         const data = programmingLanguageIds.map(id => ({
             dsaDetailId,
             programmingLanguageId: id
@@ -359,7 +369,7 @@ export class QuestionRepository {
          ]);
     }
 
-    static async deleteSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any> {
+    static async deleteSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<{ count: number }> {
         return await prisma.dSASupportedLanguage.deleteMany({
             where: {
                 dsaDetailId,
@@ -401,5 +411,389 @@ export class QuestionRepository {
 
     static async getAllLanguagesRaw(): Promise<ProgrammingLanguage[]> {
         return await prisma.programmingLanguage.findMany();
+    }
+
+    // Question Bank operations
+    static async findQuestionById(id: string): Promise<QuestionWithRelations | null> {
+        return await prisma.question.findFirst({
+            where: { id, deletedAt: null },
+            include: {
+                category: true,
+                tags: {
+                    include: { tag: true }
+                },
+                mcqDetail: {
+                    include: { options: true }
+                },
+                dsaDetail: {
+                    include: {
+                        supportedLanguages: {
+                            include: { programmingLanguage: true }
+                        },
+                        testCases: true
+                    }
+                },
+                machineCodingDetail: true,
+                projectDetail: true,
+                createdBy: true,
+                updatedBy: true,
+                publishedBy: true,
+                archivedBy: true,
+                deletedBy: true,
+            }
+        });
+    }
+
+    static async createQuestion(
+        dto: CreateQuestionDto,
+        createdById: string | null,
+        createdByCompanyMemberId: string | null
+    ): Promise<Question> {
+        return await prisma.$transaction(async (tx) => {
+            const question = await tx.question.create({
+                data: {
+                    title: dto.title,
+                    description: dto.description,
+                    type: dto.type,
+                    difficulty: dto.difficulty,
+                    estimatedTime: dto.estimatedTime,
+                    defaultMarks: dto.defaultMarks,
+                    ownership: dto.ownership,
+                    categoryId: dto.categoryId || null,
+                    companyId: dto.companyId || null,
+                    createdById,
+                    createdByCompanyMemberId,
+                    status: "DRAFT",
+                    version: 1,
+                }
+            });
+
+            if (dto.tagIds && dto.tagIds.length > 0) {
+                await tx.questionTagMap.createMany({
+                    data: dto.tagIds.map((tagId: string) => ({
+                        questionId: question.id,
+                        tagId
+                    }))
+                });
+            }
+
+            if (dto.type === "MCQ" && dto.mcqDetail) {
+                const mcq = await tx.mCQDetail.create({
+                    data: {
+                        questionId: question.id,
+                        allowMultipleCorrectAnswers: dto.mcqDetail.allowMultipleCorrectAnswers,
+                        negativeMarks: dto.mcqDetail.negativeMarks,
+                    }
+                });
+                await tx.mCQOption.createMany({
+                    data: dto.mcqDetail.options.map((opt: any) => ({
+                        mcqDetailId: mcq.id,
+                        optionText: opt.optionText,
+                        displayOrder: opt.displayOrder,
+                        isCorrect: opt.isCorrect,
+                    }))
+                });
+            } else if (dto.type === "DSA" && dto.dsaDetail) {
+                const dsa = await tx.dSADetail.create({
+                    data: {
+                        questionId: question.id,
+                        starterCode: dto.dsaDetail.starterCode,
+                        referenceSolution: dto.dsaDetail.referenceSolution,
+                        memoryLimit: dto.dsaDetail.memoryLimit,
+                        timeLimit: dto.dsaDetail.timeLimit,
+                    }
+                });
+
+                if (dto.dsaDetail.supportedLanguageIds.length > 0) {
+                    await tx.dSASupportedLanguage.createMany({
+                        data: dto.dsaDetail.supportedLanguageIds.map((langId: string) => ({
+                            dsaDetailId: dsa.id,
+                            programmingLanguageId: langId
+                        }))
+                    });
+                }
+
+                if (dto.dsaDetail.testCases.length > 0) {
+                    await tx.testCase.createMany({
+                        data: dto.dsaDetail.testCases.map((tc: any) => ({
+                            dsaDetailId: dsa.id,
+                            input: tc.input,
+                            expectedOutput: tc.expectedOutput,
+                            type: tc.type || "SAMPLE",
+                            explanation: tc.explanation || null,
+                            displayOrder: tc.displayOrder,
+                        }))
+                    });
+                }
+            } else if (dto.type === "MACHINE_CODING" && dto.machineCodingDetail) {
+                await tx.machineCodingDetail.create({
+                    data: {
+                        questionId: question.id,
+                        repositoryTemplate: dto.machineCodingDetail.repositoryTemplate || null,
+                        projectStructure: dto.machineCodingDetail.projectStructure || null,
+                        techStack: dto.machineCodingDetail.techStack || null,
+                        implementationInstructions: dto.machineCodingDetail.implementationInstructions,
+                        evaluationGuidelines: dto.machineCodingDetail.evaluationGuidelines || null,
+                    }
+                });
+            } else if (dto.type === "PROJECT" && dto.projectDetail) {
+                await tx.projectDetail.create({
+                    data: {
+                        questionId: question.id,
+                        requirements: dto.projectDetail.requirements,
+                        submissionInstructions: dto.projectDetail.submissionInstructions,
+                        deadlineHours: dto.projectDetail.deadlineHours,
+                    }
+                });
+            }
+
+            return question;
+        });
+    }
+
+    static async updateQuestion(
+        id: string,
+        dto: UpdateQuestionDto,
+        updatedById: string | null
+    ): Promise<Question> {
+        return await prisma.$transaction(async (tx) => {
+            const current = await tx.question.findUnique({
+                where: { id }
+            });
+            if (!current) throw new NotFoundError("Question not found");
+
+            const updateData: any = {
+                updatedById,
+                version: { increment: 1 }
+            };
+            if (dto.title !== undefined) updateData.title = dto.title;
+            if (dto.description !== undefined) updateData.description = dto.description;
+            if (dto.difficulty !== undefined) updateData.difficulty = dto.difficulty;
+            if (dto.estimatedTime !== undefined) updateData.estimatedTime = dto.estimatedTime;
+            if (dto.defaultMarks !== undefined) updateData.defaultMarks = dto.defaultMarks;
+            if (dto.categoryId !== undefined) updateData.categoryId = dto.categoryId;
+
+            const question = await tx.question.update({
+                where: { id },
+                data: updateData
+            });
+
+            if (dto.tagIds !== undefined) {
+                await tx.questionTagMap.deleteMany({
+                    where: { questionId: id }
+                });
+                if (dto.tagIds.length > 0) {
+                    await tx.questionTagMap.createMany({
+                        data: dto.tagIds.map((tagId: string) => ({
+                            questionId: id,
+                            tagId
+                        }))
+                    });
+                }
+            }
+
+            if (question.type === "MCQ" && dto.mcqDetail) {
+                await tx.mCQOption.deleteMany({
+                    where: { mcqDetail: { questionId: id } }
+                });
+                await tx.mCQDetail.deleteMany({
+                    where: { questionId: id }
+                });
+
+                const mcq = await tx.mCQDetail.create({
+                    data: {
+                        questionId: id,
+                        allowMultipleCorrectAnswers: dto.mcqDetail.allowMultipleCorrectAnswers,
+                        negativeMarks: dto.mcqDetail.negativeMarks,
+                    }
+                });
+                await tx.mCQOption.createMany({
+                    data: dto.mcqDetail.options.map((opt: any) => ({
+                        mcqDetailId: mcq.id,
+                        optionText: opt.optionText,
+                        displayOrder: opt.displayOrder,
+                        isCorrect: opt.isCorrect,
+                    }))
+                });
+            } else if (question.type === "DSA" && dto.dsaDetail) {
+                await tx.testCase.deleteMany({
+                    where: { dsaDetail: { questionId: id } }
+                });
+                await tx.dSASupportedLanguage.deleteMany({
+                    where: { dsaDetail: { questionId: id } }
+                });
+                await tx.dSADetail.deleteMany({
+                    where: { questionId: id }
+                });
+
+                const dsa = await tx.dSADetail.create({
+                    data: {
+                        questionId: id,
+                        starterCode: dto.dsaDetail.starterCode,
+                        referenceSolution: dto.dsaDetail.referenceSolution,
+                        memoryLimit: dto.dsaDetail.memoryLimit,
+                        timeLimit: dto.dsaDetail.timeLimit,
+                    }
+                });
+                if (dto.dsaDetail.supportedLanguageIds.length > 0) {
+                    await tx.dSASupportedLanguage.createMany({
+                        data: dto.dsaDetail.supportedLanguageIds.map((langId: string) => ({
+                            dsaDetailId: dsa.id,
+                            programmingLanguageId: langId
+                        }))
+                    });
+                }
+                if (dto.dsaDetail.testCases.length > 0) {
+                    await tx.testCase.createMany({
+                        data: dto.dsaDetail.testCases.map((tc: any) => ({
+                            dsaDetailId: dsa.id,
+                            input: tc.input,
+                            expectedOutput: tc.expectedOutput,
+                            type: tc.type || "SAMPLE",
+                            explanation: tc.explanation || null,
+                            displayOrder: tc.displayOrder,
+                        }))
+                    });
+                }
+            } else if (question.type === "MACHINE_CODING" && dto.machineCodingDetail) {
+                await tx.machineCodingDetail.deleteMany({
+                    where: { questionId: id }
+                });
+                await tx.machineCodingDetail.create({
+                    data: {
+                        questionId: id,
+                        repositoryTemplate: dto.machineCodingDetail.repositoryTemplate || null,
+                        projectStructure: dto.machineCodingDetail.projectStructure || null,
+                        techStack: dto.machineCodingDetail.techStack || null,
+                        implementationInstructions: dto.machineCodingDetail.implementationInstructions,
+                        evaluationGuidelines: dto.machineCodingDetail.evaluationGuidelines || null,
+                    }
+                });
+            } else if (question.type === "PROJECT" && dto.projectDetail) {
+                await tx.projectDetail.deleteMany({
+                    where: { questionId: id }
+                });
+                await tx.projectDetail.create({
+                    data: {
+                        questionId: id,
+                        requirements: dto.projectDetail.requirements,
+                        submissionInstructions: dto.projectDetail.submissionInstructions,
+                        deadlineHours: dto.projectDetail.deadlineHours,
+                    }
+                });
+            }
+
+            return question;
+        });
+    }
+
+    static async softDeleteQuestion(id: string, deletedById: string): Promise<Question> {
+        return await prisma.question.update({
+            where: { id },
+            data: {
+                deletedAt: new Date(),
+                deletedById
+            }
+        });
+    }
+
+    static async countQuestions(filters: GetQuestionsQueryDto): Promise<number> {
+        const whereClause = this.buildQuestionsWhereClause(filters);
+        return await prisma.question.count({
+            where: whereClause
+        });
+    }
+
+    static async getAllQuestions(filters: GetQuestionsQueryDto, pagination: PaginationResult): Promise<QuestionWithRelations[]> {
+        const whereClause = this.buildQuestionsWhereClause(filters);
+        return await prisma.question.findMany({
+            where: whereClause,
+            skip: pagination.skip,
+            take: pagination.take,
+            orderBy: {
+                [pagination.sortBy]: pagination.sortOrder
+            },
+            include: {
+                category: true,
+                tags: {
+                    include: { tag: true }
+                },
+                mcqDetail: {
+                    include: { options: true }
+                },
+                dsaDetail: {
+                    include: {
+                        supportedLanguages: {
+                            include: { programmingLanguage: true }
+                        },
+                        testCases: true
+                    }
+                },
+                machineCodingDetail: true,
+                projectDetail: true,
+            }
+        });
+    }
+
+    static async publishQuestion(id: string, publishedById: string): Promise<Question> {
+        return await prisma.question.update({
+            where: { id },
+            data: {
+                status: "PUBLISHED",
+                publishedAt: new Date(),
+                publishedById
+            }
+        });
+    }
+
+    static async archiveQuestion(id: string, archivedById: string): Promise<Question> {
+        return await prisma.question.update({
+            where: { id },
+            data: {
+                status: "ARCHIVED",
+                archivedAt: new Date(),
+                archivedById
+            }
+        });
+    }
+
+    static async findCompanyMember(
+        userId: string,
+        companyId: string
+    ) {
+        return await prisma.companyMember.findFirst({
+            where: {
+                userId,
+                companyId,
+                status: CompanyMemberStatus.ACTIVE
+            }
+        });
+    }
+
+    private static buildQuestionsWhereClause(filters: GetQuestionsQueryDto): any {
+        const tagIdsArray = filters.tagIds ? filters.tagIds.split(",") : [];
+
+        return {
+            deletedAt: null,
+            ...(filters.type && { type: filters.type }),
+            ...(filters.difficulty && { difficulty: filters.difficulty }),
+            ...(filters.status && { status: filters.status }),
+            ...(filters.ownership && { ownership: filters.ownership }),
+            ...(filters.companyId && { companyId: filters.companyId }),
+            ...(filters.categoryId && { categoryId: filters.categoryId }),
+            ...(tagIdsArray.length > 0 && {
+                tags: {
+                    some: {
+                        tagId: { in: tagIdsArray }
+                    }
+                }
+            }),
+            ...(filters.search && {
+                OR: [
+                    { title: { contains: filters.search, mode: "insensitive" } },
+                    { description: { contains: filters.search, mode: "insensitive" } }
+                ]
+            })
+        };
     }
 }

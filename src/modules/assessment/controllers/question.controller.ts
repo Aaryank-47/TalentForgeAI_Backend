@@ -7,7 +7,10 @@ import type {
     CreateProgrammingLanguageDto,
     UpdateProgrammingLanguageDto,
     CreateDSASupportedLanguagesDto,
-    DeleteDSASupportedLanguagesDto
+    DeleteDSASupportedLanguagesDto,
+    CreateQuestionDto,
+    UpdateQuestionDto,
+    GetQuestionsQueryDto
 } from "../dto/question.dto.js";
 import { QuestionService } from "../services/question.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
@@ -262,6 +265,111 @@ export class QuestionController {
                 success: true,
                 message: MESSAGE.SUPPORTED_LANGUAGE_FETCHED,
                 data: list,
+            });
+        }
+    );
+
+    // Question Bank Controllers
+    static createQuestion = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as CreateQuestionDto;
+            const result = await QuestionService.createQuestion(dto, req.user);
+
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                message: "Question created successfully.",
+                data: result,
+            });
+        }
+    );
+
+    static getAllQuestions = asyncHandler(
+        async (req: Request, res: Response) => {
+            const filters = req.query as unknown as GetQuestionsQueryDto;
+            const result = await QuestionService.getAllQuestions(filters);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Questions fetched successfully.",
+                data: result,
+            });
+        }
+    );
+
+    static getQuestionById = asyncHandler(
+        async (req: Request, res: Response) => {
+            const id = req.params.id as string;
+            const result = await QuestionService.getQuestionById(id, req.user);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Question fetched successfully.",
+                data: result,
+            });
+        }
+    );
+
+    static updateQuestion = asyncHandler(
+        async (req: Request, res: Response) => {
+            const id = req.params.id as string;
+            const dto = req.body as UpdateQuestionDto;
+            const result = await QuestionService.updateQuestion(id, dto, req.user);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Question updated successfully.",
+                data: result,
+            });
+        }
+    );
+
+    static deleteQuestion = asyncHandler(
+        async (req: Request, res: Response) => {
+            const id = req.params.id as string;
+            await QuestionService.deleteQuestion(id, req.user);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Question deleted successfully.",
+            });
+        }
+    );
+
+    static publishQuestion = asyncHandler(
+        async (req: Request, res: Response) => {
+            const id = req.params.id as string;
+            const result = await QuestionService.publishQuestion(id, req.user);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Question published successfully.",
+                data: result,
+            });
+        }
+    );
+
+    static archiveQuestion = asyncHandler(
+        async (req: Request, res: Response) => {
+            const id = req.params.id as string;
+            const result = await QuestionService.archiveQuestion(id, req.user);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Question archived successfully.",
+                data: result,
+            });
+        }
+    );
+
+    static duplicateQuestion = asyncHandler(
+        async (req: Request, res: Response) => {
+            const id = req.params.id as string;
+            const result = await QuestionService.duplicateQuestion(id, req.user);
+
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                message: "Question duplicated successfully.",
+                data: result,
             });
         }
     );

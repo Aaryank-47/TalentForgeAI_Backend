@@ -1,6 +1,7 @@
-import type { QuestionCategory, QuestionTag, ProgrammingLanguage } from "@prisma/client";
-import type { GetQuestionCategoriesDto, GetQuestionTagsDto, GetProgrammingLanguagesDto } from "../dto/question.dto.js";
+import type { Question, QuestionCategory, QuestionTag, ProgrammingLanguage } from "@prisma/client";
+import type { GetQuestionCategoriesDto, GetQuestionTagsDto, GetProgrammingLanguagesDto, CreateQuestionDto, UpdateQuestionDto, GetQuestionsQueryDto } from "../dto/question.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
+import type { QuestionWithRelations } from "../interfaces/question.interface.js";
 export declare class QuestionRepository {
     static findQueCateogoryByName(name: string): Promise<QuestionCategory | null>;
     static findQueCategoryByNameAndParent(name: string, parentId: string | null): Promise<QuestionCategory | null>;
@@ -68,10 +69,14 @@ export declare class QuestionRepository {
     static getLanguageUsageCount(id: string): Promise<number>;
     static countLanguages(filters: GetProgrammingLanguagesDto): Promise<number>;
     static getAllLanguages(filters: GetProgrammingLanguagesDto, pagination: PaginationResult): Promise<ProgrammingLanguage[]>;
-    static createSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any>;
-    static syncSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any>;
-    static deleteSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any>;
-    static getSupportedLanguagesByDsaId(dsaDetailId: string): Promise<({
+    static createSupportedLanguages(questionId: string, programmingLanguageIds: string[]): Promise<{
+        count: number;
+    }>;
+    static syncSupportedLanguages(questionId: string, programmingLanguageIds: string[]): Promise<any>;
+    static deleteSupportedLanguages(questionId: string, programmingLanguageIds: string[]): Promise<{
+        count: number;
+    }>;
+    static getSupportedLanguagesByQuestionId(questionId: string): Promise<({
         programmingLanguage: {
             slug: string;
             name: string;
@@ -85,7 +90,7 @@ export declare class QuestionRepository {
         dsaDetailId: string;
         programmingLanguageId: string;
     })[]>;
-    static findDsaDetailById(id: string): Promise<{
+    static findDsaDetailByQuestionId(questionId: string): Promise<{
         id: string;
         questionId: string;
         starterCode: string;
@@ -96,5 +101,26 @@ export declare class QuestionRepository {
     static getCategoriesByParent(parentId: string | null): Promise<QuestionCategory[]>;
     static getAllTagsRaw(): Promise<QuestionTag[]>;
     static getAllLanguagesRaw(): Promise<ProgrammingLanguage[]>;
+    static findQuestionById(id: string): Promise<QuestionWithRelations | null>;
+    static createQuestion(dto: CreateQuestionDto, createdById: string | null, createdByCompanyMemberId: string | null): Promise<Question>;
+    static updateQuestion(id: string, dto: UpdateQuestionDto, updatedById: string | null): Promise<Question>;
+    static softDeleteQuestion(id: string, deletedById: string): Promise<Question>;
+    static countQuestions(filters: GetQuestionsQueryDto): Promise<number>;
+    static getAllQuestions(filters: GetQuestionsQueryDto, pagination: PaginationResult): Promise<QuestionWithRelations[]>;
+    static publishQuestion(id: string, publishedById: string): Promise<Question>;
+    static archiveQuestion(id: string, archivedById: string): Promise<Question>;
+    static findCompanyMember(userId: string, companyId: string): Promise<{
+        companyId: string;
+        id: string;
+        role: import("@prisma/client").$Enums.CompanyMemberRole;
+        status: import("@prisma/client").$Enums.CompanyMemberStatus;
+        userId: string;
+        expiresAt: Date | null;
+        joinedAt: Date;
+        invitationToken: string | null;
+        invitedAt: Date | null;
+        invitedBy: string | null;
+    } | null>;
+    private static buildQuestionsWhereClause;
 }
 //# sourceMappingURL=question.repository.d.ts.map

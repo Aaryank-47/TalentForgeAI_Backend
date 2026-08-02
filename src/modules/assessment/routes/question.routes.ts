@@ -9,7 +9,11 @@ import {
     getQuestionTagsDto, 
     ProgrammingLanguageDto, 
     getProgrammingLanguagesDto, 
-    DSASupportedLanguageDto 
+    DSASupportedLanguageDto,
+    createQuestionSchema,
+    updateQuestionSchema,
+    getQuestionsQuerySchema,
+    questionIdParamsSchema 
 } from "../dto/question.dto.js";
 import { UserRole } from "@prisma/client";
 
@@ -170,6 +174,65 @@ const registerSupportedLanguageRoutes = (router: Router, prefix: string) => {
     );
 };
 
+const registerQuestionBankRoutes = (router: Router, prefix: string) => {
+    router.post(
+        `${prefix}`,
+        authMiddleware,
+        validate(createQuestionSchema, "body"),
+        QuestionController.createQuestion
+    );
+
+    router.get(
+        `${prefix}`,
+        authMiddleware,
+        validate(getQuestionsQuerySchema, "query"),
+        QuestionController.getAllQuestions
+    );
+
+    router.get(
+        `${prefix}:id`,
+        authMiddleware,
+        validate(questionIdParamsSchema, "params"),
+        QuestionController.getQuestionById
+    );
+
+    router.patch(
+        `${prefix}:id`,
+        authMiddleware,
+        validate(questionIdParamsSchema, "params"),
+        validate(updateQuestionSchema, "body"),
+        QuestionController.updateQuestion
+    );
+
+    router.delete(
+        `${prefix}:id`,
+        authMiddleware,
+        validate(questionIdParamsSchema, "params"),
+        QuestionController.deleteQuestion
+    );
+
+    router.patch(
+        `${prefix}:id/publish`,
+        authMiddleware,
+        validate(questionIdParamsSchema, "params"),
+        QuestionController.publishQuestion
+    );
+
+    router.patch(
+        `${prefix}:id/archive`,
+        authMiddleware,
+        validate(questionIdParamsSchema, "params"),
+        QuestionController.archiveQuestion
+    );
+
+    router.post(
+        `${prefix}:id/duplicate`,
+        authMiddleware,
+        validate(questionIdParamsSchema, "params"),
+        QuestionController.duplicateQuestion
+    );
+};
+
 // Register category routes under "/categories"
 registerRoutes(QuestionRoutes, "/categories");
 
@@ -181,5 +244,8 @@ registerLanguageRoutes(QuestionRoutes, "/languages");
 
 // Register supported language routes under "/supported-languages"
 registerSupportedLanguageRoutes(QuestionRoutes, "/supported-languages");
+
+// Register main Question Bank routes at root level
+registerQuestionBankRoutes(QuestionRoutes, "/");
 
 export default QuestionRoutes;

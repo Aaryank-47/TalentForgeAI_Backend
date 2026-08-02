@@ -1,11 +1,10 @@
 import { QuestionRepository } from "../repositories/question.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
-function normalizeName(name) {
-    return name.toLowerCase().replace(/[\s\-_]+/g, "");
-}
+import { normalizeName, validateQuestionAccess } from "../helper/question.helper.js";
 export class QuestionService {
     static async createQueCategory(name, parentId) {
         const parentIdValue = parentId ?? null;
@@ -191,9 +190,9 @@ export class QuestionService {
     }
     // DSASupportedLanguage Services
     static async createSupportedLanguages(dto) {
-        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
+        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(dto.questionId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found");
+            throw new NotFoundError("DSA Detail not found for the specified question");
         }
         for (const langId of dto.programmingLanguageIds) {
             const language = await QuestionRepository.findLanguageById(langId);
@@ -201,12 +200,12 @@ export class QuestionService {
                 throw new NotFoundError(`Programming language with ID "${langId}" not found`);
             }
         }
-        return await QuestionRepository.createSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
+        return await QuestionRepository.createSupportedLanguages(dto.questionId, dto.programmingLanguageIds);
     }
     static async syncSupportedLanguages(dto) {
-        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
+        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(dto.questionId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found");
+            throw new NotFoundError("DSA Detail not found for the specified question");
         }
         for (const langId of dto.programmingLanguageIds) {
             const language = await QuestionRepository.findLanguageById(langId);
@@ -214,21 +213,205 @@ export class QuestionService {
                 throw new NotFoundError(`Programming language with ID "${langId}" not found`);
             }
         }
-        return await QuestionRepository.syncSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
+        return await QuestionRepository.syncSupportedLanguages(dto.questionId, dto.programmingLanguageIds);
     }
     static async deleteSupportedLanguages(dto) {
-        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
+        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(dto.questionId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found");
+            throw new NotFoundError("DSA Detail not found for the specified question");
         }
-        return await QuestionRepository.deleteSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
+        return await QuestionRepository.deleteSupportedLanguages(dto.questionId, dto.programmingLanguageIds);
     }
-    static async getSupportedLanguagesByDsaId(dsaDetailId) {
-        const dsaDetail = await QuestionRepository.findDsaDetailById(dsaDetailId);
+    static async getSupportedLanguagesByQuestionId(questionId) {
+        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(questionId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found");
+            throw new NotFoundError("DSA Detail not found for the specified question");
         }
-        return await QuestionRepository.getSupportedLanguagesByDsaId(dsaDetailId);
+        return await QuestionRepository.getSupportedLanguagesByQuestionId(questionId);
+    }
+    static async createQuestion(dto, user) {
+        let createdByCompanyMemberId = null;
+        if (dto.ownership === "GLOBAL") {
+            if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
+                throw new ForbiddenError("Only platform administrators can create global questions");
+            }
+            if (dto.companyId) {
+                throw new ConflictError("Global questions cannot have a company ID");
+            }
+        }
+        else if (dto.ownership === "COMPANY") {
+            if (!dto.companyId) {
+                throw new ConflictError("Company questions must specify a company ID");
+            }
+            const membership = await QuestionRepository.findCompanyMember(user.id, dto.companyId);
+            if (!membership) {
+                throw new ForbiddenError("You must be an active member of the company to create questions for it");
+            }
+            createdByCompanyMemberId = membership.id;
+        }
+        if (dto.categoryId) {
+            const category = await QuestionRepository.findQuestionCategoryById(dto.categoryId);
+            if (!category)
+                throw new NotFoundError("Category not found");
+        }
+        if (dto.tagIds && dto.tagIds.length > 0) {
+            for (const tagId of dto.tagIds) {
+                const tag = await QuestionRepository.findQuestionTagById(tagId);
+                if (!tag)
+                    throw new NotFoundError(`Tag with ID "${tagId}" not found`);
+            }
+        }
+        if (dto.type === "DSA" && dto.dsaDetail) {
+            for (const langId of dto.dsaDetail.supportedLanguageIds) {
+                const lang = await QuestionRepository.findLanguageById(langId);
+                if (!lang)
+                    throw new NotFoundError(`Programming language with ID "${langId}" not found`);
+            }
+        }
+        return await QuestionRepository.createQuestion(dto, user.id, createdByCompanyMemberId);
+    }
+    static async getAllQuestions(filters) {
+        const pagination = PaginationHelper.getPagination(filters);
+        const totalItems = await QuestionRepository.countQuestions(filters);
+        const items = await QuestionRepository.getAllQuestions(filters, pagination);
+        return PaginationHelper.buildResponse(items, pagination, totalItems);
+    }
+    static async getQuestionById(id, user) {
+        const question = await QuestionRepository.findQuestionById(id);
+        if (!question)
+            throw new NotFoundError("Question not found");
+        await validateQuestionAccess(question, user, "read");
+        return question;
+    }
+    static async updateQuestion(id, dto, user) {
+        const question = await QuestionRepository.findQuestionById(id);
+        if (!question)
+            throw new NotFoundError("Question not found");
+        await validateQuestionAccess(question, user, "write");
+        if (dto.categoryId) {
+            const category = await QuestionRepository.findQuestionCategoryById(dto.categoryId);
+            if (!category)
+                throw new NotFoundError("Category not found");
+        }
+        if (dto.tagIds && dto.tagIds.length > 0) {
+            for (const tagId of dto.tagIds) {
+                const tag = await QuestionRepository.findQuestionTagById(tagId);
+                if (!tag)
+                    throw new NotFoundError(`Tag with ID "${tagId}" not found`);
+            }
+        }
+        if (dto.dsaDetail) {
+            for (const langId of dto.dsaDetail.supportedLanguageIds) {
+                const lang = await QuestionRepository.findLanguageById(langId);
+                if (!lang)
+                    throw new NotFoundError(`Programming language with ID "${langId}" not found`);
+            }
+        }
+        return await QuestionRepository.updateQuestion(id, dto, user.id);
+    }
+    static async deleteQuestion(id, user) {
+        const question = await QuestionRepository.findQuestionById(id);
+        if (!question)
+            throw new NotFoundError("Question not found");
+        await validateQuestionAccess(question, user, "write");
+        return await QuestionRepository.softDeleteQuestion(id, user.id);
+    }
+    static async publishQuestion(id, user) {
+        const question = await QuestionRepository.findQuestionById(id);
+        if (!question)
+            throw new NotFoundError("Question not found");
+        await validateQuestionAccess(question, user, "write");
+        if (question.status === "PUBLISHED") {
+            throw new ConflictError("Question is already published");
+        }
+        return await QuestionRepository.publishQuestion(id, user.id);
+    }
+    static async archiveQuestion(id, user) {
+        const question = await QuestionRepository.findQuestionById(id);
+        if (!question)
+            throw new NotFoundError("Question not found");
+        await validateQuestionAccess(question, user, "write");
+        if (question.status !== "PUBLISHED") {
+            throw new ConflictError("Only published questions can be archived");
+        }
+        return await QuestionRepository.archiveQuestion(id, user.id);
+    }
+    static async duplicateQuestion(id, user) {
+        const question = await QuestionRepository.findQuestionById(id);
+        if (!question)
+            throw new NotFoundError("Question not found");
+        await validateQuestionAccess(question, user, "read");
+        const tagIds = question.tags.map((t) => t.tagId);
+        let mcqDetail = null;
+        if (question.type === "MCQ" && question.mcqDetail) {
+            mcqDetail = {
+                allowMultipleCorrectAnswers: question.mcqDetail.allowMultipleCorrectAnswers,
+                negativeMarks: question.mcqDetail.negativeMarks,
+                options: question.mcqDetail.options.map((opt) => ({
+                    optionText: opt.optionText,
+                    displayOrder: opt.displayOrder,
+                    isCorrect: opt.isCorrect,
+                }))
+            };
+        }
+        let dsaDetail = null;
+        if (question.type === "DSA" && question.dsaDetail) {
+            dsaDetail = {
+                starterCode: question.dsaDetail.starterCode,
+                referenceSolution: question.dsaDetail.referenceSolution,
+                memoryLimit: question.dsaDetail.memoryLimit,
+                timeLimit: question.dsaDetail.timeLimit,
+                supportedLanguageIds: question.dsaDetail.supportedLanguages.map((sl) => sl.programmingLanguageId),
+                testCases: question.dsaDetail.testCases.map((tc) => ({
+                    input: tc.input,
+                    expectedOutput: tc.expectedOutput,
+                    type: tc.type,
+                    explanation: tc.explanation,
+                    displayOrder: tc.displayOrder,
+                }))
+            };
+        }
+        let machineCodingDetail = null;
+        if (question.type === "MACHINE_CODING" && question.machineCodingDetail) {
+            machineCodingDetail = {
+                repositoryTemplate: question.machineCodingDetail.repositoryTemplate,
+                projectStructure: question.machineCodingDetail.projectStructure,
+                techStack: question.machineCodingDetail.techStack,
+                implementationInstructions: question.machineCodingDetail.implementationInstructions,
+                evaluationGuidelines: question.machineCodingDetail.evaluationGuidelines,
+            };
+        }
+        let projectDetail = null;
+        if (question.type === "PROJECT" && question.projectDetail) {
+            projectDetail = {
+                requirements: question.projectDetail.requirements,
+                submissionInstructions: question.projectDetail.submissionInstructions,
+                deadlineHours: question.projectDetail.deadlineHours,
+            };
+        }
+        const createDto = {
+            title: `${question.title} (Copy)`,
+            description: question.description,
+            type: question.type,
+            difficulty: question.difficulty,
+            estimatedTime: question.estimatedTime,
+            defaultMarks: question.defaultMarks,
+            ownership: question.ownership,
+            categoryId: question.categoryId,
+            tagIds,
+            companyId: question.companyId,
+            mcqDetail,
+            dsaDetail,
+            machineCodingDetail,
+            projectDetail
+        };
+        let createdByCompanyMemberId = null;
+        if (question.ownership === "COMPANY" && question.companyId) {
+            const membership = await QuestionRepository.findCompanyMember(user.id, question.companyId);
+            if (membership)
+                createdByCompanyMemberId = membership.id;
+        }
+        return await QuestionRepository.createQuestion(createDto, user.id, createdByCompanyMemberId);
     }
 }
 //# sourceMappingURL=question.service.js.map
