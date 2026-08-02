@@ -1,6 +1,6 @@
 import prisma from "../../../config/database.js";
-import type { QuestionCategory } from "@prisma/client";
-import type { GetQuestionCategoriesDto } from "../dto/question.dto.js";
+import type { QuestionCategory, QuestionTag } from "@prisma/client";
+import type { GetQuestionCategoriesDto, GetQuestionTagsDto } from "../dto/question.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 
 export class QuestionRepository {
@@ -84,7 +84,7 @@ export class QuestionRepository {
             where: {
                 parentId: id,
                 deletedAt: null,
-            },
+                },
         });
         return count > 0;
     }
@@ -148,6 +148,77 @@ export class QuestionRepository {
                     }
                 },
             },
+        });
+    }
+
+    static async findQuestionTagByName(name: string): Promise<QuestionTag | null> {
+        return await prisma.questionTag.findUnique({
+            where: { name }
+        });
+    }
+
+    static async findQuestionTagById(id: string): Promise<QuestionTag | null> {
+        return await prisma.questionTag.findUnique({
+            where: { id }
+        });
+    }
+
+    static async createQuestionTag(name: string): Promise<QuestionTag> {
+        return await prisma.questionTag.create({
+            data: { name }
+        });
+    }
+
+    static async updateQuestionTag(id: string, name: string): Promise<QuestionTag> {
+        return await prisma.questionTag.update({
+            where: { id },
+            data: { name }
+        });
+    }
+
+    static async deleteQuestionTag(id: string): Promise<QuestionTag> {
+        return await prisma.questionTag.delete({
+            where: { id }
+        });
+    }
+
+    static async getTagUsageCount(id: string): Promise<number> {
+        return await prisma.questionTagMap.count({
+            where: { tagId: id }
+        });
+    }
+
+    static async countQuestionTags(filters: GetQuestionTagsDto): Promise<number> {
+        return await prisma.questionTag.count({
+            where: {
+                ...(filters.search && {
+                    name: {
+                        contains: filters.search,
+                        mode: "insensitive"
+                    }
+                })
+            }
+        });
+    }
+
+    static async getAllQuestionTags(
+        filters: GetQuestionTagsDto,
+        pagination: PaginationResult
+    ): Promise<QuestionTag[]> {
+        return await prisma.questionTag.findMany({
+            where: {
+                ...(filters.search && {
+                    name: {
+                        contains: filters.search,
+                        mode: "insensitive"
+                    }
+                })
+            },
+            skip: pagination.skip,
+            take: pagination.take,
+            orderBy: {
+                [pagination.sortBy]: pagination.sortOrder
+            }
         });
     }
 }

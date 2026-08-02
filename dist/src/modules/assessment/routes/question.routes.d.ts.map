@@ -1,1 +1,1 @@
-{"version":3,"file":"question.routes.d.ts","sourceRoot":"","sources":["../../../../../src/modules/assessment/routes/question.routes.ts"],"names":[],"mappings":"AAYA,QAAA,MAAM,MAAM,4CAAW,CAAC;AAIxB,eAAe,MAAM,CAAC"}
+{"version":3,"file":"question.routes.d.ts","sourceRoot":"","sources":["../../../../../src/modules/assessment/routes/question.routes.ts"],"names":[],"mappings":"AAQA,QAAA,MAAM,cAAc,4CAAW,CAAC;AA2FhC,eAAe,cAAc,CAAC"}

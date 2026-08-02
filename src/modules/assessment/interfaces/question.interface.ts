@@ -17,12 +17,12 @@ export interface QuestionCategoryView {
   children?: QuestionCategoryView[];
 }
 
-// export interface QuestionTagView {
-//   id: string;
-//   name: string;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
+export interface QuestionTagView {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // export interface MCQOptionView {
 //   id: string;

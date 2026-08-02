@@ -1,8 +1,8 @@
 import { QuestionRepository } from "../repositories/question.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
-import type { QuestionCategory } from "@prisma/client";
-import type { GetQuestionCategoriesDto, UpdateQuestionCategoryDto } from "../dto/question.dto.js";
+import type { QuestionCategory, QuestionTag } from "@prisma/client";
+import type { GetQuestionCategoriesDto, UpdateQuestionCategoryDto, GetQuestionTagsDto, UpdateQuestionTagDto } from "../dto/question.dto.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 
 export class QuestionService {
@@ -88,5 +88,63 @@ export class QuestionService {
         }
 
         await QuestionRepository.softDeleteQueCategory(id);
+    }
+
+    static async createQuestionTag(name: string): Promise<QuestionTag> {
+        const existingTag = await QuestionRepository.findQuestionTagByName(name);
+        if (existingTag) {
+            throw new ConflictError(`Question tag "${name}" already exists`);
+        }
+        return await QuestionRepository.createQuestionTag(name);
+    }
+
+    static async getAllQuestionTags(filters: GetQuestionTagsDto): Promise<any> {
+        const pagination = PaginationHelper.getPagination(filters);
+        const totalItems = await QuestionRepository.countQuestionTags(filters);
+        const tags = await QuestionRepository.getAllQuestionTags(filters, pagination);
+
+        return PaginationHelper.buildResponse(
+            tags,
+            pagination,
+            totalItems
+        );
+    }
+
+    static async getQuestionTagById(id: string): Promise<QuestionTag> {
+        const tag = await QuestionRepository.findQuestionTagById(id);
+        if (!tag) {
+            throw new NotFoundError("Question tag not found");
+        }
+        return tag;
+    }
+
+    static async updateQuestionTag(id: string, data: UpdateQuestionTagDto): Promise<QuestionTag> {
+        const tag = await QuestionRepository.findQuestionTagById(id);
+        if (!tag) {
+            throw new NotFoundError("Question tag not found");
+        }
+
+        if (data.name !== undefined) {
+            const duplicate = await QuestionRepository.findQuestionTagByName(data.name);
+            if (duplicate && duplicate.id !== id) {
+                throw new ConflictError(`Question tag "${data.name}" already exists`);
+            }
+        }
+
+        return await QuestionRepository.updateQuestionTag(id, data.name || tag.name);
+    }
+
+    static async deleteQuestionTag(id: string): Promise<void> {
+        const tag = await QuestionRepository.findQuestionTagById(id);
+        if (!tag) {
+            throw new NotFoundError("Question tag not found");
+        }
+
+        const usageCount = await QuestionRepository.getTagUsageCount(id);
+        if (usageCount > 0) {
+            throw new ConflictError(`Cannot delete tag "${tag.name}" because it is currently used by ${usageCount} question(s).`);
+        }
+
+        await QuestionRepository.deleteQuestionTag(id);
     }
 }

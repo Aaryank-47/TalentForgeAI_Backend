@@ -86,4 +86,11 @@ export const MESSAGE = {
     CATEGORY_UPDATED: "Category updated successfully.",
     CATEGORY_DELETED: "Category deleted successfully.",
     CATEGORY_NOT_FOUND: "Question category not found.",
+
+    // Question Tag
+    TAG_CREATED: "Question tag created successfully.",
+    TAG_FETCHED: "Question tag fetched successfully.",
+    TAG_UPDATED: "Question tag updated successfully.",
+    TAG_DELETED: "Question tag deleted successfully.",
+    TAG_NOT_FOUND: "Question tag not found.",
 } as const;

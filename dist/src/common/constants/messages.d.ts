@@ -61,5 +61,15 @@ export declare const MESSAGE: {
     readonly APPLICATION_NOT_APPLIED: "Application not found.";
     readonly APPLICATION_ALREADY_APPLIED: "Application already submitted.";
     readonly APPLICATION_WITHDRAWN: "Application withdrawn successfully.";
+    readonly CATEGORY_CREATED: "Question category created successfully.";
+    readonly CATEGORY_FETCHED: "Question category fetched successfully.";
+    readonly CATEGORY_UPDATED: "Category updated successfully.";
+    readonly CATEGORY_DELETED: "Category deleted successfully.";
+    readonly CATEGORY_NOT_FOUND: "Question category not found.";
+    readonly TAG_CREATED: "Question tag created successfully.";
+    readonly TAG_FETCHED: "Question tag fetched successfully.";
+    readonly TAG_UPDATED: "Question tag updated successfully.";
+    readonly TAG_DELETED: "Question tag deleted successfully.";
+    readonly TAG_NOT_FOUND: "Question tag not found.";
 };
 //# sourceMappingURL=messages.d.ts.map

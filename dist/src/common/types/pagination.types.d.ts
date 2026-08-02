@@ -1,8 +1,8 @@
 export interface PaginationQuery {
-    page?: string;
-    limit?: string;
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
+    page?: string | number | undefined;
+    limit?: string | number | undefined;
+    sortBy?: string | undefined;
+    sortOrder?: "asc" | "desc" | undefined;
 }
 export interface PaginationResult {
     page: number;

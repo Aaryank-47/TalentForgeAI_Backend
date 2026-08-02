@@ -25,6 +25,5 @@ router.use("/hiring-workflow/stage-library", hiringWorkflowRoutes);
 router.use("/hiring-workflow", workflowRoutes);
 router.use("/hiring-workflow/applications", applicationWorkflowRoutes);
 router.use("/questions", questionRoutes);
-router.use("/assessment/question-categories", questionRoutes);
 
 export default router;

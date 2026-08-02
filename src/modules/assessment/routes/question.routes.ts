@@ -3,7 +3,7 @@ import { QuestionController } from "../controllers/question.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { QuestionCategoryDto } from "../dto/question.dto.js";
+import { QuestionCategoryDto, QuestionTagDto, getQuestionTagsDto } from "../dto/question.dto.js";
 import { UserRole } from "@prisma/client";
 
 const QuestionRoutes = Router();
@@ -49,10 +49,52 @@ const registerRoutes = (router: Router, prefix: string) => {
     );
 };
 
-// Register for /questions/categories (legacy prefix)
+const registerTagRoutes = (router: Router, prefix: string) => {
+    router.post(
+        `${prefix}`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(QuestionTagDto.createTag, "body"),
+        QuestionController.createTag
+    );
+
+    router.get(
+        `${prefix}`,
+        authMiddleware,
+        validate(getQuestionTagsDto, "query"),
+        QuestionController.getAllQuestionTags
+    );
+
+    router.get(
+        `${prefix}/:id`,
+        authMiddleware,
+        validate(QuestionTagDto.tagIdParams, "params"),
+        QuestionController.getQuestionTagById
+    );
+
+    router.patch(
+        `${prefix}/:id`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(QuestionTagDto.tagIdParams, "params"),
+        validate(QuestionTagDto.updateTag, "body"),
+        QuestionController.updateQuestionTag
+    );
+
+    router.delete(
+        `${prefix}/:id`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(QuestionTagDto.tagIdParams, "params"),
+        QuestionController.deleteQuestionTag
+    );
+};
+
+
+// Register category routes under "/categories"
 registerRoutes(QuestionRoutes, "/categories");
 
-// Register for /assessment/question-categories
-registerRoutes(QuestionRoutes, "");
+// Register tag routes under "/tags"
+registerTagRoutes(QuestionRoutes, "/tags");
 
 export default QuestionRoutes;
