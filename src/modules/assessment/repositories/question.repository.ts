@@ -1,6 +1,6 @@
 import prisma from "../../../config/database.js";
-import type { QuestionCategory, QuestionTag } from "@prisma/client";
-import type { GetQuestionCategoriesDto, GetQuestionTagsDto } from "../dto/question.dto.js";
+import type { QuestionCategory, QuestionTag, ProgrammingLanguage, DSASupportedLanguage } from "@prisma/client";
+import type { GetQuestionCategoriesDto, GetQuestionTagsDto, GetProgrammingLanguagesDto } from "../dto/question.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 
 export class QuestionRepository {
@@ -220,5 +220,186 @@ export class QuestionRepository {
                 [pagination.sortBy]: pagination.sortOrder
             }
         });
+    }
+
+    // ProgrammingLanguage
+    static async findLanguageByName(
+        name: string
+    ): Promise<ProgrammingLanguage | null> {
+        return await prisma.programmingLanguage.findUnique({
+            where: { name }
+        });
+    }
+
+    static async findLanguageBySlug(
+        slug: string
+    ): Promise<ProgrammingLanguage | null> {
+        return await prisma.programmingLanguage.findUnique({
+            where: { slug }
+        });
+    }
+
+    static async findLanguageById(id: string): Promise<ProgrammingLanguage | null> {
+        return await prisma.programmingLanguage.findUnique({
+            where: { id }
+        });
+    }
+
+    static async createLanguage(
+        data: {
+            name: string;
+            slug: string;
+            isActive?: boolean
+        }
+    ): Promise<ProgrammingLanguage> {
+        return await prisma.programmingLanguage.create({
+            data
+        });
+    }
+
+    static async updateLanguage(
+        id: string,
+        data: {
+            name?: string | undefined;
+            slug?: string | undefined;
+            isActive?: boolean | undefined
+        }
+    ): Promise<ProgrammingLanguage> {
+        const updateData: any = {};
+        if (data.name !== undefined) updateData.name = data.name;
+        if (data.slug !== undefined) updateData.slug = data.slug;
+        if (data.isActive !== undefined) updateData.isActive = data.isActive;
+
+        return await prisma.programmingLanguage.update({
+            where: { id },
+            data: updateData
+        });
+    }
+
+    static async deleteLanguage(
+        id: string
+    ): Promise<ProgrammingLanguage> {
+        return await prisma.programmingLanguage.delete({
+            where: { id }
+        });
+    }
+
+    static async getLanguageUsageCount(
+        id: string
+    ): Promise<number> {
+        return await prisma.dSASupportedLanguage.count({
+            where: { programmingLanguageId: id }
+        });
+    }
+
+    static async countLanguages(
+        filters: GetProgrammingLanguagesDto
+    ): Promise<number> {
+        return await prisma.programmingLanguage.count({
+            where: {
+                ...(filters.search && {
+                    OR: [
+                        { name: { contains: filters.search, mode: "insensitive" } },
+                        { slug: { contains: filters.search, mode: "insensitive" } },
+                    ]
+                }),
+                ...(filters.isActive !== undefined && { isActive: filters.isActive })
+            }
+        });
+    }
+
+    static async getAllLanguages(
+        filters: GetProgrammingLanguagesDto,
+        pagination: PaginationResult
+    ): Promise<ProgrammingLanguage[]> {
+        return await prisma.programmingLanguage.findMany({
+            where: {
+                ...(filters.search && {
+                    OR: [
+                        { name: { contains: filters.search, mode: "insensitive" } },
+                        { slug: { contains: filters.search, mode: "insensitive" } },
+                    ]
+                }),
+                ...(filters.isActive !== undefined && { isActive: filters.isActive })
+            },
+            skip: pagination.skip,
+            take: pagination.take,
+            orderBy: {
+                [pagination.sortBy]: pagination.sortOrder
+            }
+        });
+    }
+
+    // DSASupportedLanguage
+    static async createSupportedLanguages(
+        dsaDetailId: string, 
+        programmingLanguageIds: string[]
+    ): Promise<any> {
+        const data = programmingLanguageIds.map(id => ({
+            dsaDetailId,
+            programmingLanguageId: id
+        }));
+        return await prisma.dSASupportedLanguage.createMany({
+            data,
+            skipDuplicates: true
+        });
+    }
+
+    static async syncSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any> {
+        return await prisma.$transaction([
+            prisma.dSASupportedLanguage.deleteMany({
+                where: { dsaDetailId }
+            }),
+            prisma.dSASupportedLanguage.createMany({
+                data: programmingLanguageIds.map(id => ({
+                    dsaDetailId,
+                    programmingLanguageId: id
+                }))
+            })
+         ]);
+    }
+
+    static async deleteSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any> {
+        return await prisma.dSASupportedLanguage.deleteMany({
+            where: {
+                dsaDetailId,
+                programmingLanguageId: {
+                    in: programmingLanguageIds
+                }
+            }
+        });
+    }
+
+    static async getSupportedLanguagesByDsaId(dsaDetailId: string) {
+        return await prisma.dSASupportedLanguage.findMany({
+            where: { dsaDetailId },
+            include: {
+                programmingLanguage: true
+            }
+        });
+    }
+
+    // Helper to find DSADetail by id (to verify existence)
+    static async findDsaDetailById(id: string) {
+        return await prisma.dSADetail.findUnique({
+            where: { id }
+        });
+    }
+
+    static async getCategoriesByParent(parentId: string | null): Promise<QuestionCategory[]> {
+        return await prisma.questionCategory.findMany({
+            where: {
+                parentId,
+                deletedAt: null
+            }
+        });
+    }
+
+    static async getAllTagsRaw(): Promise<QuestionTag[]> {
+        return await prisma.questionTag.findMany();
+    }
+
+    static async getAllLanguagesRaw(): Promise<ProgrammingLanguage[]> {
+        return await prisma.programmingLanguage.findMany();
     }
 }

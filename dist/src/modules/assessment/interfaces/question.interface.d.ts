@@ -14,4 +14,18 @@ export interface QuestionTagView {
     createdAt: Date;
     updatedAt: Date;
 }
+export interface ProgrammingLanguageView {
+    id: string;
+    name: string;
+    slug: string;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface DSASupportedLanguageView {
+    dsaDetailId: string;
+    programmingLanguageId: string;
+    createdAt: Date;
+    programmingLanguage?: ProgrammingLanguageView;
+}
 //# sourceMappingURL=question.interface.d.ts.map

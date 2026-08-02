@@ -3,7 +3,14 @@ import { QuestionController } from "../controllers/question.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { QuestionCategoryDto, QuestionTagDto, getQuestionTagsDto } from "../dto/question.dto.js";
+import { 
+    QuestionCategoryDto, 
+    QuestionTagDto, 
+    getQuestionTagsDto, 
+    ProgrammingLanguageDto, 
+    getProgrammingLanguagesDto, 
+    DSASupportedLanguageDto 
+} from "../dto/question.dto.js";
 import { UserRole } from "@prisma/client";
 
 const QuestionRoutes = Router();
@@ -90,11 +97,89 @@ const registerTagRoutes = (router: Router, prefix: string) => {
     );
 };
 
+const registerLanguageRoutes = (router: Router, prefix: string) => {
+    router.post(
+        `${prefix}`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(ProgrammingLanguageDto.createLanguage, "body"),
+        QuestionController.createLanguage
+    );
+
+    router.get(
+        `${prefix}`,
+        authMiddleware,
+        validate(getProgrammingLanguagesDto, "query"),
+        QuestionController.getAllProgrammingLanguages
+    );
+
+    router.get(
+        `${prefix}/:id`,
+        authMiddleware,
+        validate(ProgrammingLanguageDto.languageIdParams, "params"),
+        QuestionController.getProgrammingLanguageById
+    );
+
+    router.patch(
+        `${prefix}/:id`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(ProgrammingLanguageDto.languageIdParams, "params"),
+        validate(ProgrammingLanguageDto.updateLanguage, "body"),
+        QuestionController.updateProgrammingLanguage
+    );
+
+    router.delete(
+        `${prefix}/:id`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(ProgrammingLanguageDto.languageIdParams, "params"),
+        QuestionController.deleteProgrammingLanguage
+    );
+};
+
+const registerSupportedLanguageRoutes = (router: Router, prefix: string) => {
+    router.post(
+        `${prefix}`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(DSASupportedLanguageDto.createSupportedLanguages, "body"),
+        QuestionController.createSupportedLanguages
+    );
+
+    router.put(
+        `${prefix}`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(DSASupportedLanguageDto.createSupportedLanguages, "body"),
+        QuestionController.syncSupportedLanguages
+    );
+
+    router.delete(
+        `${prefix}`,
+        authMiddleware,
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        validate(DSASupportedLanguageDto.deleteSupportedLanguages, "body"),
+        QuestionController.deleteSupportedLanguages
+    );
+
+    router.get(
+        `${prefix}/:dsaDetailId`,
+        authMiddleware,
+        QuestionController.getSupportedLanguagesByDsaId
+    );
+};
 
 // Register category routes under "/categories"
 registerRoutes(QuestionRoutes, "/categories");
 
 // Register tag routes under "/tags"
 registerTagRoutes(QuestionRoutes, "/tags");
+
+// Register language routes under "/languages"
+registerLanguageRoutes(QuestionRoutes, "/languages");
+
+// Register supported language routes under "/supported-languages"
+registerSupportedLanguageRoutes(QuestionRoutes, "/supported-languages");
 
 export default QuestionRoutes;

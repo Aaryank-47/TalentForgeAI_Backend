@@ -1,5 +1,5 @@
-import type { QuestionCategory, QuestionTag } from "@prisma/client";
-import type { GetQuestionCategoriesDto, GetQuestionTagsDto } from "../dto/question.dto.js";
+import type { QuestionCategory, QuestionTag, ProgrammingLanguage } from "@prisma/client";
+import type { GetQuestionCategoriesDto, GetQuestionTagsDto, GetProgrammingLanguagesDto } from "../dto/question.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 export declare class QuestionRepository {
     static findQueCateogoryByName(name: string): Promise<QuestionCategory | null>;
@@ -51,5 +51,50 @@ export declare class QuestionRepository {
     static getTagUsageCount(id: string): Promise<number>;
     static countQuestionTags(filters: GetQuestionTagsDto): Promise<number>;
     static getAllQuestionTags(filters: GetQuestionTagsDto, pagination: PaginationResult): Promise<QuestionTag[]>;
+    static findLanguageByName(name: string): Promise<ProgrammingLanguage | null>;
+    static findLanguageBySlug(slug: string): Promise<ProgrammingLanguage | null>;
+    static findLanguageById(id: string): Promise<ProgrammingLanguage | null>;
+    static createLanguage(data: {
+        name: string;
+        slug: string;
+        isActive?: boolean;
+    }): Promise<ProgrammingLanguage>;
+    static updateLanguage(id: string, data: {
+        name?: string | undefined;
+        slug?: string | undefined;
+        isActive?: boolean | undefined;
+    }): Promise<ProgrammingLanguage>;
+    static deleteLanguage(id: string): Promise<ProgrammingLanguage>;
+    static getLanguageUsageCount(id: string): Promise<number>;
+    static countLanguages(filters: GetProgrammingLanguagesDto): Promise<number>;
+    static getAllLanguages(filters: GetProgrammingLanguagesDto, pagination: PaginationResult): Promise<ProgrammingLanguage[]>;
+    static createSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any>;
+    static syncSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any>;
+    static deleteSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any>;
+    static getSupportedLanguagesByDsaId(dsaDetailId: string): Promise<({
+        programmingLanguage: {
+            slug: string;
+            name: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            isActive: boolean;
+        };
+    } & {
+        createdAt: Date;
+        dsaDetailId: string;
+        programmingLanguageId: string;
+    })[]>;
+    static findDsaDetailById(id: string): Promise<{
+        id: string;
+        questionId: string;
+        starterCode: string;
+        referenceSolution: string;
+        memoryLimit: number;
+        timeLimit: number;
+    } | null>;
+    static getCategoriesByParent(parentId: string | null): Promise<QuestionCategory[]>;
+    static getAllTagsRaw(): Promise<QuestionTag[]>;
+    static getAllLanguagesRaw(): Promise<ProgrammingLanguage[]>;
 }
 //# sourceMappingURL=question.repository.d.ts.map

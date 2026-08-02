@@ -2,11 +2,17 @@ import { QuestionRepository } from "../repositories/question.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
+import { slugifyText } from "../../auth/utils/auth.utils.js";
+function normalizeName(name) {
+    return name.toLowerCase().replace(/[\s\-_]+/g, "");
+}
 export class QuestionService {
     static async createQueCategory(name, parentId) {
         const parentIdValue = parentId ?? null;
-        const queCategoryExists = await QuestionRepository.findQueCategoryByNameAndParent(name, parentIdValue);
-        if (queCategoryExists)
+        const siblingCategories = await QuestionRepository.getCategoriesByParent(parentIdValue);
+        const normalizedName = normalizeName(name);
+        const duplicate = siblingCategories.find(c => normalizeName(c.name) === normalizedName);
+        if (duplicate)
             throw new ConflictError(`Question category already exists under this parent id: ${parentIdValue ?? "null"}`);
         if (parentIdValue) {
             const parentCategory = await QuestionRepository.findQuestionCategoryById(parentIdValue);
@@ -42,8 +48,10 @@ export class QuestionService {
         if (data.name !== undefined || data.parentId !== undefined) {
             const targetName = data.name !== undefined ? data.name : category.name;
             const targetParentId = data.parentId !== undefined ? data.parentId : category.parentId;
-            const duplicate = await QuestionRepository.findQueCategoryByNameAndParent(targetName, targetParentId);
-            if (duplicate && duplicate.id !== id) {
+            const siblingCategories = await QuestionRepository.getCategoriesByParent(targetParentId);
+            const normalizedName = normalizeName(targetName);
+            const duplicate = siblingCategories.find(c => normalizeName(c.name) === normalizedName && c.id !== id);
+            if (duplicate) {
                 throw new ConflictError(`Question category already exists under this parent id: ${targetParentId ?? "null"}`);
             }
         }
@@ -64,8 +72,10 @@ export class QuestionService {
         await QuestionRepository.softDeleteQueCategory(id);
     }
     static async createQuestionTag(name) {
-        const existingTag = await QuestionRepository.findQuestionTagByName(name);
-        if (existingTag) {
+        const tags = await QuestionRepository.getAllTagsRaw();
+        const normalizedName = normalizeName(name);
+        const duplicate = tags.find(t => normalizeName(t.name) === normalizedName);
+        if (duplicate) {
             throw new ConflictError(`Question tag "${name}" already exists`);
         }
         return await QuestionRepository.createQuestionTag(name);
@@ -89,8 +99,10 @@ export class QuestionService {
             throw new NotFoundError("Question tag not found");
         }
         if (data.name !== undefined) {
-            const duplicate = await QuestionRepository.findQuestionTagByName(data.name);
-            if (duplicate && duplicate.id !== id) {
+            const tags = await QuestionRepository.getAllTagsRaw();
+            const normalizedName = normalizeName(data.name);
+            const duplicate = tags.find(t => normalizeName(t.name) === normalizedName && t.id !== id);
+            if (duplicate) {
                 throw new ConflictError(`Question tag "${data.name}" already exists`);
             }
         }
@@ -106,6 +118,117 @@ export class QuestionService {
             throw new ConflictError(`Cannot delete tag "${tag.name}" because it is currently used by ${usageCount} question(s).`);
         }
         await QuestionRepository.deleteQuestionTag(id);
+    }
+    // ProgrammingLanguage Services
+    static async createProgrammingLanguage(dto) {
+        const languages = await QuestionRepository.getAllLanguagesRaw();
+        const normalizedName = normalizeName(dto.name);
+        const duplicateByName = languages.find(l => normalizeName(l.name) === normalizedName);
+        if (duplicateByName) {
+            throw new ConflictError(`Programming language with name "${dto.name}" already exists`);
+        }
+        const generatedSlug = slugifyText(dto.name);
+        const normalizedSlug = normalizeName(generatedSlug);
+        const duplicateBySlug = languages.find(l => normalizeName(l.slug) === normalizedSlug);
+        if (duplicateBySlug) {
+            throw new ConflictError(`Programming language with slug "${generatedSlug}" already exists`);
+        }
+        return await QuestionRepository.createLanguage({
+            name: dto.name,
+            slug: generatedSlug,
+            isActive: dto.isActive
+        });
+    }
+    static async getAllProgrammingLanguages(filters) {
+        const pagination = PaginationHelper.getPagination(filters);
+        const totalItems = await QuestionRepository.countLanguages(filters);
+        const languages = await QuestionRepository.getAllLanguages(filters, pagination);
+        return PaginationHelper.buildResponse(languages, pagination, totalItems);
+    }
+    static async getProgrammingLanguageById(id) {
+        const language = await QuestionRepository.findLanguageById(id);
+        if (!language) {
+            throw new NotFoundError("Programming language not found");
+        }
+        return language;
+    }
+    static async updateProgrammingLanguage(id, dto) {
+        const language = await QuestionRepository.findLanguageById(id);
+        if (!language) {
+            throw new NotFoundError("Programming language not found");
+        }
+        const languages = await QuestionRepository.getAllLanguagesRaw();
+        let generatedSlug = undefined;
+        if (dto.name !== undefined) {
+            const normalizedName = normalizeName(dto.name);
+            const duplicate = languages.find(l => normalizeName(l.name) === normalizedName && l.id !== id);
+            if (duplicate) {
+                throw new ConflictError(`Programming language with name "${dto.name}" already exists`);
+            }
+            generatedSlug = slugifyText(dto.name);
+            const normalizedSlug = normalizeName(generatedSlug);
+            const duplicateSlug = languages.find(l => normalizeName(l.slug) === normalizedSlug && l.id !== id);
+            if (duplicateSlug) {
+                throw new ConflictError(`Programming language with slug "${generatedSlug}" already exists`);
+            }
+        }
+        return await QuestionRepository.updateLanguage(id, {
+            name: dto.name,
+            slug: generatedSlug,
+            isActive: dto.isActive
+        });
+    }
+    static async deleteProgrammingLanguage(id) {
+        const language = await QuestionRepository.findLanguageById(id);
+        if (!language) {
+            throw new NotFoundError("Programming language not found");
+        }
+        const usageCount = await QuestionRepository.getLanguageUsageCount(id);
+        if (usageCount > 0) {
+            throw new ConflictError(`Cannot delete language "${language.name}" because it is currently used by ${usageCount} DSA question(s).`);
+        }
+        await QuestionRepository.deleteLanguage(id);
+    }
+    // DSASupportedLanguage Services
+    static async createSupportedLanguages(dto) {
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
+        if (!dsaDetail) {
+            throw new NotFoundError("DSA Detail not found");
+        }
+        for (const langId of dto.programmingLanguageIds) {
+            const language = await QuestionRepository.findLanguageById(langId);
+            if (!language) {
+                throw new NotFoundError(`Programming language with ID "${langId}" not found`);
+            }
+        }
+        return await QuestionRepository.createSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
+    }
+    static async syncSupportedLanguages(dto) {
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
+        if (!dsaDetail) {
+            throw new NotFoundError("DSA Detail not found");
+        }
+        for (const langId of dto.programmingLanguageIds) {
+            const language = await QuestionRepository.findLanguageById(langId);
+            if (!language) {
+                throw new NotFoundError(`Programming language with ID "${langId}" not found`);
+            }
+        }
+        return await QuestionRepository.syncSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
+    }
+    static async deleteSupportedLanguages(dto) {
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
+        if (!dsaDetail) {
+            throw new NotFoundError("DSA Detail not found");
+        }
+        return await QuestionRepository.deleteSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
+    }
+    static async getSupportedLanguagesByDsaId(dsaDetailId) {
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dsaDetailId);
+        if (!dsaDetail) {
+            throw new NotFoundError("DSA Detail not found");
+        }
+        return await QuestionRepository.getSupportedLanguagesByDsaId(dsaDetailId);
     }
 }
 //# sourceMappingURL=question.service.js.map

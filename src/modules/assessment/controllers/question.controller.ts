@@ -1,5 +1,14 @@
 import type { Request, Response } from "express";
-import type { CreateQuestionCategoryDto, UpdateQuestionCategoryDto, CreateQuestionTagDto, UpdateQuestionTagDto } from "../dto/question.dto.js";
+import type {
+    CreateQuestionCategoryDto,
+    UpdateQuestionCategoryDto,
+    CreateQuestionTagDto,
+    UpdateQuestionTagDto,
+    CreateProgrammingLanguageDto,
+    UpdateProgrammingLanguageDto,
+    CreateDSASupportedLanguagesDto,
+    DeleteDSASupportedLanguagesDto
+} from "../dto/question.dto.js";
 import { QuestionService } from "../services/question.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
@@ -136,6 +145,123 @@ export class QuestionController {
             res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: MESSAGE.TAG_DELETED,
+            });
+        }
+    );
+
+    // ProgrammingLanguage Controllers
+    static createLanguage = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as CreateProgrammingLanguageDto;
+            const language = await QuestionService.createProgrammingLanguage(dto);
+
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                message: MESSAGE.LANGUAGE_CREATED,
+                data: language,
+            });
+        }
+    );
+
+    static getAllProgrammingLanguages = asyncHandler(
+        async (req: Request, res: Response) => {
+            const result = await QuestionService.getAllProgrammingLanguages(req.query);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.LANGUAGE_FETCHED,
+                data: result,
+            });
+        }
+    );
+
+    static getProgrammingLanguageById = asyncHandler(
+        async (req: Request, res: Response) => {
+            const languageId = req.params.id as string;
+            const language = await QuestionService.getProgrammingLanguageById(languageId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.LANGUAGE_FETCHED,
+                data: language,
+            });
+        }
+    );
+
+    static updateProgrammingLanguage = asyncHandler(
+        async (req: Request, res: Response) => {
+            const languageId = req.params.id as string;
+            const dto = req.body as UpdateProgrammingLanguageDto;
+            const language = await QuestionService.updateProgrammingLanguage(languageId, dto);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.LANGUAGE_UPDATED,
+                data: language,
+            });
+        }
+    );
+
+    static deleteProgrammingLanguage = asyncHandler(
+        async (req: Request, res: Response) => {
+            const languageId = req.params.id as string;
+            await QuestionService.deleteProgrammingLanguage(languageId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.LANGUAGE_DELETED,
+            });
+        }
+    );
+
+    // DSASupportedLanguage Controllers
+    static createSupportedLanguages = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as CreateDSASupportedLanguagesDto;
+            const result = await QuestionService.createSupportedLanguages(dto);
+
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                message: MESSAGE.SUPPORTED_LANGUAGE_ADDED,
+                data: result,
+            });
+        }
+    );
+
+    static syncSupportedLanguages = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as CreateDSASupportedLanguagesDto;
+            const result = await QuestionService.syncSupportedLanguages(dto);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.SUPPORTED_LANGUAGE_ADDED,
+                data: result,
+            });
+        }
+    );
+
+    static deleteSupportedLanguages = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as DeleteDSASupportedLanguagesDto;
+            await QuestionService.deleteSupportedLanguages(dto);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.SUPPORTED_LANGUAGE_REMOVED,
+            });
+        }
+    );
+
+    static getSupportedLanguagesByDsaId = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dsaDetailId = req.params.dsaDetailId as string;
+            const list = await QuestionService.getSupportedLanguagesByDsaId(dsaDetailId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.SUPPORTED_LANGUAGE_FETCHED,
+                data: list,
             });
         }
     );

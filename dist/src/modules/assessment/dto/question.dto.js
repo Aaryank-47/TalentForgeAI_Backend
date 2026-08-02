@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { questionCategoryIdValidator, questionCategoryNameValidator, questionTagIdValidator, questionTagNameValidator } from "../../../common/validators/validators.js";
+import { questionCategoryIdValidator, questionCategoryNameValidator, questionTagIdValidator, questionTagNameValidator, programmingLanguageIdValidator, programmingLanguageNameValidator, programmingLanguageIsActiveValidator, dsaDetailIdValidator } from "../../../common/validators/validators.js";
 export class QuestionCategoryDto {
     static createCategory = z.object({
         name: questionCategoryNameValidator,
@@ -41,4 +41,35 @@ export const getQuestionTagsDto = z.object({
     sortBy: z.enum(["name", "createdAt"]).optional(),
     sortOrder: z.enum(["asc", "desc"]).optional(),
 });
+export class ProgrammingLanguageDto {
+    static createLanguage = z.object({
+        name: programmingLanguageNameValidator,
+        isActive: programmingLanguageIsActiveValidator.optional().default(true),
+    });
+    static languageIdParams = z.object({
+        id: programmingLanguageIdValidator,
+    });
+    static updateLanguage = z.object({
+        name: programmingLanguageNameValidator.optional(),
+        isActive: programmingLanguageIsActiveValidator.optional(),
+    });
+}
+export const getProgrammingLanguagesDto = z.object({
+    page: z.coerce.number().min(1).optional(),
+    limit: z.coerce.number().min(1).max(100).optional(),
+    search: z.string().trim().optional(),
+    isActive: z.coerce.boolean().optional(),
+    sortBy: z.enum(["name", "slug", "createdAt"]).optional(),
+    sortOrder: z.enum(["asc", "desc"]).optional(),
+});
+export class DSASupportedLanguageDto {
+    static createSupportedLanguages = z.object({
+        dsaDetailId: dsaDetailIdValidator,
+        programmingLanguageIds: z.array(programmingLanguageIdValidator).min(1, "At least one programming language ID is required"),
+    });
+    static deleteSupportedLanguages = z.object({
+        dsaDetailId: dsaDetailIdValidator,
+        programmingLanguageIds: z.array(programmingLanguageIdValidator).min(1, "At least one programming language ID is required"),
+    });
+}
 //# sourceMappingURL=question.dto.js.map

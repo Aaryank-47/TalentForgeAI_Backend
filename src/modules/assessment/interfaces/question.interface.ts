@@ -38,11 +38,21 @@ export interface QuestionTagView {
 //   options: MCQOptionView[];
 // }
 
-// export interface ProgrammingLanguageView {
-//   id: string;
-//   name: string;
-//   slug: string;
-// }
+export interface ProgrammingLanguageView {
+  id: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DSASupportedLanguageView {
+  dsaDetailId: string;
+  programmingLanguageId: string;
+  createdAt: Date;
+  programmingLanguage?: ProgrammingLanguageView;
+}
 
 // export interface TestCaseView {
 //   id: string;

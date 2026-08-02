@@ -6,23 +6,6 @@
 //   TestCaseType
 // } from "@prisma/client";
 export {};
-// export interface MCQOptionView {
-//   id: string;
-//   optionText: string;
-//   displayOrder: number;
-//   isCorrect: boolean;
-// }
-// export interface MCQDetailView {
-//   id: string;
-//   allowMultipleCorrectAnswers: boolean;
-//   negativeMarks: number;
-//   options: MCQOptionView[];
-// }
-// export interface ProgrammingLanguageView {
-//   id: string;
-//   name: string;
-//   slug: string;
-// }
 // export interface TestCaseView {
 //   id: string;
 //   input: string;

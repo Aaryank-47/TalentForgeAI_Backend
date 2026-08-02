@@ -71,5 +71,12 @@ export declare const MESSAGE: {
     readonly TAG_UPDATED: "Question tag updated successfully.";
     readonly TAG_DELETED: "Question tag deleted successfully.";
     readonly TAG_NOT_FOUND: "Question tag not found.";
+    readonly LANGUAGE_CREATED: "Programming language created successfully.";
+    readonly LANGUAGE_FETCHED: "Programming language fetched successfully.";
+    readonly LANGUAGE_UPDATED: "Programming language updated successfully.";
+    readonly LANGUAGE_DELETED: "Programming language deleted successfully.";
+    readonly SUPPORTED_LANGUAGE_ADDED: "Supported language added successfully.";
+    readonly SUPPORTED_LANGUAGE_REMOVED: "Supported language removed successfully.";
+    readonly SUPPORTED_LANGUAGE_FETCHED: "Supported languages fetched successfully.";
 };
 //# sourceMappingURL=messages.d.ts.map

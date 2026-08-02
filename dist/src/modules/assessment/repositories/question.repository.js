@@ -175,5 +175,142 @@ export class QuestionRepository {
             }
         });
     }
+    // ProgrammingLanguage
+    static async findLanguageByName(name) {
+        return await prisma.programmingLanguage.findUnique({
+            where: { name }
+        });
+    }
+    static async findLanguageBySlug(slug) {
+        return await prisma.programmingLanguage.findUnique({
+            where: { slug }
+        });
+    }
+    static async findLanguageById(id) {
+        return await prisma.programmingLanguage.findUnique({
+            where: { id }
+        });
+    }
+    static async createLanguage(data) {
+        return await prisma.programmingLanguage.create({
+            data
+        });
+    }
+    static async updateLanguage(id, data) {
+        const updateData = {};
+        if (data.name !== undefined)
+            updateData.name = data.name;
+        if (data.slug !== undefined)
+            updateData.slug = data.slug;
+        if (data.isActive !== undefined)
+            updateData.isActive = data.isActive;
+        return await prisma.programmingLanguage.update({
+            where: { id },
+            data: updateData
+        });
+    }
+    static async deleteLanguage(id) {
+        return await prisma.programmingLanguage.delete({
+            where: { id }
+        });
+    }
+    static async getLanguageUsageCount(id) {
+        return await prisma.dSASupportedLanguage.count({
+            where: { programmingLanguageId: id }
+        });
+    }
+    static async countLanguages(filters) {
+        return await prisma.programmingLanguage.count({
+            where: {
+                ...(filters.search && {
+                    OR: [
+                        { name: { contains: filters.search, mode: "insensitive" } },
+                        { slug: { contains: filters.search, mode: "insensitive" } },
+                    ]
+                }),
+                ...(filters.isActive !== undefined && { isActive: filters.isActive })
+            }
+        });
+    }
+    static async getAllLanguages(filters, pagination) {
+        return await prisma.programmingLanguage.findMany({
+            where: {
+                ...(filters.search && {
+                    OR: [
+                        { name: { contains: filters.search, mode: "insensitive" } },
+                        { slug: { contains: filters.search, mode: "insensitive" } },
+                    ]
+                }),
+                ...(filters.isActive !== undefined && { isActive: filters.isActive })
+            },
+            skip: pagination.skip,
+            take: pagination.take,
+            orderBy: {
+                [pagination.sortBy]: pagination.sortOrder
+            }
+        });
+    }
+    // DSASupportedLanguage
+    static async createSupportedLanguages(dsaDetailId, programmingLanguageIds) {
+        const data = programmingLanguageIds.map(id => ({
+            dsaDetailId,
+            programmingLanguageId: id
+        }));
+        return await prisma.dSASupportedLanguage.createMany({
+            data,
+            skipDuplicates: true
+        });
+    }
+    static async syncSupportedLanguages(dsaDetailId, programmingLanguageIds) {
+        return await prisma.$transaction([
+            prisma.dSASupportedLanguage.deleteMany({
+                where: { dsaDetailId }
+            }),
+            prisma.dSASupportedLanguage.createMany({
+                data: programmingLanguageIds.map(id => ({
+                    dsaDetailId,
+                    programmingLanguageId: id
+                }))
+            })
+        ]);
+    }
+    static async deleteSupportedLanguages(dsaDetailId, programmingLanguageIds) {
+        return await prisma.dSASupportedLanguage.deleteMany({
+            where: {
+                dsaDetailId,
+                programmingLanguageId: {
+                    in: programmingLanguageIds
+                }
+            }
+        });
+    }
+    static async getSupportedLanguagesByDsaId(dsaDetailId) {
+        return await prisma.dSASupportedLanguage.findMany({
+            where: { dsaDetailId },
+            include: {
+                programmingLanguage: true
+            }
+        });
+    }
+    // Helper to find DSADetail by id (to verify existence)
+    static async findDsaDetailById(id) {
+        return await prisma.dSADetail.findUnique({
+            where: { id }
+        });
+    }
+    static async getCategoriesByParent(parentId) {
+        return await prisma.questionCategory.findMany({
+            where: {
+                parentId,
+                deletedAt: null
+            }
+        });
+    }
+    static async getAllTagsRaw() {
+        return await prisma.questionTag.findMany();
+    }
+    static async getAllLanguagesRaw() {
+        return await prisma.programmingLanguage.findMany();
+    }
 }
 //# sourceMappingURL=question.repository.js.map
