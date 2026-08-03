@@ -190,9 +190,9 @@ export class QuestionService {
     }
     // DSASupportedLanguage Services
     static async createSupportedLanguages(dto) {
-        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(dto.questionId);
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found for the specified question");
+            throw new NotFoundError("DSA Detail not found");
         }
         for (const langId of dto.programmingLanguageIds) {
             const language = await QuestionRepository.findLanguageById(langId);
@@ -200,12 +200,12 @@ export class QuestionService {
                 throw new NotFoundError(`Programming language with ID "${langId}" not found`);
             }
         }
-        return await QuestionRepository.createSupportedLanguages(dto.questionId, dto.programmingLanguageIds);
+        return await QuestionRepository.createSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
     }
     static async syncSupportedLanguages(dto) {
-        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(dto.questionId);
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found for the specified question");
+            throw new NotFoundError("DSA Detail not found");
         }
         for (const langId of dto.programmingLanguageIds) {
             const language = await QuestionRepository.findLanguageById(langId);
@@ -213,21 +213,21 @@ export class QuestionService {
                 throw new NotFoundError(`Programming language with ID "${langId}" not found`);
             }
         }
-        return await QuestionRepository.syncSupportedLanguages(dto.questionId, dto.programmingLanguageIds);
+        return await QuestionRepository.syncSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
     }
     static async deleteSupportedLanguages(dto) {
-        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(dto.questionId);
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dto.dsaDetailId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found for the specified question");
+            throw new NotFoundError("DSA Detail not found");
         }
-        return await QuestionRepository.deleteSupportedLanguages(dto.questionId, dto.programmingLanguageIds);
+        return await QuestionRepository.deleteSupportedLanguages(dto.dsaDetailId, dto.programmingLanguageIds);
     }
-    static async getSupportedLanguagesByQuestionId(questionId) {
-        const dsaDetail = await QuestionRepository.findDsaDetailByQuestionId(questionId);
+    static async getSupportedLanguagesByDsaId(dsaDetailId) {
+        const dsaDetail = await QuestionRepository.findDsaDetailById(dsaDetailId);
         if (!dsaDetail) {
-            throw new NotFoundError("DSA Detail not found for the specified question");
+            throw new NotFoundError("DSA Detail not found");
         }
-        return await QuestionRepository.getSupportedLanguagesByQuestionId(questionId);
+        return await QuestionRepository.getSupportedLanguagesByDsaId(dsaDetailId);
     }
     static async createQuestion(dto, user) {
         let createdByCompanyMemberId = null;
@@ -247,7 +247,7 @@ export class QuestionService {
             if (!membership) {
                 throw new ForbiddenError("You must be an active member of the company to create questions for it");
             }
-            createdByCompanyMemberId = membership.id;
+            console.log("Membership found : ", membership);
         }
         if (dto.categoryId) {
             const category = await QuestionRepository.findQuestionCategoryById(dto.categoryId);

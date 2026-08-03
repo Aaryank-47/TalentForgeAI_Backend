@@ -163,9 +163,9 @@ export class QuestionController {
             message: MESSAGE.SUPPORTED_LANGUAGE_REMOVED,
         });
     });
-    static getSupportedLanguagesByQuestionId = asyncHandler(async (req, res) => {
-        const questionId = req.params.questionId;
-        const list = await QuestionService.getSupportedLanguagesByQuestionId(questionId);
+    static getSupportedLanguagesByDsaId = asyncHandler(async (req, res) => {
+        const dsaDetailId = req.params.dsaDetailId;
+        const list = await QuestionService.getSupportedLanguagesByDsaId(dsaDetailId);
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: MESSAGE.SUPPORTED_LANGUAGE_FETCHED,

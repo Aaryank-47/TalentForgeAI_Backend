@@ -1,5 +1,6 @@
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
+import { CompanyMemberStatus } from "@prisma/client";
 export class QuestionRepository {
     static async findQueCateogoryByName(name) {
         return await prisma.questionCategory.findFirst({
@@ -252,12 +253,9 @@ export class QuestionRepository {
         });
     }
     // DSASupportedLanguage
-    static async createSupportedLanguages(questionId, programmingLanguageIds) {
-        const dsaDetail = await this.findDsaDetailByQuestionId(questionId);
-        if (!dsaDetail)
-            throw new NotFoundError("DSA Detail not found for the specified question");
+    static async createSupportedLanguages(dsaDetailId, programmingLanguageIds) {
         const data = programmingLanguageIds.map(id => ({
-            dsaDetailId: dsaDetail.id,
+            dsaDetailId,
             programmingLanguageId: id
         }));
         return await prisma.dSASupportedLanguage.createMany({
@@ -265,51 +263,41 @@ export class QuestionRepository {
             skipDuplicates: true
         });
     }
-    static async syncSupportedLanguages(questionId, programmingLanguageIds) {
-        const dsaDetail = await this.findDsaDetailByQuestionId(questionId);
-        if (!dsaDetail)
-            throw new NotFoundError("DSA Detail not found for the specified question");
+    static async syncSupportedLanguages(dsaDetailId, programmingLanguageIds) {
         return await prisma.$transaction([
             prisma.dSASupportedLanguage.deleteMany({
-                where: { dsaDetailId: dsaDetail.id }
+                where: { dsaDetailId }
             }),
             prisma.dSASupportedLanguage.createMany({
                 data: programmingLanguageIds.map(id => ({
-                    dsaDetailId: dsaDetail.id,
+                    dsaDetailId,
                     programmingLanguageId: id
                 }))
             })
         ]);
     }
-    static async deleteSupportedLanguages(questionId, programmingLanguageIds) {
-        const dsaDetail = await this.findDsaDetailByQuestionId(questionId);
-        if (!dsaDetail)
-            throw new NotFoundError("DSA Detail not found for the specified question");
+    static async deleteSupportedLanguages(dsaDetailId, programmingLanguageIds) {
         return await prisma.dSASupportedLanguage.deleteMany({
             where: {
-                dsaDetailId: dsaDetail.id,
+                dsaDetailId,
                 programmingLanguageId: {
                     in: programmingLanguageIds
                 }
             }
         });
     }
-    static async getSupportedLanguagesByQuestionId(questionId) {
+    static async getSupportedLanguagesByDsaId(dsaDetailId) {
         return await prisma.dSASupportedLanguage.findMany({
-            where: {
-                dsaDetail: {
-                    questionId
-                }
-            },
+            where: { dsaDetailId },
             include: {
                 programmingLanguage: true
             }
         });
     }
-    // Helper to find DSADetail by questionId (to verify existence)
-    static async findDsaDetailByQuestionId(questionId) {
+    // Helper to find DSADetail by id (to verify existence)
+    static async findDsaDetailById(id) {
         return await prisma.dSADetail.findUnique({
-            where: { questionId }
+            where: { id }
         });
     }
     static async getCategoriesByParent(parentId) {
@@ -660,7 +648,7 @@ export class QuestionRepository {
             where: {
                 userId,
                 companyId,
-                status: "ACTIVE"
+                status: CompanyMemberStatus.ACTIVE
             }
         });
     }

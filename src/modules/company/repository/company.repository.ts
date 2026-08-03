@@ -99,6 +99,18 @@ export class CompanyRepository {
         });
     }
 
+    static async findActiveMembershipsByUser(userId: string) {
+        return prisma.companyMember.findMany({
+            where: {
+                userId,
+                status: CompanyMemberStatus.ACTIVE
+            },
+            select: {
+                companyId: true
+            }
+        });
+    }
+
     static async updateCompanyProfile(
         companyId: string,
         input: UpdateCompanyInput

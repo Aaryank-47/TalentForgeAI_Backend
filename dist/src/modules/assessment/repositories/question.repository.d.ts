@@ -69,14 +69,14 @@ export declare class QuestionRepository {
     static getLanguageUsageCount(id: string): Promise<number>;
     static countLanguages(filters: GetProgrammingLanguagesDto): Promise<number>;
     static getAllLanguages(filters: GetProgrammingLanguagesDto, pagination: PaginationResult): Promise<ProgrammingLanguage[]>;
-    static createSupportedLanguages(questionId: string, programmingLanguageIds: string[]): Promise<{
+    static createSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<{
         count: number;
     }>;
-    static syncSupportedLanguages(questionId: string, programmingLanguageIds: string[]): Promise<any>;
-    static deleteSupportedLanguages(questionId: string, programmingLanguageIds: string[]): Promise<{
+    static syncSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<any>;
+    static deleteSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<{
         count: number;
     }>;
-    static getSupportedLanguagesByQuestionId(questionId: string): Promise<({
+    static getSupportedLanguagesByDsaId(dsaDetailId: string): Promise<({
         programmingLanguage: {
             slug: string;
             name: string;
@@ -90,13 +90,13 @@ export declare class QuestionRepository {
         dsaDetailId: string;
         programmingLanguageId: string;
     })[]>;
-    static findDsaDetailByQuestionId(questionId: string): Promise<{
+    static findDsaDetailById(id: string): Promise<{
         id: string;
-        questionId: string;
         starterCode: string;
         referenceSolution: string;
         memoryLimit: number;
         timeLimit: number;
+        questionId: string;
     } | null>;
     static getCategoriesByParent(parentId: string | null): Promise<QuestionCategory[]>;
     static getAllTagsRaw(): Promise<QuestionTag[]>;

@@ -91,11 +91,11 @@ export declare const getProgrammingLanguagesDto: z.ZodObject<{
 export type GetProgrammingLanguagesDto = z.infer<typeof getProgrammingLanguagesDto>;
 export declare class DSASupportedLanguageDto {
     static createSupportedLanguages: z.ZodObject<{
-        questionId: z.ZodString;
+        dsaDetailId: z.ZodString;
         programmingLanguageIds: z.ZodArray<z.ZodString>;
     }, z.core.$strip>;
     static deleteSupportedLanguages: z.ZodObject<{
-        questionId: z.ZodString;
+        dsaDetailId: z.ZodString;
         programmingLanguageIds: z.ZodArray<z.ZodString>;
     }, z.core.$strip>;
 }

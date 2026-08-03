@@ -31,7 +31,7 @@ const registerSupportedLanguageRoutes = (router, prefix) => {
     router.post(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.createSupportedLanguages);
     router.put(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.syncSupportedLanguages);
     router.delete(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.deleteSupportedLanguages, "body"), QuestionController.deleteSupportedLanguages);
-    router.get(`${prefix}/:questionId`, authMiddleware, QuestionController.getSupportedLanguagesByQuestionId);
+    router.get(`${prefix}/:dsaDetailId`, authMiddleware, QuestionController.getSupportedLanguagesByDsaId);
 };
 const registerQuestionBankRoutes = (router, prefix) => {
     router.post(`${prefix}`, authMiddleware, validate(createQuestionSchema, "body"), QuestionController.createQuestion);

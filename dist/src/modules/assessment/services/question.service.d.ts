@@ -20,7 +20,7 @@ export declare class QuestionService {
     static createSupportedLanguages(dto: CreateDSASupportedLanguagesDto): Promise<any>;
     static syncSupportedLanguages(dto: CreateDSASupportedLanguagesDto): Promise<any>;
     static deleteSupportedLanguages(dto: DeleteDSASupportedLanguagesDto): Promise<any>;
-    static getSupportedLanguagesByQuestionId(questionId: string): Promise<any[]>;
+    static getSupportedLanguagesByDsaId(dsaDetailId: string): Promise<any[]>;
     static createQuestion(dto: CreateQuestionDto, user: any): Promise<Question>;
     static getAllQuestions(filters: GetQuestionsQueryDto): Promise<{
         data: QuestionWithRelations[];

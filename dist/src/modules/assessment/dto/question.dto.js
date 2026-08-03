@@ -64,11 +64,11 @@ export const getProgrammingLanguagesDto = z.object({
 });
 export class DSASupportedLanguageDto {
     static createSupportedLanguages = z.object({
-        questionId: questionIdValidator,
+        dsaDetailId: dsaDetailIdValidator,
         programmingLanguageIds: z.array(programmingLanguageIdValidator).min(1, "At least one programming language ID is required"),
     });
     static deleteSupportedLanguages = z.object({
-        questionId: questionIdValidator,
+        dsaDetailId: dsaDetailIdValidator,
         programmingLanguageIds: z.array(programmingLanguageIdValidator).min(1, "At least one programming language ID is required"),
     });
 }

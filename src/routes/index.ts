@@ -11,6 +11,7 @@ import hiringWorkflowRoutes from '../modules/hiring-workflow/routes/stage-librar
 import workflowRoutes from '../modules/hiring-workflow/routes/workflow.routes.js';
 import applicationWorkflowRoutes from '../modules/hiring-workflow/routes/application-workflow.routes.js';
 import questionRoutes from '../modules/assessment/routes/question.routes.js';
+import assessmentRoutes from '../modules/assessment/routes/assessmentBuilder..routes.js';
 const router = Router();
 
 router.use('/health', healthRoutes);
@@ -25,5 +26,6 @@ router.use("/hiring-workflow/stage-library", hiringWorkflowRoutes);
 router.use("/hiring-workflow", workflowRoutes);
 router.use("/hiring-workflow/applications", applicationWorkflowRoutes);
 router.use("/questions", questionRoutes);
+router.use("/assessments", assessmentRoutes);
 
 export default router;
