@@ -226,6 +226,71 @@ export class AssessmentBuilderRepository {
         });
     }
 
+    static async findSectionById(id: string) {
+        return await prisma.assessmentSection.findUnique({
+            where: { id },
+            include: {
+                assessment: true,
+                _count: {
+                    select: { items: true }
+                }
+            }
+        });
+    }
+
+    static async updateSection(id: string, data: Prisma.AssessmentSectionUncheckedUpdateInput): Promise<AssessmentSection> {
+        return await prisma.assessmentSection.update({
+            where: { id },
+            data
+        });
+    }
+
+    static async deleteSection(id: string): Promise<AssessmentSection> {
+        return await prisma.assessmentSection.delete({
+            where: { id }
+        });
+    }
+
+    static async recalculateDisplayOrder(assessmentId: string): Promise<void> {
+        await prisma.$transaction(async (tx) => {
+            const sections = await tx.assessmentSection.findMany({
+                where: { assessmentId },
+                orderBy: { displayOrder: "asc" }
+            });
+
+            let order = 1;
+            for (const section of sections) {
+                await tx.assessmentSection.update({
+                    where: { id: section.id },
+                    data: { displayOrder: order++ }
+                });
+            }
+        });
+    }
+
+    static async reorderSections(
+        assessmentId: string,
+        updates: { sectionId: string; displayOrder: number; }[]
+    ): Promise<void> {
+        await prisma.$transaction(async (tx) => {
+            // First set displayOrder to a large temporary value to avoid unique constraint violations
+            for (const item of updates) {
+                await tx.assessmentSection.update({
+                    where: { id: item.sectionId },
+                    data: { displayOrder: item.displayOrder + 10000 }
+                });
+            }
+
+            // Then set the final desired displayOrder
+            for (const item of updates) {
+                await tx.assessmentSection.update({
+                    where: { id: item.sectionId },
+                    data: { displayOrder: item.displayOrder }
+                });
+            }
+        });
+    }
+
     static async findSectionsByAssessmentId(assessmentId: string) {
         return await prisma.assessmentSection.findMany({
             where: { assessmentId },

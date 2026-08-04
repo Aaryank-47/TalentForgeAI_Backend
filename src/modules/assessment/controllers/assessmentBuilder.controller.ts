@@ -7,8 +7,12 @@ import type {
     UpdateAssessmentDto,
     GetAssessmentsQueryDto,
     AssessmentIdParamDto,
-    CreateAssessmentSectionDto
+    CreateAssessmentSectionDto,
+    UpdateAssessmentSectionDto,
+    ReorderSectionsDto,
+    SectionIdParamDto
 } from "../dto/assessmentBuilder.dto.js";
+
 
 
 export class AssessmentBuilderController {
@@ -131,5 +135,37 @@ export class AssessmentBuilderController {
             });
         }
     );
+
+    static updateAssessmentSection = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { sectionId } = req.params as unknown as SectionIdParamDto;
+            const dto = req.body as UpdateAssessmentSectionDto;
+
+            const result = await AssessmentBuilderService.updateAssessmentSection(sectionId, dto);
+
+            res.status(HTTP_STATUS.OK).json(result);
+        }
+    );
+
+    static deleteAssessmentSection = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { sectionId } = req.params as unknown as SectionIdParamDto;
+
+            const result = await AssessmentBuilderService.deleteAssessmentSection(sectionId);
+
+            res.status(HTTP_STATUS.OK).json(result);
+        }
+    );
+
+    static reorderAssessmentSections = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as ReorderSectionsDto;
+
+            const result = await AssessmentBuilderService.reorderAssessmentSections(dto);
+
+            res.status(HTTP_STATUS.OK).json(result);
+        }
+    );
 }
+
 

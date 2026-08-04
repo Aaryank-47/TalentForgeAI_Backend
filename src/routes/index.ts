@@ -12,6 +12,7 @@ import workflowRoutes from '../modules/hiring-workflow/routes/workflow.routes.js
 import applicationWorkflowRoutes from '../modules/hiring-workflow/routes/application-workflow.routes.js';
 import questionRoutes from '../modules/assessment/routes/question.routes.js';
 import assessmentRoutes from '../modules/assessment/routes/assessmentBuilder..routes.js';
+
 const router = Router();
 
 router.use('/health', healthRoutes);

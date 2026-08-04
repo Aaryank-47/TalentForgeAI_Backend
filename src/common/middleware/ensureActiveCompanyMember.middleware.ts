@@ -27,21 +27,39 @@ export const ensureActiveCompanyMember = async (
             companyId = req.query.companyId;
         }
 
-        const assessmentId = typeof req.params.assessmentId === "string" ? req.params.assessmentId : undefined;
-        if (!companyId && assessmentId) {
-            const assessment = await prisma.assessment.findFirst({
-                where: { id: assessmentId, deletedAt: null },
-                select: { companyId: true }
-            });
-            if (!assessment) {
-                throw new NotFoundError("Assessment not found.");
-            }
-            companyId = assessment.companyId;
+        let assessmentId = typeof req.params.assessmentId === "string" ? req.params.assessmentId : undefined;
+        if (!assessmentId && req.body && typeof req.body.assessmentId === "string") {
+            assessmentId = req.body.assessmentId;
         }
+
+        const sectionId = typeof req.params.sectionId === "string" ? req.params.sectionId : undefined;
+
+        if (!companyId) {
+            if (assessmentId) {
+                const assessment = await prisma.assessment.findFirst({
+                    where: { id: assessmentId, deletedAt: null },
+                    select: { companyId: true }
+                });
+                if (!assessment) {
+                    throw new NotFoundError("Assessment not found.");
+                }
+                companyId = assessment.companyId;
+            } else if (sectionId) {
+                const section = await prisma.assessmentSection.findFirst({
+                    where: { id: sectionId, assessment: { deletedAt: null } },
+                    include: { assessment: { select: { companyId: true } } }
+                });
+                if (!section) {
+                    throw new NotFoundError("Section not found.");
+                }
+                companyId = section.assessment.companyId;
+            }
+        }
+
 
         if (!companyId) {
             throw new NotFoundError("Company ID is required.");
-        }
+         }
 
         let membership = await CompanyRepository.findMemberByUserAndCompany(user.id, companyId as string);
 

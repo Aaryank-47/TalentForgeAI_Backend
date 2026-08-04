@@ -10,8 +10,11 @@ import type {
     CreateAssessmentDto,
     UpdateAssessmentDto,
     GetAssessmentsQueryDto,
-    CreateAssessmentSectionDto
+    CreateAssessmentSectionDto,
+    UpdateAssessmentSectionDto,
+    ReorderSectionsDto
 } from "../dto/assessmentBuilder.dto.js";
+
 
 
 export class AssessmentBuilderService {
@@ -294,7 +297,80 @@ export class AssessmentBuilderService {
             questionCount: sec._count.items
         }));
     }
+
+    static async updateAssessmentSection(sectionId: string, dto: UpdateAssessmentSectionDto) {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+
+        if (section.assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+
+        const updateData: any = {};
+        if (dto.title !== undefined) updateData.title = dto.title;
+        if (dto.description !== undefined) updateData.description = dto.description;
+        if (dto.instructions !== undefined) updateData.instructions = dto.instructions;
+        if (dto.durationMinutes !== undefined) updateData.durationMinutes = dto.durationMinutes;
+
+        await AssessmentBuilderRepository.updateSection(sectionId, updateData);
+
+        return {
+            success: true,
+            message: "Section updated successfully."
+        };
+    }
+
+    static async deleteAssessmentSection(sectionId: string) {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+
+        if (section.assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+
+        const assessmentId = section.assessmentId;
+
+        await AssessmentBuilderRepository.deleteSection(sectionId);
+        await AssessmentBuilderRepository.recalculateDisplayOrder(assessmentId);
+
+        return {
+            success: true,
+            message: "Section deleted successfully."
+        };
+    }
+
+    static async reorderAssessmentSections(dto: ReorderSectionsDto) {
+        const assessment = await AssessmentBuilderRepository.findAssessmentById(dto.assessmentId);
+        if (!assessment) {
+            throw new NotFoundError("Assessment not found");
+        }
+
+        if (assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+
+        // Verify that all sections in the payload belong to the assessment
+        const existingSectionIds = assessment.sections.map((s) => s.id);
+        const payloadSectionIds = dto.sections.map((s) => s.sectionId);
+
+        const allExist = payloadSectionIds.every((id) => existingSectionIds.includes(id));
+        if (!allExist) {
+            throw new ConflictError("One or more sections do not belong to the assessment.");
+        }
+
+        await AssessmentBuilderRepository.reorderSections(dto.assessmentId, dto.sections);
+
+        return {
+            success: true,
+            message: "Sections reordered successfully."
+        };
+    }
 }
+
 
 
 

@@ -10,7 +10,8 @@ import {
     assessmentSectionDescriptionValidator,
     assessmentSectionInstructionsValidator,
     assessmentSectionDurationMinutesValidator,
-    assessmentSectionTypeValidator
+    assessmentSectionTypeValidator,
+    assessmentSectionIdValidator
 } from "../../../common/validators/validators.js";
 
 
@@ -72,3 +73,29 @@ export const createAssessmentSectionSchema = z.object({
 
 export type CreateAssessmentSectionDto = z.infer<typeof createAssessmentSectionSchema>;
 
+export const sectionIdParamSchema = z.object({
+    sectionId: assessmentSectionIdValidator,
+});
+
+export type SectionIdParamDto = z.infer<typeof sectionIdParamSchema>;
+
+export const updateAssessmentSectionSchema = z.object({
+    title: assessmentSectionTitleValidator.optional(),
+    description: assessmentSectionDescriptionValidator.optional(),
+    instructions: assessmentSectionInstructionsValidator.optional(),
+    durationMinutes: assessmentSectionDurationMinutesValidator.optional()
+});
+
+export type UpdateAssessmentSectionDto = z.infer<typeof updateAssessmentSectionSchema>;
+
+export const reorderSectionsSchema = z.object({
+    assessmentId: assessmentIdValidator,
+    sections: z.array(
+        z.object({
+            sectionId: assessmentSectionIdValidator,
+            displayOrder: z.number().int().positive("Display order must be positive")
+        })
+    ).min(1, "At least one section must be provided")
+});
+
+export type ReorderSectionsDto = z.infer<typeof reorderSectionsSchema>;

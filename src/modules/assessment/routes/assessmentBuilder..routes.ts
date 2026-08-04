@@ -10,7 +10,10 @@ import {
     updateAssessmentSchema,
     getAssessmentsQuerySchema,
     assessmentIdParamSchema,
-    createAssessmentSectionSchema
+    createAssessmentSectionSchema,
+    sectionIdParamSchema,
+    updateAssessmentSectionSchema,
+    reorderSectionsSchema
 } from "../dto/assessmentBuilder.dto.js";
 
 
@@ -117,6 +120,35 @@ AssessmentRoutes.get(
     AssessmentBuilderController.getAssessmentSections
 );
 
+AssessmentRoutes.patch(
+    "/section/reorder",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(reorderSectionsSchema, "body"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.reorderAssessmentSections
+);
+
+// Update Section
+AssessmentRoutes.patch(
+    "/section/:sectionId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(sectionIdParamSchema, "params"),
+    validate(updateAssessmentSectionSchema, "body"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.updateAssessmentSection
+);
+
+// Delete Section
+AssessmentRoutes.delete(
+    "/section/:sectionId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(sectionIdParamSchema, "params"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.deleteAssessmentSection
+);
 export default AssessmentRoutes;
 
 
