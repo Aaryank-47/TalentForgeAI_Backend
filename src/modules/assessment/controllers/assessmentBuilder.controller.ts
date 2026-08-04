@@ -6,8 +6,10 @@ import type {
     CreateAssessmentDto, 
     UpdateAssessmentDto, 
     GetAssessmentsQueryDto, 
-    AssessmentIdParamDto 
+    AssessmentIdParamDto,
+    CreateAssessmentSectionDto
 } from "../dto/assessmentBuilder.dto.js";
+
 
 export class AssessmentBuilderController {
     static createAssessment = asyncHandler(
@@ -100,4 +102,20 @@ export class AssessmentBuilderController {
             res.status(HTTP_STATUS.OK).json(result);
         }
     );
+
+    static createAssessmentSection = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { assessmentId } = req.params as unknown as AssessmentIdParamDto;
+            const dto = req.body as CreateAssessmentSectionDto;
+
+            const result = await AssessmentBuilderService.createAssessmentSection(assessmentId, dto);
+
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                message: "Assessment section created successfully.",
+                data: result
+            });
+        }
+    );
 }
+

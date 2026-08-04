@@ -1,5 +1,5 @@
 import prisma from "../../../config/database.js";
-import type { Assessment, Prisma } from "@prisma/client";
+import type { Assessment, AssessmentSection, Prisma } from "@prisma/client";
 import type { GetAssessmentsQueryDto } from "../dto/assessmentBuilder.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 
@@ -9,6 +9,7 @@ export class AssessmentBuilderRepository {
             data
         });
     }
+
 
     static async findAssessmentById(
         id: string
@@ -196,6 +197,32 @@ export class AssessmentBuilderRepository {
             }
 
             return newAssessment;
+        });
+    }
+
+    static async findSectionByTitle(assessmentId: string, title: string): Promise<AssessmentSection | null> {
+        return await prisma.assessmentSection.findFirst({
+            where: {
+                assessmentId,
+                title: {
+                    equals: title,
+                    mode: "insensitive"
+                }
+            }
+        });
+    }
+
+    static async getMaxDisplayOrder(assessmentId: string): Promise<number> {
+        const result = await prisma.assessmentSection.aggregate({
+            where: { assessmentId },
+            _max: { displayOrder: true }
+        });
+        return result._max.displayOrder ?? 0;
+    }
+
+    static async createSection(data: Prisma.AssessmentSectionUncheckedCreateInput): Promise<AssessmentSection> {
+        return await prisma.assessmentSection.create({
+            data
         });
     }
 

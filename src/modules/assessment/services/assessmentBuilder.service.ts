@@ -1,15 +1,18 @@
 import { CompanyRepository } from "../../company/repository/company.repository.js";
+import { QuestionType } from "@prisma/client";
 import { AssessmentBuilderRepository } from "../repositories/assessmentBuilder.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
-import type { 
-    CreateAssessmentDto, 
-    UpdateAssessmentDto, 
-    GetAssessmentsQueryDto 
+import type {
+    CreateAssessmentDto,
+    UpdateAssessmentDto,
+    GetAssessmentsQueryDto,
+    CreateAssessmentSectionDto
 } from "../dto/assessmentBuilder.dto.js";
+
 
 export class AssessmentBuilderService {
     static async createAssessment(dto: CreateAssessmentDto, memberId: string) {
@@ -229,4 +232,50 @@ export class AssessmentBuilderService {
             }
         };
     }
+
+    static async createAssessmentSection(
+        assessmentId: string,
+        dto: CreateAssessmentSectionDto
+    ): Promise<{
+        id: string;
+        title: string;
+        sectionType: QuestionType;
+        displayOrder: number;
+    }> {
+        const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
+        if (!assessment) {
+            throw new NotFoundError("Assessment not found");
+        }
+
+        if (assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+
+        const existingSection = await AssessmentBuilderRepository.findSectionByTitle(assessmentId, dto.title);
+        if (existingSection) {
+            throw new ConflictError("Duplicate Section Title");
+        }
+
+        const maxOrder = await AssessmentBuilderRepository.getMaxDisplayOrder(assessmentId);
+        const displayOrder = maxOrder + 1;
+
+        const section = await AssessmentBuilderRepository.createSection({
+            assessmentId,
+            title: dto.title,
+            description: dto.description || null,
+            instructions: dto.instructions || null,
+            sectionType: dto.sectionType,
+            durationMinutes: dto.durationMinutes || null,
+            displayOrder
+        });
+
+        return {
+            id: section.id,
+            title: section.title,
+            sectionType: section.sectionType,
+            displayOrder: section.displayOrder
+        }
+    }
 }
+
+

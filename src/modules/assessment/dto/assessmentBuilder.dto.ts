@@ -5,8 +5,14 @@ import {
     assessmentDescriptionValidator,
     assessmentInstructionsValidator,
     assessmentIsTemplateValidator,
-    assessmentStatusValidator
+    assessmentStatusValidator,
+    assessmentSectionTitleValidator,
+    assessmentSectionDescriptionValidator,
+    assessmentSectionInstructionsValidator,
+    assessmentSectionDurationMinutesValidator,
+    assessmentSectionTypeValidator
 } from "../../../common/validators/validators.js";
+
 
 export const createAssessmentSchema = z.object({
     companyId: z.string().cuid("Invalid company ID"),
@@ -55,3 +61,14 @@ export const assessmentIdParamSchema = z.object({
 });
 
 export type AssessmentIdParamDto = z.infer<typeof assessmentIdParamSchema>;
+
+export const createAssessmentSectionSchema = z.object({
+    title: assessmentSectionTitleValidator,
+    description: assessmentSectionDescriptionValidator.optional(),
+    instructions: assessmentSectionInstructionsValidator.optional(),
+    sectionType: assessmentSectionTypeValidator,
+    durationMinutes: assessmentSectionDurationMinutesValidator.optional()
+});
+
+export type CreateAssessmentSectionDto = z.infer<typeof createAssessmentSectionSchema>;
+

@@ -9,8 +9,10 @@ import {
     createAssessmentSchema,
     updateAssessmentSchema,
     getAssessmentsQuerySchema,
-    assessmentIdParamSchema
+    assessmentIdParamSchema,
+    createAssessmentSectionSchema
 } from "../dto/assessmentBuilder.dto.js";
+
 
 const AssessmentRoutes = Router();
 
@@ -94,4 +96,16 @@ AssessmentRoutes.post(
     AssessmentBuilderController.duplicateAssessment
 );
 
+// Create Assessment Section
+AssessmentRoutes.post(
+    "/:assessmentId/sections",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(assessmentIdParamSchema, "params"),
+    validate(createAssessmentSectionSchema, "body"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.createAssessmentSection
+);
+
 export default AssessmentRoutes;
+
