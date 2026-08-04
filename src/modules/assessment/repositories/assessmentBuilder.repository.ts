@@ -226,6 +226,18 @@ export class AssessmentBuilderRepository {
         });
     }
 
+    static async findSectionsByAssessmentId(assessmentId: string) {
+        return await prisma.assessmentSection.findMany({
+            where: { assessmentId },
+            orderBy: { displayOrder: "asc" },
+            include: {
+                _count: {
+                    select: { items: true }
+                }
+            }
+        });
+    }
+
     private static buildWhereClause(filters: GetAssessmentsQueryDto, companyIds?: string[]): Prisma.AssessmentWhereInput {
         return {
             deletedAt: null,

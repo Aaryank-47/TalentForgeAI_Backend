@@ -2,10 +2,10 @@ import type { Request, Response } from "express";
 import { AssessmentBuilderService } from "../services/assessmentBuilder.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
-import type { 
-    CreateAssessmentDto, 
-    UpdateAssessmentDto, 
-    GetAssessmentsQueryDto, 
+import type {
+    CreateAssessmentDto,
+    UpdateAssessmentDto,
+    GetAssessmentsQueryDto,
     AssessmentIdParamDto,
     CreateAssessmentSectionDto
 } from "../dto/assessmentBuilder.dto.js";
@@ -113,6 +113,20 @@ export class AssessmentBuilderController {
             res.status(HTTP_STATUS.CREATED).json({
                 success: true,
                 message: "Assessment section created successfully.",
+                data: result
+            });
+        }
+    );
+
+    static getAssessmentSections = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { assessmentId } = req.params as unknown as AssessmentIdParamDto;
+
+            const result = await AssessmentBuilderService.getAssessmentSections(assessmentId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Assessment sections fetched successfully.",
                 data: result
             });
         }

@@ -107,5 +107,16 @@ AssessmentRoutes.post(
     AssessmentBuilderController.createAssessmentSection
 );
 
+// Get Assessment Sections
+AssessmentRoutes.get(
+    "/:assessmentId/sections",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(assessmentIdParamSchema, "params"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.getAssessmentSections
+);
+
 export default AssessmentRoutes;
+
 

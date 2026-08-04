@@ -276,6 +276,25 @@ export class AssessmentBuilderService {
             displayOrder: section.displayOrder
         }
     }
+
+    static async getAssessmentSections(assessmentId: string) {
+        const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
+        if (!assessment) {
+            throw new NotFoundError("Assessment not found");
+        }
+
+        const sections = await AssessmentBuilderRepository.findSectionsByAssessmentId(assessmentId);
+
+        return sections.map((sec) => ({
+            id: sec.id,
+            title: sec.title,
+            sectionType: sec.sectionType,
+            durationMinutes: sec.durationMinutes,
+            displayOrder: sec.displayOrder,
+            questionCount: sec._count.items
+        }));
+    }
 }
+
 
 
