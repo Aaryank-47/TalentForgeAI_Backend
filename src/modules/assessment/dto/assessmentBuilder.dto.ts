@@ -99,3 +99,15 @@ export const reorderSectionsSchema = z.object({
 });
 
 export type ReorderSectionsDto = z.infer<typeof reorderSectionsSchema>;
+
+export const addQuestionsToSectionSchema = z.object({
+    questions: z.array(
+        z.object({
+            questionId: z.string().cuid("Invalid question ID"),
+            marksOverride: z.number().positive("Marks override must be positive").optional(),
+            timeLimitOverride: z.number().int().positive("Time limit override must be positive").optional(),
+        })
+    ).min(1, "At least one question must be provided")
+});
+
+export type AddQuestionsToSectionDto = z.infer<typeof addQuestionsToSectionSchema>;

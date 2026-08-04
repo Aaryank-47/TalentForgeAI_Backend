@@ -10,7 +10,8 @@ import type {
     CreateAssessmentSectionDto,
     UpdateAssessmentSectionDto,
     ReorderSectionsDto,
-    SectionIdParamDto
+    SectionIdParamDto,
+    AddQuestionsToSectionDto
 } from "../dto/assessmentBuilder.dto.js";
 
 
@@ -162,6 +163,17 @@ export class AssessmentBuilderController {
             const dto = req.body as ReorderSectionsDto;
 
             const result = await AssessmentBuilderService.reorderAssessmentSections(dto);
+
+            res.status(HTTP_STATUS.OK).json(result);
+        }
+    );
+
+    static addQuestionsToSection = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { sectionId } = req.params as unknown as SectionIdParamDto;
+            const dto = req.body as AddQuestionsToSectionDto;
+
+            const result = await AssessmentBuilderService.addQuestionsToSection(sectionId, dto.questions);
 
             res.status(HTTP_STATUS.OK).json(result);
         }

@@ -1,17 +1,17 @@
 import prisma from "../../../config/database.js";
-import type { Question, QuestionCategory, QuestionTag, ProgrammingLanguage, DSASupportedLanguage } from "@prisma/client";
-import type { 
-    GetQuestionCategoriesDto, 
-    GetQuestionTagsDto, 
-    GetProgrammingLanguagesDto, 
-    CreateQuestionDto, 
-    UpdateQuestionDto, 
-    GetQuestionsQueryDto 
+import type { Question, QuestionCategory, QuestionTag, ProgrammingLanguage } from "@prisma/client";
+import type {
+    GetQuestionCategoriesDto,
+    GetQuestionTagsDto,
+    GetProgrammingLanguagesDto,
+    CreateQuestionDto,
+    UpdateQuestionDto,
+    GetQuestionsQueryDto
 } from "../dto/question.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 import type { QuestionWithRelations } from "../interfaces/question.interface.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-import { CompanyMemberStatus } from "@prisma/client";
+import { CompanyMemberStatus, QuestionType } from "@prisma/client";
 
 export class QuestionRepository {
     static async findQueCateogoryByName(
@@ -45,6 +45,44 @@ export class QuestionRepository {
             where: {
                 id,
                 deletedAt: null
+            }
+        });
+    }
+
+    static async findQuestionCategoryByIds(
+        ids: string[]
+    ): Promise<QuestionCategory[]> {
+        return await prisma.questionCategory.findMany({
+            where: {
+                id: { in: ids },
+                deletedAt: null
+            }
+        });
+    }
+
+    static async findValidQuestions(
+        questionIds: string[],
+        companyId: string,
+        sectionTypes: QuestionType
+    ): Promise<
+        Pick<Question, "id">[]
+    > {
+        return await prisma.question.findMany({
+            where: {
+                id: { in: questionIds },
+                deletedAt: null,
+                archivedAt: null,
+                type: sectionTypes,
+                OR: [{
+                    ownership: "GLOBAL"
+                },
+                {
+                    ownership: "COMPANY",
+                    companyId: companyId
+                }],
+            },
+            select: {
+                id: true
             }
         });
     }
@@ -94,7 +132,7 @@ export class QuestionRepository {
             where: {
                 parentId: id,
                 deletedAt: null,
-                },
+            },
         });
         return count > 0;
     }
@@ -342,7 +380,7 @@ export class QuestionRepository {
 
     // DSASupportedLanguage
     static async createSupportedLanguages(
-        dsaDetailId: string, 
+        dsaDetailId: string,
         programmingLanguageIds: string[]
     ): Promise<{ count: number }> {
         const data = programmingLanguageIds.map(id => ({
@@ -366,7 +404,7 @@ export class QuestionRepository {
                     programmingLanguageId: id
                 }))
             })
-         ]);
+        ]);
     }
 
     static async deleteSupportedLanguages(dsaDetailId: string, programmingLanguageIds: string[]): Promise<{ count: number }> {

@@ -1,7 +1,11 @@
 import prisma from "../../../config/database.js";
 import type { Assessment, AssessmentSection, Prisma } from "@prisma/client";
+import { QuestionType } from "@prisma/client";
 import type { GetAssessmentsQueryDto } from "../dto/assessmentBuilder.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
+import { NotFoundError } from "../../../common/errors/NotFoundError.js";
+import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 
 export class AssessmentBuilderRepository {
     static async createAssessment(data: Prisma.AssessmentUncheckedCreateInput): Promise<Assessment> {
@@ -317,5 +321,92 @@ export class AssessmentBuilderRepository {
                 }
             })
         };
+    }
+
+    static async findQuestionsAlreadyAdded(
+        sectionId: string,
+        questionIds: string[]
+    ): Promise<{ questionId: string }[]> {
+        return await prisma.assessmentSectionItem.findMany({
+            where: {
+                sectionId,
+                questionId: { in: questionIds }
+            },
+            select: {
+                questionId: true,
+            }
+        });
+    }
+
+    static async addQuestionsToSection(
+        sectionId: string,
+        companyId: string,
+        sectionType: QuestionType,
+        questions: {
+            questionId: string;
+            marksOverride: number | null | undefined;
+            timeLimitOverride: number | null | undefined;
+        }[]
+    ) {
+        return await prisma.$transaction(async (tx) => {
+            // Get current max display order for items in the section
+            const maxItem = await tx.assessmentSectionItem.findFirst({
+                where: { sectionId },
+                orderBy: { displayOrder: "desc" },
+                select: { displayOrder: true }
+            });
+            let currentMaxOrder = maxItem?.displayOrder ?? 0;
+
+            const createdItems = [];
+
+            for (const questionInput of questions) {
+                const question = await tx.question.findFirst({
+                    where: {
+                        id: questionInput.questionId,
+                        deletedAt: null
+                    }
+                });
+
+                if (!question) {
+                    throw new NotFoundError(`Question not found: ${questionInput.questionId}`);
+                }
+
+                if (question.status !== "PUBLISHED") {
+                    throw new ConflictError(`Question is not published: ${question.title}`);
+                }
+
+                if (question.ownership === "COMPANY" && question.companyId !== companyId) {
+                    throw new ForbiddenError(`You do not have permission to access question: ${question.title}`);
+                }
+                if (question.type !== sectionType) {
+                    throw new ConflictError(`Question type '${question.type}' does not match section type '${sectionType}': ${question.title}`);
+                }
+
+                const existingItem = await tx.assessmentSectionItem.findFirst({
+                    where: {
+                        sectionId,
+                        questionId: questionInput.questionId
+                    }
+                });
+
+                if (existingItem) {
+                    throw new ConflictError(`Question is already added to this section: ${question.title}`);
+                }
+
+                currentMaxOrder += 1;
+                const newItem = await tx.assessmentSectionItem.create({
+                    data: {
+                        sectionId,
+                        questionId: questionInput.questionId,
+                        displayOrder: currentMaxOrder,
+                        marksOverride: questionInput.marksOverride ?? null,
+                        timeLimitOverride: questionInput.timeLimitOverride ?? null
+                    }
+                });
+                createdItems.push(newItem);
+            }
+
+            return createdItems;
+        });
     }
 }

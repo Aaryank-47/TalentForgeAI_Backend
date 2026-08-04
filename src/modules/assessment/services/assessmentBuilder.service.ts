@@ -12,8 +12,10 @@ import type {
     GetAssessmentsQueryDto,
     CreateAssessmentSectionDto,
     UpdateAssessmentSectionDto,
-    ReorderSectionsDto
+    ReorderSectionsDto,
+    AddQuestionsToSectionDto
 } from "../dto/assessmentBuilder.dto.js";
+import { QuestionRepository } from "../repositories/question.repository.js";
 
 
 
@@ -367,6 +369,34 @@ export class AssessmentBuilderService {
         return {
             success: true,
             message: "Sections reordered successfully."
+        };
+    }
+
+    static async addQuestionsToSection(
+        sectionId: string,
+        questions: AddQuestionsToSectionDto["questions"]
+    ): Promise<any> {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+        if (section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot add questions to an assessment that is not in DRAFT status.");
+        }
+
+        const addedItems = await AssessmentBuilderRepository.addQuestionsToSection(
+            sectionId,
+            section.assessment.companyId,
+            section.sectionType,
+            questions.map(q => ({
+                questionId: q.questionId,
+                marksOverride: q.marksOverride ?? null,
+                timeLimitOverride: q.timeLimitOverride ?? null
+            }))
+        );
+
+        return {
+            data: addedItems
         };
     }
 }

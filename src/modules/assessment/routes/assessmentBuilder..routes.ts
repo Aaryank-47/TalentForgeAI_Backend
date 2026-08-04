@@ -13,7 +13,8 @@ import {
     createAssessmentSectionSchema,
     sectionIdParamSchema,
     updateAssessmentSectionSchema,
-    reorderSectionsSchema
+    reorderSectionsSchema,
+    addQuestionsToSectionSchema
 } from "../dto/assessmentBuilder.dto.js";
 
 
@@ -149,6 +150,18 @@ AssessmentRoutes.delete(
     ensureActiveCompanyMember,
     AssessmentBuilderController.deleteAssessmentSection
 );
+
+// Add Questions to Section
+AssessmentRoutes.post(
+    "/section/:sectionId/questions",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(sectionIdParamSchema, "params"),
+    validate(addQuestionsToSectionSchema, "body"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.addQuestionsToSection
+);
+
 export default AssessmentRoutes;
 
 
