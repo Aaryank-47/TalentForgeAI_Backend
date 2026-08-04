@@ -14,7 +14,10 @@ import {
     sectionIdParamSchema,
     updateAssessmentSectionSchema,
     reorderSectionsSchema,
-    addQuestionsToSectionSchema
+    addQuestionsToSectionSchema,
+    updateSectionItemSchema,
+    sectionItemIdParamSchema,
+    reorderQuestionsSchema
 } from "../dto/assessmentBuilder.dto.js";
 
 
@@ -170,6 +173,37 @@ AssessmentRoutes.get(
     validate(sectionIdParamSchema, "params"),
     ensureActiveCompanyMember,
     AssessmentBuilderController.getSectionQuestions
+);
+
+// Reorder Questions of a Section
+AssessmentRoutes.patch(
+    "/section-items/reorder",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(reorderQuestionsSchema, "body"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.reorderQuestions
+);
+
+// Update Section Item
+AssessmentRoutes.patch(
+    "/section-items/:sectionItemId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(sectionItemIdParamSchema, "params"),
+    validate(updateSectionItemSchema, "body"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.updateSectionItem
+);
+
+// Remove Question from Section
+AssessmentRoutes.delete(
+    "/section-items/:sectionItemId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(sectionItemIdParamSchema, "params"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.removeQuestionFromSection
 );
 
 export default AssessmentRoutes;

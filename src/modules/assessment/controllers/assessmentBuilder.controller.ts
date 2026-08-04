@@ -11,7 +11,10 @@ import type {
     UpdateAssessmentSectionDto,
     ReorderSectionsDto,
     SectionIdParamDto,
-    AddQuestionsToSectionDto
+    AddQuestionsToSectionDto,
+    UpdateSectionItemDto,
+    SectionItemIdParamDto,
+    ReorderQuestionsDto
 } from "../dto/assessmentBuilder.dto.js";
 
 
@@ -190,6 +193,49 @@ export class AssessmentBuilderController {
                 success: true,
                 message: "Section questions fetched successfully.",
                 data: questions
+            });
+        }
+    );
+
+    static updateSectionItem = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { sectionItemId } = req.params as unknown as SectionItemIdParamDto;
+            const dto = req.body as UpdateSectionItemDto;
+            const companyId = req.companyMember!.companyId;
+
+            await AssessmentBuilderService.updateSectionItem(sectionItemId, dto, companyId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Section item updated successfully."
+            });
+        }
+    );
+
+    static removeQuestionFromSection = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { sectionItemId } = req.params as unknown as SectionItemIdParamDto;
+            const companyId = req.companyMember!.companyId;
+
+            await AssessmentBuilderService.removeQuestionFromSection(sectionItemId, companyId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Question removed from section successfully."
+            });
+        }
+    );
+
+    static reorderQuestions = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as ReorderQuestionsDto;
+            const companyId = req.companyMember!.companyId;
+
+            await AssessmentBuilderService.reorderQuestions(dto, companyId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Questions reordered successfully."
             });
         }
     );

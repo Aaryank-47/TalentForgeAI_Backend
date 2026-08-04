@@ -435,4 +435,79 @@ export class AssessmentBuilderRepository {
             }
         });
     }
+
+    static async findSectionItemById(id: string) {
+        return await prisma.assessmentSectionItem.findUnique({
+            where: { id },
+            include: {
+                section: {
+                    include: {
+                        assessment: true
+                    }
+                }
+            }
+        });
+    }
+
+    static async updateSectionItem(
+        id: string,
+        data: Prisma.AssessmentSectionItemUncheckedUpdateInput
+    ): Promise<AssessmentSectionItem> {
+        return await prisma.assessmentSectionItem.update({
+            where: { id },
+            data
+        });
+    }
+
+    static async deleteSectionItem(id: string): Promise<AssessmentSectionItem> {
+        return await prisma.assessmentSectionItem.delete({
+            where: { id }
+        });
+    }
+
+    static async recalculateItemsDisplayOrder(sectionId: string): Promise<void> {
+        await prisma.$executeRawUnsafe(`
+            WITH updated AS (
+                SELECT id, ROW_NUMBER() OVER (ORDER BY "displayOrder" ASC) as new_order
+                FROM "AssessmentSectionItem"
+                WHERE "sectionId" = $1
+            )
+            UPDATE "AssessmentSectionItem"
+            SET "displayOrder" = updated.new_order
+            FROM updated
+            WHERE "AssessmentSectionItem".id = updated.id
+        `, sectionId);
+    }
+
+    static async reorderSectionItems(
+        sectionId: string,
+        updates: { sectionItemId: string; displayOrder: number }[]
+    ): Promise<void> {
+        await prisma.$transaction(async (tx) => {
+            const section = await tx.assessmentSection.findUnique({
+                where: { id: sectionId }
+            });
+            if (!section) {
+                throw new NotFoundError("Section not found");
+            }
+
+            // Shift current display orders by +10000 to free up unique constraint space in 1 query
+            await tx.$executeRawUnsafe(`
+                UPDATE "AssessmentSectionItem"
+                SET "displayOrder" = "displayOrder" + 10000
+                WHERE "sectionId" = $1
+            `, sectionId);
+
+            // Set the actual final display orders in 1 query
+            const values = updates.map((u, i) => `($${i * 2 + 1}, $${i * 2 + 2}::integer)`).join(', ');
+            const params = updates.flatMap(u => [u.sectionItemId, u.displayOrder]);
+
+            await tx.$executeRawUnsafe(`
+                UPDATE "AssessmentSectionItem" AS asi
+                SET "displayOrder" = tmp.new_order
+                FROM (VALUES ${values}) AS tmp(id, new_order)
+                WHERE asi.id = tmp.id
+            `, ...params);
+        });
+    }
 }

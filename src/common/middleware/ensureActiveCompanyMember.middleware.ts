@@ -32,7 +32,15 @@ export const ensureActiveCompanyMember = async (
             assessmentId = req.body.assessmentId;
         }
 
-        const sectionId = typeof req.params.sectionId === "string" ? req.params.sectionId : undefined;
+        let sectionId = typeof req.params.sectionId === "string" ? req.params.sectionId : undefined;
+        if (!sectionId && req.body && typeof req.body.sectionId === "string") {
+            sectionId = req.body.sectionId;
+        }
+
+        let sectionItemId = typeof req.params.sectionItemId === "string" ? req.params.sectionItemId : undefined;
+        if (!sectionItemId && req.body && typeof req.body.sectionItemId === "string") {
+            sectionItemId = req.body.sectionItemId;
+        }
 
         if (!companyId) {
             if (assessmentId) {
@@ -53,13 +61,28 @@ export const ensureActiveCompanyMember = async (
                     throw new NotFoundError("Section not found.");
                 }
                 companyId = section.assessment.companyId;
+            } else if (sectionItemId) {
+                const item = await prisma.assessmentSectionItem.findFirst({
+                    where: { id: sectionItemId, section: { assessment: { deletedAt: null } } },
+                    include: {
+                        section: {
+                            include: {
+                                assessment: { select: { companyId: true } }
+                            }
+                        }
+                    }
+                });
+                if (!item) {
+                    throw new NotFoundError("Section item not found.");
+                }
+                companyId = item.section.assessment.companyId;
             }
         }
 
 
         if (!companyId) {
             throw new NotFoundError("Company ID is required.");
-         }
+        }
 
         let membership = await CompanyRepository.findMemberByUserAndCompany(user.id, companyId as string);
 

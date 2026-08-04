@@ -111,3 +111,29 @@ export const addQuestionsToSectionSchema = z.object({
 });
 
 export type AddQuestionsToSectionDto = z.infer<typeof addQuestionsToSectionSchema>;
+
+export const updateSectionItemSchema = z.object({
+    marksOverride: z.number().positive("Marks override must be positive").optional().nullable(),
+    timeLimitOverride: z.number().int().positive("Time limit override must be positive").optional().nullable(),
+    isRequired: z.boolean().optional()
+});
+
+export type UpdateSectionItemDto = z.infer<typeof updateSectionItemSchema>;
+
+export const sectionItemIdParamSchema = z.object({
+    sectionItemId: z.string().cuid("Invalid section item ID")
+});
+
+export type SectionItemIdParamDto = z.infer<typeof sectionItemIdParamSchema>;
+
+export const reorderQuestionsSchema = z.object({
+    sectionId: z.string().cuid("Invalid section ID"),
+    items: z.array(
+        z.object({
+            sectionItemId: z.string().cuid("Invalid section item ID"),
+            displayOrder: z.number().int().positive("Display order must be positive")
+        })
+    ).min(1, "At least one item must be provided")
+});
+
+export type ReorderQuestionsDto = z.infer<typeof reorderQuestionsSchema>;

@@ -1,10 +1,11 @@
 import { CompanyRepository } from "../../company/repository/company.repository.js";
-import { QuestionType } from "@prisma/client";
+import { QuestionType, Prisma } from "@prisma/client";
 import { AssessmentBuilderRepository } from "../repositories/assessmentBuilder.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
+import { removeUndefined } from "../../../common/helper/object.helper.js";
 import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
 import type { SectionQuestionItemView } from "../interfaces/question.interface.js"
 import type {
@@ -15,6 +16,8 @@ import type {
     UpdateAssessmentSectionDto,
     ReorderSectionsDto,
     AddQuestionsToSectionDto,
+    UpdateSectionItemDto,
+    ReorderQuestionsDto
 } from "../dto/assessmentBuilder.dto.js";
 import { QuestionRepository } from "../repositories/question.repository.js";
 
@@ -428,6 +431,85 @@ export class AssessmentBuilderService {
                 defaultMarks: item.question.defaultMarks
             }
         }));
+    }
+
+    static async updateSectionItem(
+        sectionItemId: string,
+        dto: UpdateSectionItemDto,
+        companyId: string
+    ): Promise<void> {
+        const item = await AssessmentBuilderRepository.findSectionItemById(sectionItemId);
+        if (!item) {
+            throw new NotFoundError("Section item not found");
+        }
+
+        if (item.section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section item.");
+        }
+
+        if (item.section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot update section items in a non-draft assessment.");
+        }
+
+        const updateData = removeUndefined({
+            marksOverride: dto.marksOverride,
+            timeLimitOverride: dto.timeLimitOverride,
+            isRequired: dto.isRequired
+        }) as Prisma.AssessmentSectionItemUncheckedUpdateInput;
+
+        await AssessmentBuilderRepository.updateSectionItem(sectionItemId, updateData);
+    }
+
+    static async removeQuestionFromSection(
+        sectionItemId: string,
+        companyId: string
+    ): Promise<void> {
+        const item = await AssessmentBuilderRepository.findSectionItemById(sectionItemId);
+        if (!item) {
+            throw new NotFoundError("Section item not found");
+        }
+
+        if (item.section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section item.");
+        }
+
+        if (item.section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot remove section items from a non-draft assessment.");
+        }
+
+        const sectionId = item.sectionId;
+
+        await AssessmentBuilderRepository.deleteSectionItem(sectionItemId);
+        await AssessmentBuilderRepository.recalculateItemsDisplayOrder(sectionId);
+    }
+
+    static async reorderQuestions(
+        dto: ReorderQuestionsDto,
+        companyId: string
+    ): Promise<void> {
+        const section = await AssessmentBuilderRepository.findSectionById(dto.sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+
+        if (section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section.");
+        }
+
+        if (section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot reorder section items in a non-draft assessment.");
+        }
+
+        const existingItems = await AssessmentBuilderRepository.findSectionItems(dto.sectionId);
+        const existingItemIds = existingItems.map(i => i.id);
+        const payloadItemIds = dto.items.map(i => i.sectionItemId);
+
+        const allExist = payloadItemIds.every(id => existingItemIds.includes(id));
+        if (!allExist) {
+            throw new ConflictError("One or more section items do not belong to the section.");
+        }
+
+        await AssessmentBuilderRepository.reorderSectionItems(dto.sectionId, dto.items);
     }
 }
 
