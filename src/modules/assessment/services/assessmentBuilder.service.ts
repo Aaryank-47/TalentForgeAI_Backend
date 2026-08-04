@@ -6,6 +6,7 @@ import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
+import type { SectionQuestionItemView } from "../interfaces/question.interface.js"
 import type {
     CreateAssessmentDto,
     UpdateAssessmentDto,
@@ -13,7 +14,7 @@ import type {
     CreateAssessmentSectionDto,
     UpdateAssessmentSectionDto,
     ReorderSectionsDto,
-    AddQuestionsToSectionDto
+    AddQuestionsToSectionDto,
 } from "../dto/assessmentBuilder.dto.js";
 import { QuestionRepository } from "../repositories/question.repository.js";
 
@@ -398,6 +399,35 @@ export class AssessmentBuilderService {
         return {
             data: addedItems
         };
+    }
+
+    static async getSectionQuestions(
+        sectionId: string,
+        companyId: string
+    ): Promise<SectionQuestionItemView[]> {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+
+        if (section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section.");
+        }
+
+        const items = await AssessmentBuilderRepository.findSectionItems(sectionId);
+
+        return items.map(item => ({
+            sectionItemId: item.id,
+            displayOrder: item.displayOrder,
+            marksOverride: item.marksOverride,
+            timeLimitOverride: item.timeLimitOverride,
+            question: {
+                id: item.question.id,
+                title: item.question.title,
+                difficulty: item.question.difficulty,
+                defaultMarks: item.question.defaultMarks
+            }
+        }));
     }
 }
 

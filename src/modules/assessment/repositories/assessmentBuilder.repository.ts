@@ -1,6 +1,6 @@
 import prisma from "../../../config/database.js";
-import type { Assessment, AssessmentSection, Prisma } from "@prisma/client";
-import { QuestionType } from "@prisma/client";
+import type { Assessment, AssessmentSection, AssessmentSectionItem, Prisma } from "@prisma/client";
+import { QuestionType, QuestionDifficulty } from "@prisma/client";
 import type { GetAssessmentsQueryDto } from "../dto/assessmentBuilder.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
@@ -407,6 +407,32 @@ export class AssessmentBuilderRepository {
             }
 
             return createdItems;
+        });
+    }
+
+    static async findSectionItems(
+        sectionId: string
+    ): Promise<(AssessmentSectionItem & {
+        question: {
+            id: string;
+            title: string;
+            difficulty: QuestionDifficulty;
+            defaultMarks: number;
+        };
+    })[]> {
+        return await prisma.assessmentSectionItem.findMany({
+            where: { sectionId },
+            orderBy: { displayOrder: "asc" },
+            include: {
+                question: {
+                    select: {
+                        id: true,
+                        title: true,
+                        difficulty: true,
+                        defaultMarks: true
+                    }
+                }
+            }
         });
     }
 }

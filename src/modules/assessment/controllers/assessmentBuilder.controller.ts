@@ -178,6 +178,21 @@ export class AssessmentBuilderController {
             res.status(HTTP_STATUS.OK).json(result);
         }
     );
+
+    static getSectionQuestions = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { sectionId } = req.params as unknown as SectionIdParamDto;
+            const companyId = req.companyMember!.companyId;
+
+            const questions = await AssessmentBuilderService.getSectionQuestions(sectionId, companyId);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Section questions fetched successfully.",
+                data: questions
+            });
+        }
+    );
 }
 
 

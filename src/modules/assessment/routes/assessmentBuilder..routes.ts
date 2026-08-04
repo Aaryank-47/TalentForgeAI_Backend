@@ -162,6 +162,16 @@ AssessmentRoutes.post(
     AssessmentBuilderController.addQuestionsToSection
 );
 
+// Get Questions of a Section
+AssessmentRoutes.get(
+    "/section/:sectionId/questions",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(sectionIdParamSchema, "params"),
+    ensureActiveCompanyMember,
+    AssessmentBuilderController.getSectionQuestions
+);
+
 export default AssessmentRoutes;
 
 
