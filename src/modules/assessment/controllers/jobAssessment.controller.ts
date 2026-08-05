@@ -3,7 +3,12 @@ import { JobAssessmentService } from "../services/jobAssessment.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { ApiResponse } from "../../../common/utils/ApiResponse.js";
-import type { AttachAssessmentsToJobDto, JobIdParamDto } from "../dto/jobAssessment.dto.js";
+import type {
+    AttachAssessmentsToJobDto,
+    JobIdParamDto,
+    JobAssessmentIdParamDto,
+    ReorderJobAssessmentsDto
+} from "../dto/jobAssessment.dto.js";
 
 export class JobAssessmentController {
     static attachAssessmentsToJob = asyncHandler(
@@ -45,5 +50,28 @@ export class JobAssessmentController {
             );
         }
     );
-}
 
+    static removeJobAssessment = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { jobAssessmentId } = req.params as unknown as JobAssessmentIdParamDto;
+
+            await JobAssessmentService.removeJobAssessment(jobAssessmentId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment removed successfully.", null)
+            );
+        }
+    );
+
+    static reorderJobAssessments = asyncHandler(
+        async (req: Request, res: Response) => {
+            const dto = req.body as ReorderJobAssessmentsDto;
+
+            await JobAssessmentService.reorderJobAssessments(dto);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment order updated successfully.", null)
+            );
+        }
+    );
+}

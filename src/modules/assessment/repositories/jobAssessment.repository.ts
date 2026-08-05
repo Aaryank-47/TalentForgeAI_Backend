@@ -163,4 +163,78 @@ export class JobAssessmentRepository {
             return count;
         });
     }
+
+    static async removeJobAssessment(jobId: string, assessmentId: string): Promise<void> {
+        await prisma.$transaction(async (tx) => {
+            const deleted = await tx.jobAssessment.delete({
+                where: {
+                    jobId_assessmentId: {
+                        jobId,
+                        assessmentId
+                    }
+                }
+            });
+
+            const remaining = await tx.jobAssessment.findMany({
+                where: {
+                    jobId,
+                    displayOrder: {
+                        gt: deleted.displayOrder
+                    }
+                }
+            });
+
+            await Promise.all(
+                remaining.map((record) =>
+                    tx.jobAssessment.update({
+                        where: {
+                            jobId_assessmentId: {
+                                jobId: record.jobId,
+                                assessmentId: record.assessmentId
+                            }
+                        },
+                        data: {
+                            displayOrder: record.displayOrder - 1
+                        }
+                    })
+                )
+            );
+        });
+    }
+
+    static async reorderJobAssessments(
+        jobId: string,
+        updates: { assessmentId: string; displayOrder: number }[]
+    ): Promise<void> {
+        await prisma.$transaction(async (tx) => {
+            const assessmentIds = updates.map((u) => u.assessmentId);
+
+            const existing = await tx.jobAssessment.findMany({
+                where: {
+                    jobId,
+                    assessmentId: { in: assessmentIds }
+                }
+            });
+
+            if (existing.length !== updates.length) {
+                throw new NotFoundError("One or more job assessment relations were not found");
+            }
+
+            await Promise.all(
+                updates.map((update) =>
+                    tx.jobAssessment.update({
+                        where: {
+                            jobId_assessmentId: {
+                                jobId,
+                                assessmentId: update.assessmentId
+                            }
+                        },
+                        data: {
+                            displayOrder: update.displayOrder
+                        }
+                    })
+                )
+            );
+        });
+    }
 }
