@@ -20,7 +20,7 @@ router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 router.use("/companies", companyRoutes);
 router.use("/jobs", jobRoutes);
-router.use("/job", jobAssessmentRoutes);
+router.use("/job-assessments", jobAssessmentRoutes);
 router.use("/candidate", candidateRoutes);
 router.use("/candidates", candidatesRoutes);
 router.use("/candidate/applications", applicationRoutes);

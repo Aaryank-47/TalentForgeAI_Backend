@@ -19,4 +19,31 @@ export class JobAssessmentController {
             );
         }
     );
+
+    static getJobAssessments = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { jobId } = req.params as unknown as JobIdParamDto;
+
+            const result = await JobAssessmentService.getJobAssessments(jobId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Job assessments retrieved successfully.", result)
+            );
+        }
+    );
+
+    static updateJobAssessment = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { jobId } = req.params as unknown as JobIdParamDto;
+            const dto = req.body as AttachAssessmentsToJobDto;
+            const user = req.user!; // Populated by authMiddleware
+
+            const result = await JobAssessmentService.updateJobAssessment(jobId, dto, user);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Job assessments updated successfully.", result)
+            );
+        }
+    );
 }
+
