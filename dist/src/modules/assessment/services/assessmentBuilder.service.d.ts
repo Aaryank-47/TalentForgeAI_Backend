@@ -1,8 +1,9 @@
+import { QuestionType } from "@prisma/client";
 import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
-import type { CreateAssessmentDto, UpdateAssessmentDto, GetAssessmentsQueryDto } from "../dto/assessmentBuilder.dto.js";
+import type { SectionQuestionItemView } from "../interfaces/question.interface.js";
+import type { CreateAssessmentDto, UpdateAssessmentDto, GetAssessmentsQueryDto, CreateAssessmentSectionDto, UpdateAssessmentSectionDto, ReorderSectionsDto, AddQuestionsToSectionDto, UpdateSectionItemDto, ReorderQuestionsDto } from "../dto/assessmentBuilder.dto.js";
 export declare class AssessmentBuilderService {
-    private static getOrCreateCompanyMember;
-    static createAssessment(dto: CreateAssessmentDto, user: AuthTokenPayload): Promise<{
+    static createAssessment(dto: CreateAssessmentDto, memberId: string): Promise<{
         success: boolean;
         message: string;
         data: {
@@ -41,7 +42,7 @@ export declare class AssessmentBuilderService {
         })[];
         pagination: import("../../../common/types/pagination.types.js").PaginationMeta;
     }>;
-    static getAssessmentById(assessmentId: string, user: AuthTokenPayload): Promise<{
+    static getAssessmentById(assessmentId: string): Promise<{
         success: boolean;
         data: {
             _count: {
@@ -51,9 +52,11 @@ export declare class AssessmentBuilderService {
             createdBy: {
                 user: {
                     email: string;
-                    fullName: never;
                     id: string;
-                    profilePicture: never;
+                    employer: {
+                        fullName: string;
+                        profilePicture: string | null;
+                    } | null;
                 };
             } & {
                 companyId: string;
@@ -104,8 +107,8 @@ export declare class AssessmentBuilderService {
                     questionId: string;
                     sectionId: string;
                     marksOverride: number | null;
-                    negativeMarksOverride: number | null;
                     timeLimitOverride: number | null;
+                    negativeMarksOverride: number | null;
                 })[];
             } & {
                 description: string | null;
@@ -139,23 +142,23 @@ export declare class AssessmentBuilderService {
             isTemplate: boolean;
         };
     }>;
-    static updateAssessment(assessmentId: string, dto: UpdateAssessmentDto, user: AuthTokenPayload): Promise<{
+    static updateAssessment(assessmentId: string, dto: UpdateAssessmentDto, memberId: string): Promise<{
         success: boolean;
         message: string;
     }>;
-    static deleteAssessment(assessmentId: string, user: AuthTokenPayload): Promise<{
+    static deleteAssessment(assessmentId: string, memberId: string): Promise<{
         success: boolean;
         message: string;
     }>;
-    static publishAssessment(assessmentId: string, user: AuthTokenPayload): Promise<{
+    static publishAssessment(assessmentId: string, memberId: string): Promise<{
         success: boolean;
         message: string;
     }>;
-    static archiveAssessment(assessmentId: string, user: AuthTokenPayload): Promise<{
+    static archiveAssessment(assessmentId: string, memberId: string): Promise<{
         success: boolean;
         message: string;
     }>;
-    static duplicateAssessment(assessmentId: string, user: AuthTokenPayload): Promise<{
+    static duplicateAssessment(assessmentId: string, memberId: string): Promise<{
         success: boolean;
         message: string;
         data: {
@@ -163,5 +166,36 @@ export declare class AssessmentBuilderService {
             status: import("@prisma/client").$Enums.AssessmentStatus;
         };
     }>;
+    static createAssessmentSection(assessmentId: string, dto: CreateAssessmentSectionDto): Promise<{
+        id: string;
+        title: string;
+        sectionType: QuestionType;
+        displayOrder: number;
+    }>;
+    static getAssessmentSections(assessmentId: string): Promise<{
+        id: string;
+        title: string;
+        sectionType: import("@prisma/client").$Enums.QuestionType;
+        durationMinutes: number | null;
+        displayOrder: number;
+        questionCount: number;
+    }[]>;
+    static updateAssessmentSection(sectionId: string, dto: UpdateAssessmentSectionDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    static deleteAssessmentSection(sectionId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    static reorderAssessmentSections(dto: ReorderSectionsDto): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    static addQuestionsToSection(sectionId: string, questions: AddQuestionsToSectionDto["questions"]): Promise<any>;
+    static getSectionQuestions(sectionId: string, companyId: string): Promise<SectionQuestionItemView[]>;
+    static updateSectionItem(sectionItemId: string, dto: UpdateSectionItemDto, companyId: string): Promise<void>;
+    static removeQuestionFromSection(sectionItemId: string, companyId: string): Promise<void>;
+    static reorderQuestions(dto: ReorderQuestionsDto, companyId: string): Promise<void>;
 }
 //# sourceMappingURL=assessmentBuilder.service.d.ts.map

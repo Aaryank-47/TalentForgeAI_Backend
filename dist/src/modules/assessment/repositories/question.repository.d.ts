@@ -2,10 +2,13 @@ import type { Question, QuestionCategory, QuestionTag, ProgrammingLanguage } fro
 import type { GetQuestionCategoriesDto, GetQuestionTagsDto, GetProgrammingLanguagesDto, CreateQuestionDto, UpdateQuestionDto, GetQuestionsQueryDto } from "../dto/question.dto.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 import type { QuestionWithRelations } from "../interfaces/question.interface.js";
+import { QuestionType } from "@prisma/client";
 export declare class QuestionRepository {
     static findQueCateogoryByName(name: string): Promise<QuestionCategory | null>;
     static findQueCategoryByNameAndParent(name: string, parentId: string | null): Promise<QuestionCategory | null>;
     static findQuestionCategoryById(id: string): Promise<QuestionCategory | null>;
+    static findQuestionCategoryByIds(ids: string[]): Promise<QuestionCategory[]>;
+    static findValidQuestions(questionIds: string[], companyId: string, sectionTypes: QuestionType): Promise<Pick<Question, "id">[]>;
     static createQueCategory(name: string, parentId?: string | null): Promise<QuestionCategory>;
     static updateQueCategory(id: string, data: {
         name?: string | undefined;

@@ -1,6 +1,6 @@
 import prisma from "../../../config/database.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-import { CompanyMemberStatus } from "@prisma/client";
+import { CompanyMemberStatus, QuestionType } from "@prisma/client";
 export class QuestionRepository {
     static async findQueCateogoryByName(name) {
         return await prisma.questionCategory.findFirst({
@@ -24,6 +24,34 @@ export class QuestionRepository {
             where: {
                 id,
                 deletedAt: null
+            }
+        });
+    }
+    static async findQuestionCategoryByIds(ids) {
+        return await prisma.questionCategory.findMany({
+            where: {
+                id: { in: ids },
+                deletedAt: null
+            }
+        });
+    }
+    static async findValidQuestions(questionIds, companyId, sectionTypes) {
+        return await prisma.question.findMany({
+            where: {
+                id: { in: questionIds },
+                deletedAt: null,
+                archivedAt: null,
+                type: sectionTypes,
+                OR: [{
+                        ownership: "GLOBAL"
+                    },
+                    {
+                        ownership: "COMPANY",
+                        companyId: companyId
+                    }],
+            },
+            select: {
+                id: true
             }
         });
     }

@@ -34,6 +34,9 @@ export declare class CompanyRepository {
         invitedAt: Date | null;
         invitedBy: string | null;
     } | null>;
+    static findActiveMembershipsByUser(userId: string): Promise<{
+        companyId: string;
+    }[]>;
     static updateCompanyProfile(companyId: string, input: UpdateCompanyInput): Promise<CompanyView>;
     static getRawCompanyById(companyId: string): Promise<Company | null>;
     static membership(companyId: string, userId: string): Promise<CompanyMemberList | null>;

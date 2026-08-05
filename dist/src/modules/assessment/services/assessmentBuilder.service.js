@@ -1,35 +1,18 @@
-import prisma from "../../../config/database.js";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
+import { QuestionType, Prisma } from "@prisma/client";
 import { AssessmentBuilderRepository } from "../repositories/assessmentBuilder.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
+import { removeUndefined } from "../../../common/helper/object.helper.js";
+import { QuestionRepository } from "../repositories/question.repository.js";
 export class AssessmentBuilderService {
-    static async getOrCreateCompanyMember(userId, companyId, role) {
-        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
-        if (member) {
-            return member.id;
-        }
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            const newMember = await prisma.companyMember.create({
-                data: {
-                    userId,
-                    companyId,
-                    role: "ADMIN",
-                    status: "ACTIVE"
-                }
-            });
-            return newMember.id;
-        }
-        throw new ForbiddenError("You must belong to this company to perform this action.");
-    }
-    static async createAssessment(dto, user) {
+    static async createAssessment(dto, memberId) {
         const company = await CompanyRepository.findCompanyById(dto.companyId);
         if (!company) {
             throw new NotFoundError("Company not found");
         }
-        const memberId = await this.getOrCreateCompanyMember(user.id, dto.companyId, user.role);
         const existing = await AssessmentBuilderRepository.findAssessmentByTitleInCompany(dto.title, dto.companyId);
         if (existing) {
             throw new ConflictError("Assessment Title Already Exists");
@@ -58,6 +41,7 @@ export class AssessmentBuilderService {
         };
     }
     static async getAssessments(filters, user) {
+        let companyIds;
         if (user.role === "EMPLOYER") {
             if (filters.companyId) {
                 const member = await CompanyRepository.findMemberByUserAndCompany(user.id, filters.companyId);
@@ -66,80 +50,32 @@ export class AssessmentBuilderService {
                 }
             }
             else {
-                const memberships = await prisma.companyMember.findMany({
-                    where: { userId: user.id, status: "ACTIVE" },
-                    select: { companyId: true }
-                });
-                const companyIds = memberships.map(m => m.companyId);
-                // If the employer belongs to no companies, return empty list
+                const memberships = await CompanyRepository.findActiveMembershipsByUser(user.id);
+                companyIds = memberships.map(m => m.companyId);
                 if (companyIds.length === 0) {
                     return PaginationHelper.buildResponse([], PaginationHelper.getPagination(filters), 0);
                 }
-                // Fetch using modified query where companyId is in user's company list
-                const pagination = PaginationHelper.getPagination(filters);
-                const whereClause = {
-                    deletedAt: null,
-                    companyId: { in: companyIds },
-                    ...(filters.status && { status: filters.status }),
-                    ...(filters.isTemplate !== undefined && { isTemplate: filters.isTemplate }),
-                    ...(filters.search && {
-                        title: {
-                            contains: filters.search,
-                            mode: "insensitive"
-                        }
-                    })
-                };
-                const items = await prisma.assessment.findMany({
-                    where: whereClause,
-                    skip: pagination.skip,
-                    take: pagination.take,
-                    orderBy: {
-                        [pagination.sortBy]: pagination.sortOrder
-                    },
-                    include: {
-                        _count: {
-                            select: {
-                                sections: true,
-                                attempts: true
-                            }
-                        }
-                    }
-                });
-                const total = await prisma.assessment.count({ where: whereClause });
-                return PaginationHelper.buildResponse(items, pagination, total);
             }
         }
         const pagination = PaginationHelper.getPagination(filters);
-        const items = await AssessmentBuilderRepository.findAssessments(filters, pagination);
-        const total = await AssessmentBuilderRepository.countAssessments(filters);
+        const items = await AssessmentBuilderRepository.findAssessments(filters, pagination, companyIds);
+        const total = await AssessmentBuilderRepository.countAssessments(filters, companyIds);
         return PaginationHelper.buildResponse(items, pagination, total);
     }
-    static async getAssessmentById(assessmentId, user) {
+    static async getAssessmentById(assessmentId) {
         const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
         if (!assessment) {
             throw new NotFoundError("Assessment not found");
-        }
-        if (user.role === "EMPLOYER") {
-            const member = await CompanyRepository.findMemberByUserAndCompany(user.id, assessment.companyId);
-            if (!member) {
-                throw new ForbiddenError("You do not belong to the company that owns this assessment.");
-            }
         }
         return {
             success: true,
             data: assessment
         };
     }
-    static async updateAssessment(assessmentId, dto, user) {
+    static async updateAssessment(assessmentId, dto, memberId) {
         const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
         if (!assessment) {
             throw new NotFoundError("Assessment not found");
-        }
-        if (user.role === "EMPLOYER") {
-            const member = await CompanyRepository.findMemberByUserAndCompany(user.id, assessment.companyId);
-            if (!member) {
-                throw new ForbiddenError("You do not belong to the company that owns this assessment.");
-            }
         }
         if (assessment.status === "ARCHIVED") {
             throw new ConflictError("Cannot edit an archived assessment.");
@@ -150,7 +86,6 @@ export class AssessmentBuilderService {
                 throw new ConflictError("Assessment Title Already Exists");
             }
         }
-        const memberId = await this.getOrCreateCompanyMember(user.id, assessment.companyId, user.role);
         const updateData = {};
         if (dto.title !== undefined)
             updateData.title = dto.title;
@@ -173,44 +108,29 @@ export class AssessmentBuilderService {
             message: "Assessment updated successfully."
         };
     }
-    static async deleteAssessment(assessmentId, user) {
+    static async deleteAssessment(assessmentId, memberId) {
         const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
         if (!assessment) {
             throw new NotFoundError("Assessment not found");
         }
-        if (user.role === "EMPLOYER") {
-            const member = await CompanyRepository.findMemberByUserAndCompany(user.id, assessment.companyId);
-            if (!member) {
-                throw new ForbiddenError("You do not belong to the company that owns this assessment.");
-            }
-        }
-        // Cannot delete if assigned to a job
         const assignedToJob = await AssessmentBuilderRepository.isAssignedToJob(assessmentId);
         if (assignedToJob) {
             throw new ConflictError("Cannot delete assessment because it is assigned to a Job.");
         }
-        // Cannot delete if active candidate attempts exist
         const hasActiveAttempts = await AssessmentBuilderRepository.hasActiveAttempts(assessmentId);
         if (hasActiveAttempts) {
             throw new ConflictError("Cannot delete assessment because active candidate attempts exist.");
         }
-        const memberId = await this.getOrCreateCompanyMember(user.id, assessment.companyId, user.role);
         await AssessmentBuilderRepository.softDeleteAssessment(assessmentId, memberId);
         return {
             success: true,
             message: "Assessment deleted successfully."
         };
     }
-    static async publishAssessment(assessmentId, user) {
+    static async publishAssessment(assessmentId, memberId) {
         const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
         if (!assessment) {
             throw new NotFoundError("Assessment not found");
-        }
-        if (user.role === "EMPLOYER") {
-            const member = await CompanyRepository.findMemberByUserAndCompany(user.id, assessment.companyId);
-            if (!member) {
-                throw new ForbiddenError("You do not belong to the company that owns this assessment.");
-            }
         }
         if (assessment.status === "PUBLISHED") {
             throw new ConflictError("Assessment is already published.");
@@ -218,11 +138,9 @@ export class AssessmentBuilderService {
         if (assessment.status === "ARCHIVED") {
             throw new ConflictError("Cannot publish an archived assessment.");
         }
-        // Validation: Must have at least 1 section
         if (assessment.sections.length === 0) {
             throw new ConflictError("Cannot publish an incomplete assessment: At least one section is required.");
         }
-        // Validation: Must have at least 1 question (section item)
         let totalQuestions = 0;
         for (const sec of assessment.sections) {
             totalQuestions += sec.items.length;
@@ -230,14 +148,12 @@ export class AssessmentBuilderService {
         if (totalQuestions === 0) {
             throw new ConflictError("Cannot publish an incomplete assessment: At least one question is required.");
         }
-        // Validation: Total marks > 0 and durationMinutes > 0
         if (!assessment.totalMarks || assessment.totalMarks <= 0) {
             throw new ConflictError("Cannot publish an incomplete assessment: Total marks must be greater than 0.");
         }
         if (!assessment.durationMinutes || assessment.durationMinutes <= 0) {
             throw new ConflictError("Cannot publish an incomplete assessment: Duration must be greater than 0.");
         }
-        const memberId = await this.getOrCreateCompanyMember(user.id, assessment.companyId, user.role);
         await AssessmentBuilderRepository.updateAssessment(assessmentId, {
             status: "PUBLISHED",
             publishedAt: new Date(),
@@ -248,21 +164,14 @@ export class AssessmentBuilderService {
             message: "Assessment published successfully."
         };
     }
-    static async archiveAssessment(assessmentId, user) {
+    static async archiveAssessment(assessmentId, memberId) {
         const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
         if (!assessment) {
             throw new NotFoundError("Assessment not found");
         }
-        if (user.role === "EMPLOYER") {
-            const member = await CompanyRepository.findMemberByUserAndCompany(user.id, assessment.companyId);
-            if (!member) {
-                throw new ForbiddenError("You do not belong to the company that owns this assessment.");
-            }
-        }
         if (assessment.status === "ARCHIVED") {
             throw new ConflictError("Assessment is already archived.");
         }
-        const memberId = await this.getOrCreateCompanyMember(user.id, assessment.companyId, user.role);
         await AssessmentBuilderRepository.updateAssessment(assessmentId, {
             status: "ARCHIVED",
             archivedAt: new Date(),
@@ -273,18 +182,11 @@ export class AssessmentBuilderService {
             message: "Assessment archived successfully."
         };
     }
-    static async duplicateAssessment(assessmentId, user) {
+    static async duplicateAssessment(assessmentId, memberId) {
         const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
         if (!assessment) {
             throw new NotFoundError("Assessment not found");
         }
-        if (user.role === "EMPLOYER") {
-            const member = await CompanyRepository.findMemberByUserAndCompany(user.id, assessment.companyId);
-            if (!member) {
-                throw new ForbiddenError("You do not belong to the company that owns this assessment.");
-            }
-        }
-        const memberId = await this.getOrCreateCompanyMember(user.id, assessment.companyId, user.role);
         const duplicated = await AssessmentBuilderRepository.duplicateAssessment(assessmentId, memberId);
         return {
             success: true,
@@ -294,6 +196,203 @@ export class AssessmentBuilderService {
                 status: duplicated.status
             }
         };
+    }
+    static async createAssessmentSection(assessmentId, dto) {
+        const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
+        if (!assessment) {
+            throw new NotFoundError("Assessment not found");
+        }
+        if (assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+        const existingSection = await AssessmentBuilderRepository.findSectionByTitle(assessmentId, dto.title);
+        if (existingSection) {
+            throw new ConflictError("Duplicate Section Title");
+        }
+        const maxOrder = await AssessmentBuilderRepository.getMaxDisplayOrder(assessmentId);
+        const displayOrder = maxOrder + 1;
+        const section = await AssessmentBuilderRepository.createSection({
+            assessmentId,
+            title: dto.title,
+            description: dto.description || null,
+            instructions: dto.instructions || null,
+            sectionType: dto.sectionType,
+            durationMinutes: dto.durationMinutes || null,
+            displayOrder
+        });
+        return {
+            id: section.id,
+            title: section.title,
+            sectionType: section.sectionType,
+            displayOrder: section.displayOrder
+        };
+    }
+    static async getAssessmentSections(assessmentId) {
+        const assessment = await AssessmentBuilderRepository.findAssessmentById(assessmentId);
+        if (!assessment) {
+            throw new NotFoundError("Assessment not found");
+        }
+        const sections = await AssessmentBuilderRepository.findSectionsByAssessmentId(assessmentId);
+        return sections.map((sec) => ({
+            id: sec.id,
+            title: sec.title,
+            sectionType: sec.sectionType,
+            durationMinutes: sec.durationMinutes,
+            displayOrder: sec.displayOrder,
+            questionCount: sec._count.items
+        }));
+    }
+    static async updateAssessmentSection(sectionId, dto) {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+        if (section.assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+        const updateData = {};
+        if (dto.title !== undefined)
+            updateData.title = dto.title;
+        if (dto.description !== undefined)
+            updateData.description = dto.description;
+        if (dto.instructions !== undefined)
+            updateData.instructions = dto.instructions;
+        if (dto.durationMinutes !== undefined)
+            updateData.durationMinutes = dto.durationMinutes;
+        await AssessmentBuilderRepository.updateSection(sectionId, updateData);
+        return {
+            success: true,
+            message: "Section updated successfully."
+        };
+    }
+    static async deleteAssessmentSection(sectionId) {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+        if (section.assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+        const assessmentId = section.assessmentId;
+        await AssessmentBuilderRepository.deleteSection(sectionId);
+        await AssessmentBuilderRepository.recalculateDisplayOrder(assessmentId);
+        return {
+            success: true,
+            message: "Section deleted successfully."
+        };
+    }
+    static async reorderAssessmentSections(dto) {
+        const assessment = await AssessmentBuilderRepository.findAssessmentById(dto.assessmentId);
+        if (!assessment) {
+            throw new NotFoundError("Assessment not found");
+        }
+        if (assessment.status === "ARCHIVED") {
+            throw new ConflictError("Cannot edit an archived assessment.");
+        }
+        // Verify that all sections in the payload belong to the assessment
+        const existingSectionIds = assessment.sections.map((s) => s.id);
+        const payloadSectionIds = dto.sections.map((s) => s.sectionId);
+        const allExist = payloadSectionIds.every((id) => existingSectionIds.includes(id));
+        if (!allExist) {
+            throw new ConflictError("One or more sections do not belong to the assessment.");
+        }
+        await AssessmentBuilderRepository.reorderSections(dto.assessmentId, dto.sections);
+        return {
+            success: true,
+            message: "Sections reordered successfully."
+        };
+    }
+    static async addQuestionsToSection(sectionId, questions) {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+        if (section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot add questions to an assessment that is not in DRAFT status.");
+        }
+        const addedItems = await AssessmentBuilderRepository.addQuestionsToSection(sectionId, section.assessment.companyId, section.sectionType, questions.map(q => ({
+            questionId: q.questionId,
+            marksOverride: q.marksOverride ?? null,
+            timeLimitOverride: q.timeLimitOverride ?? null
+        })));
+        return {
+            data: addedItems
+        };
+    }
+    static async getSectionQuestions(sectionId, companyId) {
+        const section = await AssessmentBuilderRepository.findSectionById(sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+        if (section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section.");
+        }
+        const items = await AssessmentBuilderRepository.findSectionItems(sectionId);
+        return items.map(item => ({
+            sectionItemId: item.id,
+            displayOrder: item.displayOrder,
+            marksOverride: item.marksOverride,
+            timeLimitOverride: item.timeLimitOverride,
+            question: {
+                id: item.question.id,
+                title: item.question.title,
+                difficulty: item.question.difficulty,
+                defaultMarks: item.question.defaultMarks
+            }
+        }));
+    }
+    static async updateSectionItem(sectionItemId, dto, companyId) {
+        const item = await AssessmentBuilderRepository.findSectionItemById(sectionItemId);
+        if (!item) {
+            throw new NotFoundError("Section item not found");
+        }
+        if (item.section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section item.");
+        }
+        if (item.section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot update section items in a non-draft assessment.");
+        }
+        const updateData = removeUndefined({
+            marksOverride: dto.marksOverride,
+            timeLimitOverride: dto.timeLimitOverride,
+            isRequired: dto.isRequired
+        });
+        await AssessmentBuilderRepository.updateSectionItem(sectionItemId, updateData);
+    }
+    static async removeQuestionFromSection(sectionItemId, companyId) {
+        const item = await AssessmentBuilderRepository.findSectionItemById(sectionItemId);
+        if (!item) {
+            throw new NotFoundError("Section item not found");
+        }
+        if (item.section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section item.");
+        }
+        if (item.section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot remove section items from a non-draft assessment.");
+        }
+        const sectionId = item.sectionId;
+        await AssessmentBuilderRepository.deleteSectionItem(sectionItemId);
+        await AssessmentBuilderRepository.recalculateItemsDisplayOrder(sectionId);
+    }
+    static async reorderQuestions(dto, companyId) {
+        const section = await AssessmentBuilderRepository.findSectionById(dto.sectionId);
+        if (!section) {
+            throw new NotFoundError("Section not found");
+        }
+        if (section.assessment.companyId !== companyId) {
+            throw new ForbiddenError("You do not have permission to access this section.");
+        }
+        if (section.assessment.status !== "DRAFT") {
+            throw new ConflictError("Cannot reorder section items in a non-draft assessment.");
+        }
+        const existingItems = await AssessmentBuilderRepository.findSectionItems(dto.sectionId);
+        const existingItemIds = existingItems.map(i => i.id);
+        const payloadItemIds = dto.items.map(i => i.sectionItemId);
+        const allExist = payloadItemIds.every(id => existingItemIds.includes(id));
+        if (!allExist) {
+            throw new ConflictError("One or more section items do not belong to the section.");
+        }
+        await AssessmentBuilderRepository.reorderSectionItems(dto.sectionId, dto.items);
     }
 }
 //# sourceMappingURL=assessmentBuilder.service.js.map

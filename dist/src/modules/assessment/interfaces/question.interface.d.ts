@@ -1,3 +1,4 @@
+import type { QuestionDifficulty } from "@prisma/client";
 export interface QuestionCategoryView {
     id: string;
     name: string;
@@ -93,6 +94,18 @@ export interface UpdateQuestionInput {
     dsaDetail?: DSADetailInput | null;
     machineCodingDetail?: MachineCodingDetailInput | null;
     projectDetail?: ProjectDetailInput | null;
+}
+export interface SectionQuestionItemView {
+    sectionItemId: string;
+    displayOrder: number;
+    marksOverride: number | null;
+    timeLimitOverride: number | null;
+    question: {
+        id: string;
+        title: string;
+        difficulty: QuestionDifficulty;
+        defaultMarks: number;
+    };
 }
 import type { Question, QuestionCategory, QuestionTag, MCQDetail, MCQOption, DSADetail, TestCase, MachineCodingDetail, ProjectDetail, User, ProgrammingLanguage } from "@prisma/client";
 export interface QuestionWithRelations extends Question {

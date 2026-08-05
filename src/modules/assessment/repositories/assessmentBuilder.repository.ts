@@ -349,7 +349,6 @@ export class AssessmentBuilderRepository {
         }[]
     ) {
         return await prisma.$transaction(async (tx) => {
-            // Get current max display order for items in the section
             const maxItem = await tx.assessmentSectionItem.findFirst({
                 where: { sectionId },
                 orderBy: { displayOrder: "desc" },
@@ -376,6 +375,8 @@ export class AssessmentBuilderRepository {
                 }
 
                 if (question.ownership === "COMPANY" && question.companyId !== companyId) {
+                    console.log("question : " + question.id + " title " + question.title);
+                    console.log(question.companyId + "----" + companyId)
                     throw new ForbiddenError(`You do not have permission to access question: ${question.title}`);
                 }
                 if (question.type !== sectionType) {

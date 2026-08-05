@@ -42,6 +42,11 @@ export const ensureActiveCompanyMember = async (
             sectionItemId = req.body.sectionItemId;
         }
 
+        let jobId = typeof req.params.jobId === "string" ? req.params.jobId : undefined;
+        if (!jobId && req.body && typeof req.body.jobId === "string") {
+            jobId = req.body.jobId;
+        }
+
         if (!companyId) {
             if (assessmentId) {
                 const assessment = await prisma.assessment.findFirst({
@@ -76,6 +81,15 @@ export const ensureActiveCompanyMember = async (
                     throw new NotFoundError("Section item not found.");
                 }
                 companyId = item.section.assessment.companyId;
+            } else if (jobId) {
+                const job = await prisma.job.findFirst({
+                    where: { id: jobId },
+                    select: { companyId: true }
+                });
+                if (!job) {
+                    throw new NotFoundError("Job not found.");
+                }
+                companyId = job.companyId;
             }
         }
 

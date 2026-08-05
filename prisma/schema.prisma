@@ -1060,6 +1060,8 @@ model JobAssessment {
   job          Job        @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   assessmentId String
   assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  displayOrder Int
+  isMandatory  Boolean    @default(true)
   createdAt    DateTime   @default(now())
 
   @@id([jobId, assessmentId])

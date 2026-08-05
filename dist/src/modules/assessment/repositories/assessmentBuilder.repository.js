@@ -1,4 +1,8 @@
 import prisma from "../../../config/database.js";
+import { QuestionType, QuestionDifficulty } from "@prisma/client";
+import { NotFoundError } from "../../../common/errors/NotFoundError.js";
+import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 export class AssessmentBuilderRepository {
     static async createAssessment(data) {
         return await prisma.assessment.create({
@@ -28,9 +32,13 @@ export class AssessmentBuilderRepository {
                         user: {
                             select: {
                                 id: true,
-                                fullName: true,
                                 email: true,
-                                profilePicture: true
+                                employer: {
+                                    select: {
+                                        fullName: true,
+                                        profilePicture: true
+                                    }
+                                }
                             }
                         }
                     }
@@ -44,8 +52,8 @@ export class AssessmentBuilderRepository {
             }
         });
     }
-    static async findAssessments(filters, pagination) {
-        const where = this.buildWhereClause(filters);
+    static async findAssessments(filters, pagination, companyIds) {
+        const where = this.buildWhereClause(filters, companyIds);
         return await prisma.assessment.findMany({
             where,
             skip: pagination.skip,
@@ -63,8 +71,8 @@ export class AssessmentBuilderRepository {
             }
         });
     }
-    static async countAssessments(filters) {
-        const where = this.buildWhereClause(filters);
+    static async countAssessments(filters, companyIds) {
+        const where = this.buildWhereClause(filters, companyIds);
         return await prisma.assessment.count({ where });
     }
     static async findAssessmentByTitleInCompany(title, companyId) {
@@ -173,10 +181,100 @@ export class AssessmentBuilderRepository {
             return newAssessment;
         });
     }
-    static buildWhereClause(filters) {
+    static async findSectionByTitle(assessmentId, title) {
+        return await prisma.assessmentSection.findFirst({
+            where: {
+                assessmentId,
+                title: {
+                    equals: title,
+                    mode: "insensitive"
+                }
+            }
+        });
+    }
+    static async getMaxDisplayOrder(assessmentId) {
+        const result = await prisma.assessmentSection.aggregate({
+            where: { assessmentId },
+            _max: { displayOrder: true }
+        });
+        return result._max.displayOrder ?? 0;
+    }
+    static async createSection(data) {
+        return await prisma.assessmentSection.create({
+            data
+        });
+    }
+    static async findSectionById(id) {
+        return await prisma.assessmentSection.findUnique({
+            where: { id },
+            include: {
+                assessment: true,
+                _count: {
+                    select: { items: true }
+                }
+            }
+        });
+    }
+    static async updateSection(id, data) {
+        return await prisma.assessmentSection.update({
+            where: { id },
+            data
+        });
+    }
+    static async deleteSection(id) {
+        return await prisma.assessmentSection.delete({
+            where: { id }
+        });
+    }
+    static async recalculateDisplayOrder(assessmentId) {
+        await prisma.$transaction(async (tx) => {
+            const sections = await tx.assessmentSection.findMany({
+                where: { assessmentId },
+                orderBy: { displayOrder: "asc" }
+            });
+            let order = 1;
+            for (const section of sections) {
+                await tx.assessmentSection.update({
+                    where: { id: section.id },
+                    data: { displayOrder: order++ }
+                });
+            }
+        });
+    }
+    static async reorderSections(assessmentId, updates) {
+        await prisma.$transaction(async (tx) => {
+            // First set displayOrder to a large temporary value to avoid unique constraint violations
+            for (const item of updates) {
+                await tx.assessmentSection.update({
+                    where: { id: item.sectionId },
+                    data: { displayOrder: item.displayOrder + 10000 }
+                });
+            }
+            // Then set the final desired displayOrder
+            for (const item of updates) {
+                await tx.assessmentSection.update({
+                    where: { id: item.sectionId },
+                    data: { displayOrder: item.displayOrder }
+                });
+            }
+        });
+    }
+    static async findSectionsByAssessmentId(assessmentId) {
+        return await prisma.assessmentSection.findMany({
+            where: { assessmentId },
+            orderBy: { displayOrder: "asc" },
+            include: {
+                _count: {
+                    select: { items: true }
+                }
+            }
+        });
+    }
+    static buildWhereClause(filters, companyIds) {
         return {
             deletedAt: null,
-            ...(filters.companyId && { companyId: filters.companyId }),
+            ...(companyIds && { companyId: { in: companyIds } }),
+            ...(!companyIds && filters.companyId && { companyId: filters.companyId }),
             ...(filters.status && { status: filters.status }),
             ...(filters.isTemplate !== undefined && { isTemplate: filters.isTemplate }),
             ...(filters.search && {
@@ -186,6 +284,148 @@ export class AssessmentBuilderRepository {
                 }
             })
         };
+    }
+    static async findQuestionsAlreadyAdded(sectionId, questionIds) {
+        return await prisma.assessmentSectionItem.findMany({
+            where: {
+                sectionId,
+                questionId: { in: questionIds }
+            },
+            select: {
+                questionId: true,
+            }
+        });
+    }
+    static async addQuestionsToSection(sectionId, companyId, sectionType, questions) {
+        return await prisma.$transaction(async (tx) => {
+            const maxItem = await tx.assessmentSectionItem.findFirst({
+                where: { sectionId },
+                orderBy: { displayOrder: "desc" },
+                select: { displayOrder: true }
+            });
+            let currentMaxOrder = maxItem?.displayOrder ?? 0;
+            const createdItems = [];
+            for (const questionInput of questions) {
+                const question = await tx.question.findFirst({
+                    where: {
+                        id: questionInput.questionId,
+                        deletedAt: null
+                    }
+                });
+                if (!question) {
+                    throw new NotFoundError(`Question not found: ${questionInput.questionId}`);
+                }
+                if (question.status !== "PUBLISHED") {
+                    throw new ConflictError(`Question is not published: ${question.title}`);
+                }
+                if (question.ownership === "COMPANY" && question.companyId !== companyId) {
+                    console.log("question : " + question.id + " title " + question.title);
+                    console.log(question.companyId + "----" + companyId);
+                    throw new ForbiddenError(`You do not have permission to access question: ${question.title}`);
+                }
+                if (question.type !== sectionType) {
+                    throw new ConflictError(`Question type '${question.type}' does not match section type '${sectionType}': ${question.title}`);
+                }
+                const existingItem = await tx.assessmentSectionItem.findFirst({
+                    where: {
+                        sectionId,
+                        questionId: questionInput.questionId
+                    }
+                });
+                if (existingItem) {
+                    throw new ConflictError(`Question is already added to this section: ${question.title}`);
+                }
+                currentMaxOrder += 1;
+                const newItem = await tx.assessmentSectionItem.create({
+                    data: {
+                        sectionId,
+                        questionId: questionInput.questionId,
+                        displayOrder: currentMaxOrder,
+                        marksOverride: questionInput.marksOverride ?? null,
+                        timeLimitOverride: questionInput.timeLimitOverride ?? null
+                    }
+                });
+                createdItems.push(newItem);
+            }
+            return createdItems;
+        });
+    }
+    static async findSectionItems(sectionId) {
+        return await prisma.assessmentSectionItem.findMany({
+            where: { sectionId },
+            orderBy: { displayOrder: "asc" },
+            include: {
+                question: {
+                    select: {
+                        id: true,
+                        title: true,
+                        difficulty: true,
+                        defaultMarks: true
+                    }
+                }
+            }
+        });
+    }
+    static async findSectionItemById(id) {
+        return await prisma.assessmentSectionItem.findUnique({
+            where: { id },
+            include: {
+                section: {
+                    include: {
+                        assessment: true
+                    }
+                }
+            }
+        });
+    }
+    static async updateSectionItem(id, data) {
+        return await prisma.assessmentSectionItem.update({
+            where: { id },
+            data
+        });
+    }
+    static async deleteSectionItem(id) {
+        return await prisma.assessmentSectionItem.delete({
+            where: { id }
+        });
+    }
+    static async recalculateItemsDisplayOrder(sectionId) {
+        await prisma.$executeRawUnsafe(`
+            WITH updated AS (
+                SELECT id, ROW_NUMBER() OVER (ORDER BY "displayOrder" ASC) as new_order
+                FROM "AssessmentSectionItem"
+                WHERE "sectionId" = $1
+            )
+            UPDATE "AssessmentSectionItem"
+            SET "displayOrder" = updated.new_order
+            FROM updated
+            WHERE "AssessmentSectionItem".id = updated.id
+        `, sectionId);
+    }
+    static async reorderSectionItems(sectionId, updates) {
+        await prisma.$transaction(async (tx) => {
+            const section = await tx.assessmentSection.findUnique({
+                where: { id: sectionId }
+            });
+            if (!section) {
+                throw new NotFoundError("Section not found");
+            }
+            // Shift current display orders by +10000 to free up unique constraint space in 1 query
+            await tx.$executeRawUnsafe(`
+                UPDATE "AssessmentSectionItem"
+                SET "displayOrder" = "displayOrder" + 10000
+                WHERE "sectionId" = $1
+            `, sectionId);
+            // Set the actual final display orders in 1 query
+            const values = updates.map((u, i) => `($${i * 2 + 1}, $${i * 2 + 2}::integer)`).join(', ');
+            const params = updates.flatMap(u => [u.sectionItemId, u.displayOrder]);
+            await tx.$executeRawUnsafe(`
+                UPDATE "AssessmentSectionItem" AS asi
+                SET "displayOrder" = tmp.new_order
+                FROM (VALUES ${values}) AS tmp(id, new_order)
+                WHERE asi.id = tmp.id
+            `, ...params);
+        });
     }
 }
 //# sourceMappingURL=assessmentBuilder.repository.js.map
