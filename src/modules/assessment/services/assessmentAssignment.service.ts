@@ -9,7 +9,9 @@ import { env } from "../../../config/env.js";
 import type { AttachAssessmentsToJobDto, ReorderJobAssessmentsDto, CreateAssessmentInvitationDto } from "../dto/assessmentAssignment.dto.js";
 import type {
     JobAssessmentAssignmentResponse,
-    JobAssessmentListResponse
+    JobAssessmentListResponse,
+    CreateAssessmentInvitationResponse,
+    GetAssessmentInvitationResponse
 } from "../interfaces/assessmentAssignment.interface.js";
 import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
 
@@ -102,9 +104,8 @@ export class JobAssessmentService {
 
     static async createAssessmentInvitation(
         applicationId: string,
-        dto: CreateAssessmentInvitationDto,
-        user: AuthTokenPayload
-    ) {
+        dto: CreateAssessmentInvitationDto
+    ): Promise<CreateAssessmentInvitationResponse> {
         const application = await JobAssessmentRepository.findApplicationForInvitation(applicationId);
 
         if (!application) {
@@ -168,6 +169,39 @@ export class JobAssessmentService {
             invitationId: invitation.id,
             assessmentId: invitation.assessmentId,
             token: invitation.token,
+            expiresAt: invitation.expiresAt
+        };
+    }
+
+    static async getAssessmentInvitation(
+        applicationId: string
+    ): Promise<GetAssessmentInvitationResponse> {
+        const invitation = await JobAssessmentRepository.findInvitationWithAttempt(applicationId);
+        if (!invitation) {
+            throw new NotFoundError("No assessment invitation found for this application.");
+        }
+
+        const latestAttempt = invitation.application.assessmentAttempts[0];
+        let status = "PENDING";
+
+        if (latestAttempt) {
+            if (latestAttempt.status === "SUBMITTED") {
+                status = "SUBMITTED";
+            } else if (latestAttempt.status === "IN_PROGRESS") {
+                status = "STARTED";
+            } else if (latestAttempt.status === "EXPIRED") {
+                status = "EXPIRED";
+            }
+        } else {
+            if (new Date(invitation.expiresAt) < new Date()) {
+                status = "EXPIRED";
+            }
+        }
+
+        return {
+            id: invitation.id,
+            status,
+            assessmentTitle: invitation.assessment.title,
             expiresAt: invitation.expiresAt
         };
     }

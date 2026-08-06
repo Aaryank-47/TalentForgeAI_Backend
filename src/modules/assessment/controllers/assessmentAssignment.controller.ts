@@ -81,12 +81,23 @@ export class JobAssessmentController {
         async (req: Request, res: Response) => {
             const { applicationId } = req.params as unknown as ApplicationIdParamDto;
             const dto = req.body as CreateAssessmentInvitationDto;
-            const user = req.user!;
 
-            const result = await JobAssessmentService.createAssessmentInvitation(applicationId, dto, user);
+            const result = await JobAssessmentService.createAssessmentInvitation(applicationId, dto);
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, "Assessment invitation created successfully.", result)
+            );
+        }
+    );
+
+    static getAssessmentInvitation = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { applicationId } = req.params as unknown as ApplicationIdParamDto;
+
+            const result = await JobAssessmentService.getAssessmentInvitation(applicationId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment invitation retrieved successfully.", result)
             );
         }
     );

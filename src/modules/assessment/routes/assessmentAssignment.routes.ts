@@ -83,4 +83,12 @@ router.post(
     JobAssessmentController.createAssessmentInvitation
 );
 
+router.get(
+    "/applications/:applicationId/assessment-invitation",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    validate(applicationIdParamSchema, "params"),
+    JobAssessmentController.getAssessmentInvitation
+);
+
 export default router;

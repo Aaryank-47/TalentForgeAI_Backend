@@ -15,3 +15,17 @@ export interface JobAssessmentDetail {
 
 export type JobAssessmentListResponse = JobAssessmentDetail[];
 
+export interface CreateAssessmentInvitationResponse {
+    invitationId: string;
+    assessmentId: string;
+    token: string;
+    expiresAt: Date;
+}
+
+export interface GetAssessmentInvitationResponse {
+    id: string;
+    status: string;
+    assessmentTitle: string;
+    expiresAt: Date;
+}
+

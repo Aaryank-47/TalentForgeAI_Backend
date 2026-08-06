@@ -287,4 +287,27 @@ export class JobAssessmentRepository {
             where: { id: assessmentId, deletedAt: null }
         });
     }
+
+    static async findInvitationWithAttempt(applicationId: string) {
+        return await prisma.assessmentInvitation.findFirst({
+            where: { applicationId },
+            include: {
+                assessment: {
+                    select: {
+                        title: true
+                    }
+                },
+                application: {
+                    include: {
+                        assessmentAttempts: {
+                            orderBy: {
+                                createdAt: "desc"
+                            },
+                            take: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
