@@ -18,7 +18,7 @@ export interface CreateCustomStageView{
 export interface CreateWorkflowInput {
     name: string;
     description: string;
-    stages: string[];
+    stages: (string | { name: string; assessmentId?: string | null })[];
     companyId: string;
 }
 
@@ -49,6 +49,12 @@ export interface StageView {
     workflowId: string;
     stageLibraryId: string;
     order?: number;
+    assessmentId?: string | null;
+    assessment?: {
+        id: string;
+        title: string;
+        status: string;
+    } | null;
     stageLibrary: StageLibraryView;
 }
 

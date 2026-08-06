@@ -31,7 +31,15 @@ export class WorkflowDto{
     static createWorkflow = z.object({
         name: workflowNameValidator,
         description: workflowDescriptionValidator,
-        stages: z.array(stageNameValidator).min(1, "At least one stage name is required"),
+        stages: z.array(
+            z.union([
+                stageNameValidator,
+                z.object({
+                    name: stageNameValidator,
+                    assessmentId: uuidValidator.optional().nullable(),
+                })
+            ])
+        ).min(1, "At least one stage name is required"),
     });
 
     static updateWorkflow = z.object({
@@ -42,6 +50,7 @@ export class WorkflowDto{
             z.object({
                 stageLibraryId: stageLibraryIdValidator,
                 order: stageOrderValidator,
+                assessmentId: uuidValidator.optional().nullable(),
             })
         ).min(1, "At least one stage is required"),
     });
@@ -106,6 +115,7 @@ export class WorkflowDto{
         stageOrder: stageOrderValidator,
         isEnabled: stageIsEnabledValidator,
         isFinal: stageIsFinalValidator,
+        assessmentId: uuidValidator.optional().nullable(),
     });
 
     static updateWorkflowStage = z.object({
@@ -115,6 +125,7 @@ export class WorkflowDto{
         stageOrder: stageOrderValidator,
         isEnabled: stageIsEnabledValidator,
         isFinal: stageIsFinalValidator,
+        assessmentId: uuidValidator.optional().nullable(),
     });
 
     static deleteWorkflowStage = z.object({

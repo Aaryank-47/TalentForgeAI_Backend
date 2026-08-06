@@ -7,12 +7,21 @@ import { CompanyRepository } from "../../company/repository/company.repository.j
 import { WorkflowStatus } from "@prisma/client"
 
 export class WorkflowServices {
+
     static async createWorkflow(
         name: string,
         description: string,
-        stages: string[],
+        stages: (string | { name: string; assessmentId?: string | null })[],
         companyId: string,
     ): Promise<CreateWorkflowView> {
+        const assessmentIds = stages
+            .map((stage) => (typeof stage !== "string" ? stage.assessmentId : null))
+            .filter((id): id is string => !!id);
+
+        if (assessmentIds.length > 0) {
+            await WorkflowRepository.validateAssessments(assessmentIds, companyId);
+        }
+
         const nameAlreadyExists = await WorkflowRepository.findWorkflowNameExistingInCompany(
             name,
             companyId
@@ -77,7 +86,7 @@ export class WorkflowServices {
         name: string,
         description: string | undefined,
         isDefault: boolean,
-        stages: { stageLibraryId: string; order: number }[],
+        stages: { stageLibraryId: string; order: number; assessmentId?: string | null }[],
         companyId: string
     ): Promise<GetWorkflowDetailsByIdView> {
         const company = await CompanyRepository.findCompanyById(companyId);
@@ -92,6 +101,14 @@ export class WorkflowServices {
 
         if (workflow.companyId !== companyId) {
             throw new ForbiddenError("You are not authorized to edit this workflow");
+        }
+
+        const assessmentIds = stages
+            .map((stage) => stage.assessmentId)
+            .filter((id): id is string => !!id);
+
+        if (assessmentIds.length > 0) {
+            await WorkflowRepository.validateAssessments(assessmentIds, companyId);
         }
 
         const nameAlreadyExists = await WorkflowRepository.findWorkflowNameExistingInCompany(

@@ -584,12 +584,14 @@ model WorkflowStage {
   applicationWorkflows     ApplicationWorkflow[]
   workflowHistoriesFrom    WorkflowHistory[]         @relation("FromStage")
   workflowHistoriesTo      WorkflowHistory[]         @relation("ToStage")
-  workflowStageAssessments WorkflowStageAssessment[]
+  assessmentId             String?
+  assessment               Assessment?               @relation(fields: [assessmentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@unique([workflowId, order])
   @@unique([workflowId, stageLibraryId])
   @@index([workflowId])
   @@index([stageLibraryId])
+  @@index([assessmentId])
 }
 
 model ApplicationWorkflow {
@@ -949,7 +951,7 @@ model Assessment {
   sections       AssessmentSection[]
   attempts       AssessmentAttempt[]
   jobs           JobAssessment[]
-  workflowStages WorkflowStageAssessment[]
+  workflowStages WorkflowStage[]
 
   @@index([companyId])
   @@index([status])
@@ -1066,17 +1068,5 @@ model JobAssessment {
 
   @@id([jobId, assessmentId])
   @@index([jobId])
-  @@index([assessmentId])
-}
-
-model WorkflowStageAssessment {
-  workflowStageId String
-  workflowStage   WorkflowStage @relation(fields: [workflowStageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  assessmentId    String
-  assessment      Assessment    @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  createdAt       DateTime      @default(now())
-
-  @@id([workflowStageId, assessmentId])
-  @@index([workflowStageId])
   @@index([assessmentId])
 }
