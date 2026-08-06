@@ -152,4 +152,16 @@ export class JobAssessmentController {
             );
         }
     );
+
+    static startAssessment = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { token } = req.params as unknown as TokenParamDto;
+
+            const result = await JobAssessmentService.startAssessment(token);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment started successfully.", result)
+            );
+        }
+    );
 }

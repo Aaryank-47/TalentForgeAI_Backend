@@ -36,3 +36,9 @@ export interface AssessmentInvitationPreviewResponse {
     expiresAt: Date;
 }
 
+export interface AssessmentAttemptStartResponse {
+    attemptId: string;
+    startedAt: Date;
+    remainingTime: number;
+}
+

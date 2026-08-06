@@ -398,4 +398,10 @@ export class JobAssessmentRepository {
             }
         });
     }
+
+    static async createAssessmentAttempt(data: any) {
+        return await prisma.assessmentAttempt.create({
+            data
+        });
+    }
 }
