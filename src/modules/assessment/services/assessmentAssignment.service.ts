@@ -2,7 +2,7 @@ import { JobAssessmentRepository } from "../repositories/assessmentAssignment.re
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
-import { TokenHelper } from "../../../common/helper/token.helper.js";
+import { TokenHelper } from "../helper/token.helper.js";
 import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
 import { env } from "../../../config/env.js";
