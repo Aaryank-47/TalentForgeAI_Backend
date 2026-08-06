@@ -6,12 +6,14 @@ import { TokenHelper } from "../helper/token.helper.js";
 import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
 import { env } from "../../../config/env.js";
+import { InvitationStatus } from "@prisma/client";
 import type { AttachAssessmentsToJobDto, ReorderJobAssessmentsDto, CreateAssessmentInvitationDto } from "../dto/assessmentAssignment.dto.js";
 import type {
     JobAssessmentAssignmentResponse,
     JobAssessmentListResponse,
     CreateAssessmentInvitationResponse,
-    GetAssessmentInvitationResponse
+    GetAssessmentInvitationResponse,
+    AssessmentInvitationPreviewResponse
 } from "../interfaces/assessmentAssignment.interface.js";
 import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
 
@@ -104,8 +106,25 @@ export class JobAssessmentService {
 
     static async createAssessmentInvitation(
         applicationId: string,
-        dto: CreateAssessmentInvitationDto
+        dto: CreateAssessmentInvitationDto,
+        idempotencyKey?: string
     ): Promise<CreateAssessmentInvitationResponse> {
+        if (idempotencyKey) {
+            const existingInvitation = await JobAssessmentRepository.findInvitationByIdempotencyKey(idempotencyKey);
+            if (existingInvitation) {
+                if (existingInvitation.applicationId === applicationId && existingInvitation.assessmentId === dto.assessmentId) {
+                    return {
+                        invitationId: existingInvitation.id,
+                        assessmentId: existingInvitation.assessmentId,
+                        token: existingInvitation.token,
+                        expiresAt: existingInvitation.expiresAt
+                    };
+                } else {
+                    throw new ConflictError("Idempotency key already used with different request.");
+                }
+            }
+        }
+
         const application = await JobAssessmentRepository.findApplicationForInvitation(applicationId);
 
         if (!application) {
@@ -130,12 +149,18 @@ export class JobAssessmentService {
             throw new ConflictError("This assessment is not assigned to the current workflow stage of this application.");
         }
 
-        const existingInvite = await JobAssessmentRepository.findInvitationByApplicationAndAssessment(
-            applicationId,
-            assessmentId
+        const activeInvite = application.assessmentInvitations.find(
+            (inv) => inv.assessmentId === assessmentId && inv.status === InvitationStatus.PENDING
         );
-        if (existingInvite) {
-            throw new ConflictError("An invitation has already been created for this assessment and application.");
+        if (activeInvite) {
+            throw new ConflictError("An active assessment invitation already exists.");
+        }
+
+        const completedInvite = application.assessmentInvitations.find(
+            (inv) => inv.assessmentId === assessmentId && inv.status === InvitationStatus.SUBMITTED
+        );
+        if (completedInvite) {
+            throw new ConflictError("Retakes are disabled and this assessment has already been completed.");
         }
 
         const token = TokenHelper.generateSecureToken();
@@ -145,6 +170,8 @@ export class JobAssessmentService {
             applicationId,
             assessmentId,
             token,
+            status: InvitationStatus.PENDING,
+            idempotencyKey: idempotencyKey || null,
             expiresAt: expiresAtDate
         });
 
@@ -204,5 +231,90 @@ export class JobAssessmentService {
             assessmentTitle: invitation.assessment.title,
             expiresAt: invitation.expiresAt
         };
+    }
+
+    static async validateInvitation(token: string): Promise<AssessmentInvitationPreviewResponse> {
+        const invitation = await JobAssessmentRepository.findInvitationByToken(token);
+        if (!invitation) {
+            throw new NotFoundError("Invitation token not found.");
+        }
+
+        if (invitation.status === InvitationStatus.CANCELLED) {
+            throw new ConflictError("Invitation has been cancelled.");
+        }
+
+        if (invitation.status === InvitationStatus.EXPIRED || new Date(invitation.expiresAt) < new Date()) {
+            if (invitation.status === InvitationStatus.PENDING) {
+                await JobAssessmentRepository.updateInvitationStatus(invitation.id, InvitationStatus.EXPIRED);
+            }
+            throw new ConflictError("Invitation has expired.");
+        }
+
+        const latestAttempt = invitation.application.assessmentAttempts[0];
+        if (latestAttempt && latestAttempt.status === "SUBMITTED") {
+            if (invitation.status !== InvitationStatus.SUBMITTED) {
+                await JobAssessmentRepository.updateInvitationStatus(invitation.id, InvitationStatus.SUBMITTED);
+            }
+            throw new ConflictError("Assessment has already been submitted.");
+        }
+
+        return {
+            candidateName: invitation.application.candidate.fullName,
+            assessmentTitle: invitation.assessment.title,
+            duration: invitation.assessment.durationMinutes,
+            expiresAt: invitation.expiresAt
+        };
+    }
+
+    static async resendInvitation(id: string): Promise<void> {
+        const invitation = await JobAssessmentRepository.findInvitationById(id);
+        if (!invitation) {
+            throw new NotFoundError("Invitation not found.");
+        }
+
+        if (invitation.status === InvitationStatus.CANCELLED) {
+            throw new ConflictError("Cannot resend a cancelled invitation.");
+        }
+
+        if (invitation.status === InvitationStatus.EXPIRED || new Date(invitation.expiresAt) < new Date()) {
+            throw new ConflictError("Cannot resend an expired invitation.");
+        }
+
+        if (invitation.application.candidate.user.email) {
+            const inviteLink = `${env.app.frontendUrl}/assessments/take?token=${invitation.token}`;
+            const template = emailTemplates.assessmentInvitationTemplate(
+                invitation.application.candidate.fullName,
+                invitation.assessment.title,
+                new Date(invitation.expiresAt).toUTCString(),
+                inviteLink
+            );
+            const emailTemplate = {
+                to: invitation.application.candidate.user.email,
+                ...template
+            };
+            await EmailService.sendEmail(emailTemplate);
+        }
+    }
+
+    static async cancelInvitation(id: string): Promise<void> {
+        const invitation = await JobAssessmentRepository.findInvitationById(id);
+        if (!invitation) {
+            throw new NotFoundError("Invitation not found.");
+        }
+
+        if (invitation.status !== InvitationStatus.PENDING) {
+            throw new ConflictError(`Cannot cancel invitation because its status is ${invitation.status}.`);
+        }
+
+        await JobAssessmentRepository.updateInvitationStatus(id, InvitationStatus.CANCELLED);
+    }
+
+    static async expireInvitation(id: string): Promise<void> {
+        const invitation = await JobAssessmentRepository.findInvitationById(id);
+        if (!invitation) {
+            throw new NotFoundError("Invitation not found.");
+        }
+
+        await JobAssessmentRepository.updateInvitationStatus(id, InvitationStatus.EXPIRED);
     }
 }

@@ -58,3 +58,15 @@ export const applicationIdParamSchema = z.object({
 
 export type ApplicationIdParamDto = z.infer<typeof applicationIdParamSchema>;
 
+export const tokenParamSchema = z.object({
+    token: z.string().min(1, "Token is required")
+});
+
+export type TokenParamDto = z.infer<typeof tokenParamSchema>;
+
+export const invitationIdParamSchema = z.object({
+    invitationId: z.string().cuid("Invalid invitation ID")
+});
+
+export type InvitationIdParamDto = z.infer<typeof invitationIdParamSchema>;
+

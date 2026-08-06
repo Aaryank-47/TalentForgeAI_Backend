@@ -277,6 +277,11 @@ export class JobAssessmentRepository {
                             }
                         }
                     }
+                },
+                assessmentInvitations: {
+                    orderBy: {
+                        createdAt: "desc"
+                    }
                 }
             }
         });
@@ -305,6 +310,89 @@ export class JobAssessmentRepository {
                             },
                             take: 1
                         }
+                    }
+                }
+            }
+        });
+    }
+
+    static async findInvitationByToken(token: string) {
+        return await prisma.assessmentInvitation.findUnique({
+            where: { token },
+            include: {
+                assessment: {
+                    select: {
+                        id: true,
+                        title: true,
+                        durationMinutes: true,
+                        companyId: true
+                    }
+                },
+                application: {
+                    include: {
+                        candidate: {
+                            select: {
+                                fullName: true
+                            }
+                        },
+                        assessmentAttempts: {
+                            orderBy: {
+                                createdAt: "desc"
+                            },
+                            take: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    static async findInvitationById(id: string) {
+        return await prisma.assessmentInvitation.findUnique({
+            where: { id },
+            include: {
+                assessment: {
+                    select: {
+                        title: true,
+                        companyId: true
+                    }
+                },
+                application: {
+                    include: {
+                        candidate: {
+                            select: {
+                                fullName: true,
+                                user: {
+                                    select: {
+                                        email: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    static async updateInvitationStatus(
+        id: string, 
+        status: any
+    ) {
+        return await prisma.assessmentInvitation.update({
+            where: { id },
+            data: { status }
+        });
+    }
+
+    static async findInvitationByIdempotencyKey(idempotencyKey: string) {
+        return await prisma.assessmentInvitation.findUnique({
+            where: { idempotencyKey },
+            include: {
+                assessment: {
+                    select: {
+                        id: true,
+                        companyId: true
                     }
                 }
             }

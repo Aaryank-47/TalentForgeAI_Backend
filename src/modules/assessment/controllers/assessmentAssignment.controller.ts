@@ -9,7 +9,9 @@ import type {
     JobAssessmentIdParamDto,
     ReorderJobAssessmentsDto,
     ApplicationIdParamDto,
-    CreateAssessmentInvitationDto
+    CreateAssessmentInvitationDto,
+    TokenParamDto,
+    InvitationIdParamDto
 } from "../dto/assessmentAssignment.dto.js";
 
 export class JobAssessmentController {
@@ -81,8 +83,9 @@ export class JobAssessmentController {
         async (req: Request, res: Response) => {
             const { applicationId } = req.params as unknown as ApplicationIdParamDto;
             const dto = req.body as CreateAssessmentInvitationDto;
+            const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
 
-            const result = await JobAssessmentService.createAssessmentInvitation(applicationId, dto);
+            const result = await JobAssessmentService.createAssessmentInvitation(applicationId, dto, idempotencyKey);
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, "Assessment invitation created successfully.", result)
@@ -98,6 +101,54 @@ export class JobAssessmentController {
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, "Assessment invitation retrieved successfully.", result)
+            );
+        }
+    );
+
+    static validateInvitation = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { token } = req.params as unknown as TokenParamDto;
+
+            const result = await JobAssessmentService.validateInvitation(token);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Invitation validated successfully.", result)
+            );
+        }
+    );
+
+    static resendInvitation = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { invitationId } = req.params as unknown as InvitationIdParamDto;
+
+            await JobAssessmentService.resendInvitation(invitationId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Invitation resent successfully.", null)
+            );
+        }
+    );
+
+    static cancelInvitation = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { invitationId } = req.params as unknown as InvitationIdParamDto;
+
+            await JobAssessmentService.cancelInvitation(invitationId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Invitation cancelled successfully.", null)
+            );
+        }
+    );
+
+    static expireInvitation = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { invitationId } = req.params as unknown as InvitationIdParamDto;
+
+            await JobAssessmentService.expireInvitation(invitationId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Invitation expired successfully.", null)
             );
         }
     );

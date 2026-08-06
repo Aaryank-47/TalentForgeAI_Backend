@@ -52,7 +52,10 @@ export const ensureActiveCompanyMember = async (
             applicationId = req.body.applicationId;
         }
 
+        let invitationId = typeof req.params.invitationId === "string" ? req.params.invitationId : (typeof req.params.id === "string" ? req.params.id : undefined);
+
         if (!companyId) {
+            console.log("-----------------------------")
             if (assessmentId) {
                 const assessment = await prisma.assessment.findFirst({
                     where: { id: assessmentId, deletedAt: null },
@@ -62,6 +65,15 @@ export const ensureActiveCompanyMember = async (
                     throw new NotFoundError("Assessment not found.");
                 }
                 companyId = assessment.companyId;
+            } else if (invitationId) {
+                const invitation = await prisma.assessmentInvitation.findFirst({
+                    where: { id: invitationId },
+                    include: { assessment: { select: { companyId: true } } }
+                });
+                if (!invitation) {
+                    throw new NotFoundError("Invitation not found.");
+                }
+                companyId = invitation.assessment.companyId;
             } else if (applicationId) {
                 const application = await prisma.application.findFirst({
                     where: { id: applicationId },

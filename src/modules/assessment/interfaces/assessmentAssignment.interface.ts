@@ -29,3 +29,10 @@ export interface GetAssessmentInvitationResponse {
     expiresAt: Date;
 }
 
+export interface AssessmentInvitationPreviewResponse {
+    candidateName: string;
+    assessmentTitle: string;
+    duration: number | null;
+    expiresAt: Date;
+}
+

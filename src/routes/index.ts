@@ -31,6 +31,4 @@ router.use("/hiring-workflow/applications", applicationWorkflowRoutes);
 router.use("/questions", questionRoutes);
 router.use("/assessments", assessmentRoutes);
 
-
-
 export default router;

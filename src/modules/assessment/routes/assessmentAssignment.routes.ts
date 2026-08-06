@@ -11,7 +11,9 @@ import {
     jobAssessmentIdParamSchema,
     reorderJobAssessmentsSchema,
     applicationIdParamSchema,
-    createAssessmentInvitationSchema
+    createAssessmentInvitationSchema,
+    tokenParamSchema, 
+    invitationIdParamSchema
 } from "../dto/assessmentAssignment.dto.js";
 
 const router = Router();
@@ -89,6 +91,39 @@ router.get(
     authorize(UserRole.CANDIDATE),
     validate(applicationIdParamSchema, "params"),
     JobAssessmentController.getAssessmentInvitation
+);
+
+router.get(
+    "/invitation/:token",
+    validate(tokenParamSchema, "params"),
+    JobAssessmentController.validateInvitation
+);
+
+router.patch(
+    "/invitation/:invitationId/resend",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(invitationIdParamSchema, "params"),
+    ensureActiveCompanyMember,
+    JobAssessmentController.resendInvitation
+);
+
+router.patch(
+    "/invitation/:invitationId/cancel",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(invitationIdParamSchema, "params"),
+    ensureActiveCompanyMember,
+    JobAssessmentController.cancelInvitation
+);
+
+router.patch(
+    "/invitation/:invitationId/expire",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(invitationIdParamSchema, "params"),
+    ensureActiveCompanyMember,
+    JobAssessmentController.expireInvitation
 );
 
 export default router;
