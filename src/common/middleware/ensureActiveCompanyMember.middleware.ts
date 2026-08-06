@@ -47,6 +47,11 @@ export const ensureActiveCompanyMember = async (
             jobId = req.body.jobId;
         }
 
+        let applicationId = typeof req.params.applicationId === "string" ? req.params.applicationId : undefined;
+        if (!applicationId && req.body && typeof req.body.applicationId === "string") {
+            applicationId = req.body.applicationId;
+        }
+
         if (!companyId) {
             if (assessmentId) {
                 const assessment = await prisma.assessment.findFirst({
@@ -57,6 +62,15 @@ export const ensureActiveCompanyMember = async (
                     throw new NotFoundError("Assessment not found.");
                 }
                 companyId = assessment.companyId;
+            } else if (applicationId) {
+                const application = await prisma.application.findFirst({
+                    where: { id: applicationId },
+                    include: { job: { select: { companyId: true } } }
+                });
+                if (!application) {
+                    throw new NotFoundError("Application not found.");
+                }
+                companyId = application.job.companyId;
             } else if (sectionId) {
                 const section = await prisma.assessmentSection.findFirst({
                     where: { id: sectionId, assessment: { deletedAt: null } },

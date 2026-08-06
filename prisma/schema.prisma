@@ -453,6 +453,7 @@ model Application {
   resume              Resume               @relation(fields: [resumeId], references: [id])
   applicationWorkflow ApplicationWorkflow?
   assessmentAttempts  AssessmentAttempt[]
+  assessmentInvitations AssessmentInvitation[]
 
   @@unique([candidateId, jobId])
   @@index([candidateId])
@@ -952,6 +953,7 @@ model Assessment {
   attempts       AssessmentAttempt[]
   jobs           JobAssessment[]
   workflowStages WorkflowStage[]
+  assessmentInvitations AssessmentInvitation[]
 
   @@index([companyId])
   @@index([status])
@@ -1068,5 +1070,20 @@ model JobAssessment {
 
   @@id([jobId, assessmentId])
   @@index([jobId])
+  @@index([assessmentId])
+}
+
+model AssessmentInvitation {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  assessmentId  String
+  assessment    Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  token         String      @unique
+  expiresAt     DateTime
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([applicationId])
   @@index([assessmentId])
 }

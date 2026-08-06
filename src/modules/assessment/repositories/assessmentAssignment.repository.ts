@@ -1,5 +1,5 @@
 import prisma from "../../../config/database.js";
-import type { Job, Assessment, CompanyMember, JobAssessment } from "@prisma/client";
+import type { Job, Assessment, CompanyMember, Prisma } from "@prisma/client";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
@@ -235,6 +235,56 @@ export class JobAssessmentRepository {
                     })
                 )
             );
+        });
+    }
+
+    static async findInvitationByApplicationAndAssessment(applicationId: string, assessmentId: string) {
+        return await prisma.assessmentInvitation.findFirst({
+            where: { applicationId, assessmentId }
+        });
+    }
+
+    static async createAssessmentInvitation(data: Prisma.AssessmentInvitationUncheckedCreateInput) {
+        return await prisma.assessmentInvitation.create({
+            data
+        });
+    }
+
+    static async findApplicationForInvitation(applicationId: string) {
+        return await prisma.application.findUnique({
+            where: { id: applicationId },
+            include: {
+                candidate: {
+                    select: {
+                        fullName: true,
+                        user: {
+                            select: {
+                                email: true
+                            }
+                        }
+                    }
+                },
+                job: {
+                    select: {
+                        companyId: true
+                    }
+                },
+                applicationWorkflow: {
+                    include: {
+                        workflowStage: {
+                            select: {
+                                assessmentId: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    static async findAssessmentForInvitation(assessmentId: string) {
+        return await prisma.assessment.findUnique({
+            where: { id: assessmentId, deletedAt: null }
         });
     }
 }

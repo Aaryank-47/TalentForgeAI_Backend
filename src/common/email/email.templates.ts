@@ -176,4 +176,37 @@ export class emailTemplates {
             unsubscribeLink
         };
     }
+
+    static assessmentInvitationTemplate = (
+        candidateName: string,
+        assessmentTitle: string,
+        expiresAt: string,
+        invitationLink: string
+    ): EmailTemplate => {
+        const unsubscribeLink = `${this.baseUnsubscribeLink}?type=updates`;
+        return {
+            subject: `Invitation for Assessment: ${assessmentTitle}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #0056b3; padding: 20px; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 24px;">TalentForge</h2>
+                    </div>
+                    <div style="padding: 30px;">
+                        <h1 style="font-size: 22px; color: #333; margin-top: 0;">Assessment Invitation</h1>
+                        <p style="font-size: 16px;">Dear ${candidateName},</p>
+                        <p style="font-size: 16px;">You have been invited to take the assessment: <strong>${assessmentTitle}</strong>.</p>
+                        <p style="font-size: 16px;">Please complete it before: <strong>${expiresAt}</strong>.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${invitationLink}" style="display: inline-block; background-color: #0056b3; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; padding: 12px 30px; border-radius: 6px;">Start Assessment</a>
+                        </div>
+                        <br/>
+                        <p style="font-size: 16px;">Best regards,<br/>TalentForge Team</p>
+                    </div>
+                    ${this.getFooterHtml(unsubscribeLink)}
+                </div>
+            `,
+            text: `Dear ${candidateName},\n\nYou have been invited to take the assessment: ${assessmentTitle}.\n\nPlease complete it before: ${expiresAt}.\n\nClick the link to start the assessment:\n${invitationLink}\n\nBest regards,\nTalentForge Team${this.getFooterText(unsubscribeLink)}`,
+            unsubscribeLink
+        };
+    }
 }

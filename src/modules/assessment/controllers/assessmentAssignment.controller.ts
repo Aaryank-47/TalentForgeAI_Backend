@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { JobAssessmentService } from "../services/jobAssessment.service.js";
+import { JobAssessmentService } from "../services/assessmentAssignment.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { ApiResponse } from "../../../common/utils/ApiResponse.js";
@@ -7,8 +7,10 @@ import type {
     AttachAssessmentsToJobDto,
     JobIdParamDto,
     JobAssessmentIdParamDto,
-    ReorderJobAssessmentsDto
-} from "../dto/jobAssessment.dto.js";
+    ReorderJobAssessmentsDto,
+    ApplicationIdParamDto,
+    CreateAssessmentInvitationDto
+} from "../dto/assessmentAssignment.dto.js";
 
 export class JobAssessmentController {
     static attachAssessmentsToJob = asyncHandler(
@@ -71,6 +73,20 @@ export class JobAssessmentController {
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, "Assessment order updated successfully.", null)
+            );
+        }
+    );
+
+    static createAssessmentInvitation = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { applicationId } = req.params as unknown as ApplicationIdParamDto;
+            const dto = req.body as CreateAssessmentInvitationDto;
+            const user = req.user!;
+
+            const result = await JobAssessmentService.createAssessmentInvitation(applicationId, dto, user);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment invitation created successfully.", result)
             );
         }
     );

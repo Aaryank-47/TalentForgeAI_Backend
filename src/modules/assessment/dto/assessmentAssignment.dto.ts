@@ -2,7 +2,8 @@ import { z } from "zod";
 import {
     assessmentIdValidator,
     assessmentSectionDisplayOrderValidator,
-    jobIdValidator
+    jobIdValidator,
+    applicationIdValidator
 } from "../../../common/validators/validators.js"
 
 export const attachAssessmentsToJobSchema = z.object({
@@ -42,4 +43,18 @@ export const reorderJobAssessmentsSchema = z.object({
 });
 
 export type ReorderJobAssessmentsDto = z.infer<typeof reorderJobAssessmentsSchema>;
+
+export const createAssessmentInvitationSchema = z.object({
+    assessmentId: assessmentIdValidator,
+    expiresAt: z.string().datetime({ message: "Invalid expiration datetime" }),
+    sendEmail: z.boolean().optional().default(true)
+});
+
+export type CreateAssessmentInvitationDto = z.infer<typeof createAssessmentInvitationSchema>;
+
+export const applicationIdParamSchema = z.object({
+    applicationId: applicationIdValidator
+});
+
+export type ApplicationIdParamDto = z.infer<typeof applicationIdParamSchema>;
 

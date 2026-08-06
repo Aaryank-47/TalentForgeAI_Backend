@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { JobAssessmentController } from "../controllers/jobAssessment.controller.js";
+import { JobAssessmentController } from "../controllers/assessmentAssignment.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
@@ -9,13 +9,15 @@ import {
     attachAssessmentsToJobSchema,
     jobIdParamSchema,
     jobAssessmentIdParamSchema,
-    reorderJobAssessmentsSchema
-} from "../dto/jobAssessment.dto.js";
+    reorderJobAssessmentsSchema,
+    applicationIdParamSchema,
+    createAssessmentInvitationSchema
+} from "../dto/assessmentAssignment.dto.js";
 
 const router = Router();
 
 router.post(
-    "/:jobId/assessments",
+    "/job/:jobId/assessments",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
     validate(jobIdParamSchema, "params"),
@@ -25,7 +27,7 @@ router.post(
 );
 
 router.get(
-    "/:jobId/assessments",
+    "/job/:jobId/assessments",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
     validate(jobIdParamSchema, "params"),
@@ -34,7 +36,7 @@ router.get(
 );
 
 router.patch(
-    "/:jobId/assessments",
+    "/job/:jobId/assessments",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
     validate(jobIdParamSchema, "params"),
@@ -44,7 +46,7 @@ router.patch(
 );
 
 router.delete(
-    "/:jobAssessmentId",
+    "/job/:jobAssessmentId",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
     validate(jobAssessmentIdParamSchema, "params"),
@@ -63,12 +65,22 @@ router.delete(
 );
 
 router.patch(
-    "/reorder",
+    "/job/reorder",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
     validate(reorderJobAssessmentsSchema, "body"),
     ensureActiveCompanyMember,
     JobAssessmentController.reorderJobAssessments
+);
+
+router.post(
+    "/applications/:applicationId/assessment-invitation",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    validate(applicationIdParamSchema, "params"),
+    validate(createAssessmentInvitationSchema, "body"),
+    ensureActiveCompanyMember,
+    JobAssessmentController.createAssessmentInvitation
 );
 
 export default router;
