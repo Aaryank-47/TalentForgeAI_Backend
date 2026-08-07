@@ -13,6 +13,7 @@ import applicationWorkflowRoutes from '../modules/hiring-workflow/routes/applica
 import questionRoutes from '../modules/assessment/routes/question.routes.js';
 import assessmentRoutes from '../modules/assessment/routes/assessmentBuilder..routes.js';
 import assessmentAssignmentRoutes from '../modules/assessment/routes/assessmentAssignment.routes.js';
+import assessmentAttemptRoutes from '../modules/assessment/routes/assessmentAttemp.routes.js';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/auth', authRoutes);
 router.use("/companies", companyRoutes);
 router.use("/jobs", jobRoutes);
 router.use("/assessments/assignments", assessmentAssignmentRoutes);
+router.use("/assessments/attempts", assessmentAttemptRoutes);
 router.use("/candidate", candidateRoutes);
 router.use("/candidates", candidatesRoutes);
 router.use("/candidate/applications", applicationRoutes);

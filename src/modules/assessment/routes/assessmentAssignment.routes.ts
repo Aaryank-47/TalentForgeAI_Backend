@@ -99,12 +99,6 @@ router.get(
     JobAssessmentController.validateInvitation
 );
 
-router.post(
-    "/invitation/:token/start",
-    validate(tokenParamSchema, "params"),
-    JobAssessmentController.startAssessment
-);
-
 router.patch(
     "/invitation/:invitationId/resend",
     authMiddleware,

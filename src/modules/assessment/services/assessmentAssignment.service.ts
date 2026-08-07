@@ -13,8 +13,7 @@ import type {
     JobAssessmentListResponse,
     CreateAssessmentInvitationResponse,
     GetAssessmentInvitationResponse,
-    AssessmentInvitationPreviewResponse,
-    AssessmentAttemptStartResponse
+    AssessmentInvitationPreviewResponse
 } from "../interfaces/assessmentAssignment.interface.js";
 import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
 
@@ -318,59 +317,5 @@ export class JobAssessmentService {
 
         await JobAssessmentRepository.updateInvitationStatus(id, InvitationStatus.EXPIRED);
     }
-
-    static async startAssessment(token: string): Promise<AssessmentAttemptStartResponse> {
-        const invitation = await JobAssessmentRepository.findInvitationByToken(token);
-        if (!invitation) {
-            throw new NotFoundError("Invitation token not found.");
-        }
-
-        if (invitation.status === InvitationStatus.CANCELLED) {
-            throw new ConflictError("Invitation has been cancelled.");
-        }
-
-        if (invitation.status === InvitationStatus.EXPIRED || new Date(invitation.expiresAt) < new Date()) {
-            if (invitation.status === InvitationStatus.PENDING) {
-                await JobAssessmentRepository.updateInvitationStatus(invitation.id, InvitationStatus.EXPIRED);
-            }
-            throw new ConflictError("Invitation has expired.");
-        }
-
-        const latestAttempt = invitation.application.assessmentAttempts[0];
-        const durationSeconds = (invitation.assessment.durationMinutes || 0) * 60;
-
-        if (latestAttempt) {
-            if (latestAttempt.status === "SUBMITTED") {
-                if (invitation.status !== InvitationStatus.SUBMITTED) {
-                    await JobAssessmentRepository.updateInvitationStatus(invitation.id, InvitationStatus.SUBMITTED);
-                }
-                throw new ConflictError("Assessment has already been submitted.");
-            }
-
-            if (latestAttempt.status === "IN_PROGRESS") {
-                const elapsedSeconds = Math.floor((Date.now() - new Date(latestAttempt.startedAt || latestAttempt.createdAt).getTime()) / 1000);
-                const remainingTime = Math.max(0, durationSeconds - elapsedSeconds);
-                return {
-                    attemptId: latestAttempt.id,
-                    startedAt: latestAttempt.startedAt || latestAttempt.createdAt,
-                    remainingTime
-                };
-            }
-        }
-
-        const attempt = await JobAssessmentRepository.createAssessmentAttempt({
-            candidateId: invitation.application.candidateId,
-            applicationId: invitation.applicationId,
-            assessmentId: invitation.assessmentId,
-            status: "IN_PROGRESS",
-            startedAt: new Date(),
-            attemptNumber: latestAttempt ? latestAttempt.attemptNumber + 1 : 1
-        });
-
-        return {
-            attemptId: attempt.id,
-            startedAt: attempt.startedAt || attempt.createdAt,
-            remainingTime: durationSeconds
-        };
-    }
 }
+
