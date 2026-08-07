@@ -22,7 +22,7 @@ router.use('/auth', authRoutes);
 router.use("/companies", companyRoutes);
 router.use("/jobs", jobRoutes);
 router.use("/assessments/assignments", assessmentAssignmentRoutes);
-router.use("/assessments/attempts", assessmentAttemptRoutes);
+router.use("/assessment-attempts", assessmentAttemptRoutes);
 router.use("/candidate", candidateRoutes);
 router.use("/candidates", candidatesRoutes);
 router.use("/candidate/applications", applicationRoutes);
