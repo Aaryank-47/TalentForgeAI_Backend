@@ -1,4 +1,4 @@
-import { AssessmentAttemptRepository } from "../repositories/assessmentAttemp.repository.js";
+import { AssessmentAttemptRepository } from "../repositories/candidateAssessment.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
@@ -9,7 +9,7 @@ import type {
     PaginatedAssessmentAttemptResponse,
     AssessmentAttemptResumeResponse,
     AssessmentSubmissionResponse
-} from "../interfaces/assessmentAttempt.interface.js";
+} from "../interfaces/candidateAssessment.interface.js";
 
 
 export class AssessmentAttemptService {

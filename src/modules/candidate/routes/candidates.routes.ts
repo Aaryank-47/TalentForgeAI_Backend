@@ -4,8 +4,8 @@ import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { CandidateDto } from "../dto/candidate.dto.js";
-import { AssessmentAttemptController } from "../../assessment/controllers/assessmentAttemp.controller.js";
-import { getAttemptsQuerySchema } from "../../assessment/dto/assessmentAttemp.dto.js";
+import { AssessmentAttemptController } from "../../assessment/controllers/candidateAssessment.controller.js";
+import { getAttemptsQuerySchema } from "../../assessment/dto/candidateAssessment.dto.js";
 
 const candidatesRoutes = Router();
 

@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { AssessmentAttemptController } from "../controllers/assessmentAttemp.controller.js";
+import { AssessmentAttemptController } from "../controllers/candidateAssessment.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { startAssessmentAttemptSchema } from "../dto/assessmentAttemp.dto.js";
+import { startAssessmentAttemptSchema } from "../dto/candidateAssessment.dto.js";
 import { UserRole } from "@prisma/client";
 
 const router = Router();

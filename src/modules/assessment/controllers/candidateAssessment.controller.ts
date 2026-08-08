@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
-import { AssessmentAttemptService } from "../services/assessmentAttempt.service.js";
+import { AssessmentAttemptService } from "../services/candidateAssessment.service.js";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { ApiResponse } from "../../../common/utils/ApiResponse.js";
-import type { StartAssessmentAttemptDto, GetAttemptsQueryDto } from "../dto/assessmentAttemp.dto.js";
+import type { StartAssessmentAttemptDto, GetAttemptsQueryDto } from "../dto/candidateAssessment.dto.js";
 
 export class AssessmentAttemptController {
     static startAssessment = asyncHandler(
