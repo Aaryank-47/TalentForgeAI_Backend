@@ -6,6 +6,12 @@ import { CompanyRepository } from "../../company/repository/company.repository.j
 import { WorkflowStatus } from "@prisma/client";
 export class WorkflowServices {
     static async createWorkflow(name, description, stages, companyId) {
+        const assessmentIds = stages
+            .map((stage) => (typeof stage !== "string" ? stage.assessmentId : null))
+            .filter((id) => !!id);
+        if (assessmentIds.length > 0) {
+            await WorkflowRepository.validateAssessments(assessmentIds, companyId);
+        }
         const nameAlreadyExists = await WorkflowRepository.findWorkflowNameExistingInCompany(name, companyId);
         if (nameAlreadyExists) {
             throw new ConflictError("Workflow name already exists");
@@ -51,6 +57,12 @@ export class WorkflowServices {
         }
         if (workflow.companyId !== companyId) {
             throw new ForbiddenError("You are not authorized to edit this workflow");
+        }
+        const assessmentIds = stages
+            .map((stage) => stage.assessmentId)
+            .filter((id) => !!id);
+        if (assessmentIds.length > 0) {
+            await WorkflowRepository.validateAssessments(assessmentIds, companyId);
         }
         const nameAlreadyExists = await WorkflowRepository.findWorkflowNameExistingInCompany(name, companyId);
         if (nameAlreadyExists && nameAlreadyExists.id !== workflowId) {

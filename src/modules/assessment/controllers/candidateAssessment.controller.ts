@@ -3,7 +3,7 @@ import { AssessmentAttemptService } from "../services/candidateAssessment.servic
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { ApiResponse } from "../../../common/utils/ApiResponse.js";
-import type { StartAssessmentAttemptDto, GetAttemptsQueryDto } from "../dto/candidateAssessment.dto.js";
+import type { StartAssessmentAttemptDto, GetAttemptsQueryDto, SaveAssessmentAnswerDto } from "../dto/candidateAssessment.dto.js";
 
 export class AssessmentAttemptController {
     static startAssessment = asyncHandler(
@@ -65,6 +65,20 @@ export class AssessmentAttemptController {
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, "Assessment submitted successfully.", result)
+            );
+        }
+    );
+
+    static saveAnswer = asyncHandler(
+        async (req: Request, res: Response) => {
+            const attemptId = req.params.attemptId as string;
+            const questionId = req.params.questionId as string;
+            const dto = req.body as SaveAssessmentAnswerDto;
+
+            const result = await AssessmentAttemptService.saveAnswer(req.user!.id, attemptId, questionId, dto);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Answer saved successfully.", result)
             );
         }
     );

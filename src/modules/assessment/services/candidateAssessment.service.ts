@@ -2,14 +2,24 @@ import { AssessmentAttemptRepository } from "../repositories/candidateAssessment
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
+import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { InvitationStatus, AttemptStatus, UserRole } from "@prisma/client";
+import { z } from "zod";
+import { logger } from "../../../common/logger/logger.js";
 import type {
     AssessmentAttemptStartResponse,
     AssessmentAttemptResponse,
     PaginatedAssessmentAttemptResponse,
     AssessmentAttemptResumeResponse,
-    AssessmentSubmissionResponse
+    AssessmentSubmissionResponse,
+    AssessmentAnswerResponse
 } from "../interfaces/candidateAssessment.interface.js";
+import {
+    type SaveAssessmentAnswerDto,
+    mcqSaveValidationSchema,
+    dsaSaveValidationSchema,
+    projectSaveValidationSchema
+} from "../dto/candidateAssessment.dto.js";
 
 
 export class AssessmentAttemptService {
@@ -244,4 +254,133 @@ export class AssessmentAttemptService {
             submittedAt
         };
     }
+
+    static async saveAnswer(
+        userId: string,
+        attemptId: string,
+        questionId: string,
+        dto: SaveAssessmentAnswerDto
+    ): Promise<AssessmentAnswerResponse> {
+        const attempt = await AssessmentAttemptRepository.findAttemptById(attemptId);
+        if (!attempt) {
+            throw new NotFoundError("Assessment attempt not found.");
+        }
+
+        if (attempt.candidate.userId !== userId) {
+            throw new ForbiddenError("You do not have permission to access this attempt.");
+        }
+
+        if (attempt.status !== AttemptStatus.IN_PROGRESS) {
+            if (attempt.status === AttemptStatus.SUBMITTED) {
+                throw new ConflictError("Cannot save answer for a submitted attempt.");
+            }
+            if (attempt.status === AttemptStatus.CANCELLED) {
+                throw new ConflictError("Cannot save answer for a cancelled attempt.");
+            }
+            if (attempt.status === AttemptStatus.EXPIRED) {
+                throw new ConflictError("Assessment attempt has expired.");
+            }
+            throw new ConflictError(`Cannot save answer for an attempt with status: ${attempt.status}`);
+        }
+
+        const durationSeconds = (attempt.assessment.durationMinutes || 0) * 60;
+        const startedAt = attempt.startedAt || attempt.createdAt;
+        const endsAt = new Date(startedAt.getTime() + durationSeconds * 1000);
+        const remainingSeconds = Math.max(0, Math.floor((endsAt.getTime() - Date.now()) / 1000));
+        
+        if (remainingSeconds <= 0) {
+            await AssessmentAttemptRepository.updateAttemptStatus(attemptId, AttemptStatus.EXPIRED);
+            throw new ConflictError("Assessment attempt has expired.");
+        }
+
+        const sectionItem = await AssessmentAttemptRepository.findQuestionInSectionItem(attempt.assessmentId, questionId);
+        if (!sectionItem) {
+            throw new ForbiddenError("Question does not belong to the assessment being attempted.");
+        }
+
+        const question = await AssessmentAttemptRepository.findQuestionWithDetails(questionId);
+        if (!question) {
+            throw new NotFoundError("Question not found.");
+        }
+
+        let validatedData: any = {};
+        const qType = question.type;
+
+        try {
+            if (qType === "MCQ") {
+                validatedData = mcqSaveValidationSchema.parse(dto);
+                if (!question.mcqDetail) {
+                    throw new ValidationError("Question MCQ details not found.");
+                }
+                const allowedOptionIds = question.mcqDetail.options.map(opt => opt.id);
+                for (const optionId of validatedData.selectedOptionIds) {
+                    if (!allowedOptionIds.includes(optionId)) {
+                        throw new ValidationError(`Option ID '${optionId}' does not belong to this MCQ question.`);
+                    }
+                }
+                if (!question.mcqDetail.allowMultipleCorrectAnswers && validatedData.selectedOptionIds.length > 1) {
+                    throw new ValidationError("Multiple correct answers are not allowed for this question.");
+                }
+            } else if (qType === "DSA") {
+                validatedData = dsaSaveValidationSchema.parse(dto);
+                if (validatedData.codeResponse === undefined) {
+                    throw new ValidationError("Code response is required for DSA questions.");
+                }
+                if (!question.dsaDetail) {
+                    throw new ValidationError("Question DSA details not found.");
+                }
+                const supportedLangIds = question.dsaDetail.supportedLanguages.map(sl => sl.programmingLanguageId);
+                const selectedLangId = validatedData.meta?.languageId;
+                if (!selectedLangId) {
+                    throw new ValidationError("Language ID is required for DSA questions.");
+                }
+                if (!supportedLangIds.includes(selectedLangId)) {
+                    throw new ValidationError(`Programming language ID '${selectedLangId}' is not supported by this question.`);
+                }
+            } else if (qType === "PROJECT" || qType === "MACHINE_CODING") {
+                validatedData = projectSaveValidationSchema.parse(dto);
+            } else {
+                throw new ValidationError(`Unsupported question type: ${qType}`);
+            }
+        } catch (err: any) {
+            if (err instanceof z.ZodError) {
+                throw new ValidationError("Validation Failed", z.treeifyError(err));
+            }
+            throw err;
+        }
+
+        const existingAnswer = await AssessmentAttemptRepository.findAnswerByAttemptAndQuestion(attemptId, questionId);
+        const operation = existingAnswer ? "UPDATE" : "CREATE";
+
+        logger.info(
+            {
+                attemptId,
+                questionId,
+                candidateId: attempt.candidateId,
+                questionType: qType,
+                operation
+            },
+            "Saving assessment answer"
+        );
+
+        try {
+            const answer = await AssessmentAttemptRepository.upsertAnswer(attemptId, questionId, {
+                selectedOptionIds: validatedData.selectedOptionIds || [],
+                attachmentUrls: validatedData.attachmentUrls || [],
+                codeResponse: validatedData.codeResponse !== undefined ? validatedData.codeResponse : null,
+                submissionUrl: validatedData.submissionUrl !== undefined ? validatedData.submissionUrl : null,
+                meta: validatedData.meta || null
+            });
+
+            return {
+                answerId: answer.id,
+                attemptId: answer.attemptId,
+                questionId: answer.questionId,
+                updatedAt: answer.updatedAt
+            };
+        } catch (dbError: any) {
+            throw dbError;
+        }
+    }
 }
+

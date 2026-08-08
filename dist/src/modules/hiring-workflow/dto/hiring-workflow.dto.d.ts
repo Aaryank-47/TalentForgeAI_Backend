@@ -3,7 +3,10 @@ export declare class WorkflowDto {
     static createWorkflow: z.ZodObject<{
         name: z.ZodString;
         description: z.ZodOptional<z.ZodString>;
-        stages: z.ZodArray<z.ZodString>;
+        stages: z.ZodArray<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+            name: z.ZodString;
+            assessmentId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        }, z.core.$strip>]>>;
     }, z.core.$strip>;
     static updateWorkflow: z.ZodObject<{
         name: z.ZodString;
@@ -12,6 +15,7 @@ export declare class WorkflowDto {
         stages: z.ZodArray<z.ZodObject<{
             stageLibraryId: z.ZodString;
             order: z.ZodNumber;
+            assessmentId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         }, z.core.$strip>>;
     }, z.core.$strip>;
     static getWorkflowsByStatus: z.ZodObject<{
@@ -73,6 +77,7 @@ export declare class WorkflowDto {
         stageOrder: z.ZodNumber;
         isEnabled: z.ZodBoolean;
         isFinal: z.ZodBoolean;
+        assessmentId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     }, z.core.$strip>;
     static updateWorkflowStage: z.ZodObject<{
         id: z.ZodString;
@@ -81,6 +86,7 @@ export declare class WorkflowDto {
         stageOrder: z.ZodNumber;
         isEnabled: z.ZodBoolean;
         isFinal: z.ZodBoolean;
+        assessmentId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     }, z.core.$strip>;
     static deleteWorkflowStage: z.ZodObject<{
         id: z.ZodString;

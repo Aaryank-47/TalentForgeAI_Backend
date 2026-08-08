@@ -33,12 +33,12 @@ export declare class AssessmentBuilderService {
             archivedAt: Date | null;
             createdById: string;
             updatedById: string | null;
-            archivedById: string | null;
             instructions: string | null;
             durationMinutes: number | null;
             passingScore: number | null;
             totalMarks: number | null;
             isTemplate: boolean;
+            archivedById: string | null;
         })[];
         pagination: import("../../../common/types/pagination.types.js").PaginationMeta;
     }>;
@@ -88,7 +88,7 @@ export declare class AssessmentBuilderService {
                         archivedAt: Date | null;
                         createdById: string | null;
                         updatedById: string | null;
-                        categoryId: string | null;
+                        archivedById: string | null;
                         difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
                         estimatedTime: number;
                         defaultMarks: number;
@@ -96,28 +96,28 @@ export declare class AssessmentBuilderService {
                         code: string | null;
                         createdByCompanyMemberId: string | null;
                         publishedById: string | null;
-                        archivedById: string | null;
+                        categoryId: string | null;
                         usageCount: number;
                         successRate: number | null;
                     };
                 } & {
                     id: string;
                     isRequired: boolean;
-                    displayOrder: number;
-                    questionId: string;
                     sectionId: string;
+                    questionId: string;
+                    displayOrder: number;
                     marksOverride: number | null;
-                    timeLimitOverride: number | null;
                     negativeMarksOverride: number | null;
+                    timeLimitOverride: number | null;
                 })[];
             } & {
                 description: string | null;
                 id: string;
                 title: string;
-                displayOrder: number;
+                assessmentId: string;
                 instructions: string | null;
                 durationMinutes: number | null;
-                assessmentId: string;
+                displayOrder: number;
                 sectionType: import("@prisma/client").$Enums.QuestionType;
             })[];
         } & {
@@ -134,12 +134,12 @@ export declare class AssessmentBuilderService {
             archivedAt: Date | null;
             createdById: string;
             updatedById: string | null;
-            archivedById: string | null;
             instructions: string | null;
             durationMinutes: number | null;
             passingScore: number | null;
             totalMarks: number | null;
             isTemplate: boolean;
+            archivedById: string | null;
         };
     }>;
     static updateAssessment(assessmentId: string, dto: UpdateAssessmentDto, memberId: string): Promise<{

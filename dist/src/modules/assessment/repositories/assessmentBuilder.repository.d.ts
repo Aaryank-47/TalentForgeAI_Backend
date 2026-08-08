@@ -48,7 +48,7 @@ export declare class AssessmentBuilderRepository {
                     archivedAt: Date | null;
                     createdById: string | null;
                     updatedById: string | null;
-                    categoryId: string | null;
+                    archivedById: string | null;
                     difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
                     estimatedTime: number;
                     defaultMarks: number;
@@ -56,28 +56,28 @@ export declare class AssessmentBuilderRepository {
                     code: string | null;
                     createdByCompanyMemberId: string | null;
                     publishedById: string | null;
-                    archivedById: string | null;
+                    categoryId: string | null;
                     usageCount: number;
                     successRate: number | null;
                 };
             } & {
                 id: string;
                 isRequired: boolean;
-                displayOrder: number;
-                questionId: string;
                 sectionId: string;
+                questionId: string;
+                displayOrder: number;
                 marksOverride: number | null;
-                timeLimitOverride: number | null;
                 negativeMarksOverride: number | null;
+                timeLimitOverride: number | null;
             })[];
         } & {
             description: string | null;
             id: string;
             title: string;
-            displayOrder: number;
+            assessmentId: string;
             instructions: string | null;
             durationMinutes: number | null;
-            assessmentId: string;
+            displayOrder: number;
             sectionType: import("@prisma/client").$Enums.QuestionType;
         })[];
     } & {
@@ -94,12 +94,12 @@ export declare class AssessmentBuilderRepository {
         archivedAt: Date | null;
         createdById: string;
         updatedById: string | null;
-        archivedById: string | null;
         instructions: string | null;
         durationMinutes: number | null;
         passingScore: number | null;
         totalMarks: number | null;
         isTemplate: boolean;
+        archivedById: string | null;
     }) | null>;
     static findAssessments(filters: GetAssessmentsQueryDto, pagination: PaginationResult, companyIds?: string[]): Promise<({
         _count: {
@@ -120,12 +120,12 @@ export declare class AssessmentBuilderRepository {
         archivedAt: Date | null;
         createdById: string;
         updatedById: string | null;
-        archivedById: string | null;
         instructions: string | null;
         durationMinutes: number | null;
         passingScore: number | null;
         totalMarks: number | null;
         isTemplate: boolean;
+        archivedById: string | null;
     })[]>;
     static countAssessments(filters: GetAssessmentsQueryDto, companyIds?: string[]): Promise<number>;
     static findAssessmentByTitleInCompany(title: string, companyId: string): Promise<Assessment | null>;
@@ -155,21 +155,21 @@ export declare class AssessmentBuilderRepository {
             archivedAt: Date | null;
             createdById: string;
             updatedById: string | null;
-            archivedById: string | null;
             instructions: string | null;
             durationMinutes: number | null;
             passingScore: number | null;
             totalMarks: number | null;
             isTemplate: boolean;
+            archivedById: string | null;
         };
     } & {
         description: string | null;
         id: string;
         title: string;
-        displayOrder: number;
+        assessmentId: string;
         instructions: string | null;
         durationMinutes: number | null;
-        assessmentId: string;
+        displayOrder: number;
         sectionType: import("@prisma/client").$Enums.QuestionType;
     }) | null>;
     static updateSection(id: string, data: Prisma.AssessmentSectionUncheckedUpdateInput): Promise<AssessmentSection>;
@@ -187,10 +187,10 @@ export declare class AssessmentBuilderRepository {
         description: string | null;
         id: string;
         title: string;
-        displayOrder: number;
+        assessmentId: string;
         instructions: string | null;
         durationMinutes: number | null;
-        assessmentId: string;
+        displayOrder: number;
         sectionType: import("@prisma/client").$Enums.QuestionType;
     })[]>;
     private static buildWhereClause;
@@ -204,12 +204,12 @@ export declare class AssessmentBuilderRepository {
     }[]): Promise<{
         id: string;
         isRequired: boolean;
-        displayOrder: number;
-        questionId: string;
         sectionId: string;
+        questionId: string;
+        displayOrder: number;
         marksOverride: number | null;
-        timeLimitOverride: number | null;
         negativeMarksOverride: number | null;
+        timeLimitOverride: number | null;
     }[]>;
     static findSectionItems(sectionId: string): Promise<(AssessmentSectionItem & {
         question: {
@@ -235,32 +235,32 @@ export declare class AssessmentBuilderRepository {
                 archivedAt: Date | null;
                 createdById: string;
                 updatedById: string | null;
-                archivedById: string | null;
                 instructions: string | null;
                 durationMinutes: number | null;
                 passingScore: number | null;
                 totalMarks: number | null;
                 isTemplate: boolean;
+                archivedById: string | null;
             };
         } & {
             description: string | null;
             id: string;
             title: string;
-            displayOrder: number;
+            assessmentId: string;
             instructions: string | null;
             durationMinutes: number | null;
-            assessmentId: string;
+            displayOrder: number;
             sectionType: import("@prisma/client").$Enums.QuestionType;
         };
     } & {
         id: string;
         isRequired: boolean;
-        displayOrder: number;
-        questionId: string;
         sectionId: string;
+        questionId: string;
+        displayOrder: number;
         marksOverride: number | null;
-        timeLimitOverride: number | null;
         negativeMarksOverride: number | null;
+        timeLimitOverride: number | null;
     }) | null>;
     static updateSectionItem(id: string, data: Prisma.AssessmentSectionItemUncheckedUpdateInput): Promise<AssessmentSectionItem>;
     static deleteSectionItem(id: string): Promise<AssessmentSectionItem>;

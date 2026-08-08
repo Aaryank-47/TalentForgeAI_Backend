@@ -26,8 +26,8 @@ export declare class QuestionRepository {
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            parentId: string | null;
             displayOrder: number;
+            parentId: string | null;
         } | null;
         children: {
             name: string;
@@ -35,8 +35,8 @@ export declare class QuestionRepository {
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            parentId: string | null;
             displayOrder: number;
+            parentId: string | null;
         }[];
     } & {
         name: string;
@@ -44,8 +44,8 @@ export declare class QuestionRepository {
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        parentId: string | null;
         displayOrder: number;
+        parentId: string | null;
     })[]>;
     static findQuestionTagByName(name: string): Promise<QuestionTag | null>;
     static findQuestionTagById(id: string): Promise<QuestionTag | null>;
@@ -95,11 +95,11 @@ export declare class QuestionRepository {
     })[]>;
     static findDsaDetailById(id: string): Promise<{
         id: string;
+        questionId: string;
         starterCode: string;
         referenceSolution: string;
         memoryLimit: number;
         timeLimit: number;
-        questionId: string;
     } | null>;
     static getCategoriesByParent(parentId: string | null): Promise<QuestionCategory[]>;
     static getAllTagsRaw(): Promise<QuestionTag[]>;

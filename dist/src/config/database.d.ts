@@ -4,5 +4,6 @@ declare const prisma: PrismaClient<{
     adapter: PrismaPg;
 }, never, import("@prisma/client/runtime/client").DefaultArgs>;
 export declare function connectDatabase(): Promise<void>;
+export declare function closeDatabase(): Promise<void>;
 export default prisma;
 //# sourceMappingURL=database.d.ts.map

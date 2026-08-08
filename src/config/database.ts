@@ -20,4 +20,9 @@ export async function connectDatabase() {
     }
 }
 
+export async function closeDatabase() {
+    await prisma.$disconnect();
+    await pool.end();
+}
+
 export default prisma;

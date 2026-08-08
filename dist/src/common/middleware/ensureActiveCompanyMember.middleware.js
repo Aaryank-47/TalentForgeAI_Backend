@@ -36,7 +36,13 @@ export const ensureActiveCompanyMember = async (req, res, next) => {
         if (!jobId && req.body && typeof req.body.jobId === "string") {
             jobId = req.body.jobId;
         }
+        let applicationId = typeof req.params.applicationId === "string" ? req.params.applicationId : undefined;
+        if (!applicationId && req.body && typeof req.body.applicationId === "string") {
+            applicationId = req.body.applicationId;
+        }
+        let invitationId = typeof req.params.invitationId === "string" ? req.params.invitationId : (typeof req.params.id === "string" ? req.params.id : undefined);
         if (!companyId) {
+            console.log("-----------------------------");
             if (assessmentId) {
                 const assessment = await prisma.assessment.findFirst({
                     where: { id: assessmentId, deletedAt: null },
@@ -46,6 +52,26 @@ export const ensureActiveCompanyMember = async (req, res, next) => {
                     throw new NotFoundError("Assessment not found.");
                 }
                 companyId = assessment.companyId;
+            }
+            else if (invitationId) {
+                const invitation = await prisma.assessmentInvitation.findFirst({
+                    where: { id: invitationId },
+                    include: { assessment: { select: { companyId: true } } }
+                });
+                if (!invitation) {
+                    throw new NotFoundError("Invitation not found.");
+                }
+                companyId = invitation.assessment.companyId;
+            }
+            else if (applicationId) {
+                const application = await prisma.application.findFirst({
+                    where: { id: applicationId },
+                    include: { job: { select: { companyId: true } } }
+                });
+                if (!application) {
+                    throw new NotFoundError("Application not found.");
+                }
+                companyId = application.job.companyId;
             }
             else if (sectionId) {
                 const section = await prisma.assessmentSection.findFirst({

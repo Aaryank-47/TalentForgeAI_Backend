@@ -49,3 +49,10 @@ export interface AssessmentSubmissionResponse {
     status: AttemptStatus;
     submittedAt: Date;
 }
+
+export interface AssessmentAnswerResponse {
+    answerId: string;
+    attemptId: string;
+    questionId: string;
+    updatedAt: Date;
+}

@@ -16,5 +16,9 @@ export async function connectDatabase() {
         process.exit(1);
     }
 }
+export async function closeDatabase() {
+    await prisma.$disconnect();
+    await pool.end();
+}
 export default prisma;
 //# sourceMappingURL=database.js.map

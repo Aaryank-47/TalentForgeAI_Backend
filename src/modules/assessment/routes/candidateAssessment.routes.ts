@@ -3,7 +3,7 @@ import { AssessmentAttemptController } from "../controllers/candidateAssessment.
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { startAssessmentAttemptSchema } from "../dto/candidateAssessment.dto.js";
+import { startAssessmentAttemptSchema, saveAnswerParamsSchema, saveAssessmentAnswerSchema } from "../dto/candidateAssessment.dto.js";
 import { UserRole } from "@prisma/client";
 
 const router = Router();
@@ -35,6 +35,15 @@ router.post(
     authMiddleware,
     authorize(UserRole.CANDIDATE),
     AssessmentAttemptController.submitAttempt
+);
+
+router.put(
+    "/:attemptId/answers/:questionId",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    validate(saveAnswerParamsSchema, "params"),
+    validate(saveAssessmentAnswerSchema, "body"),
+    AssessmentAttemptController.saveAnswer
 );
 
 export default router;

@@ -20,6 +20,7 @@ export declare class ApplicationWorkflowRepository {
         order: number;
         isEnabled: boolean;
         isFinal: boolean;
+        assessmentId: string | null;
     }) | null>;
     static getApplicationWorkflowByApplicationId(applicationId: string): Promise<{
         id: string;
@@ -55,6 +56,7 @@ export declare class ApplicationWorkflowRepository {
         order: number;
         isEnabled: boolean;
         isFinal: boolean;
+        assessmentId: string | null;
     } | null>;
     static getDefaultWorkflowStageForCompany(companyId: string): Promise<{
         id: string;
@@ -65,6 +67,7 @@ export declare class ApplicationWorkflowRepository {
         order: number;
         isEnabled: boolean;
         isFinal: boolean;
+        assessmentId: string | null;
     } | null>;
     static updateApplicationWorkflow(movedByEmployerId: string, applicationId: string, fromStageId: string, toStageId: string, comment?: string, assignedTo?: string): Promise<ApplicationWorkflow>;
     static bulkUpdateApplicationWorkflows(data: {
