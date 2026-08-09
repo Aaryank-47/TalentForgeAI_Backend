@@ -48,6 +48,7 @@ export interface AssessmentSubmissionResponse {
     attemptId: string;
     status: AttemptStatus;
     submittedAt: Date;
+    evaluationStatus: string;
 }
 
 export interface AssessmentAnswerResponse {

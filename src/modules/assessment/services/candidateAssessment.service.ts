@@ -253,7 +253,8 @@ export class AssessmentAttemptService {
         return {
             attemptId: updatedAttempt.id,
             status: updatedAttempt.status,
-            submittedAt
+            submittedAt,
+            evaluationStatus: updatedAttempt.evaluationStatus
         };
     }
 

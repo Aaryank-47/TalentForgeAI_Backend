@@ -10,12 +10,12 @@ async function main() {
 
     // 1. Resolve / Create Candidate User
     let user = await prisma.user.findFirst({
-        where: { role: UserRole.CANDIDATE }
+        where: { email: "aaryankamalwanshi274@gmail.com" }
     });
     if (!user) {
         user = await prisma.user.create({
             data: {
-                email: "postman-test-candidate@example.com",
+                email: "aaryankamalwanshi274@gmail.com",
                 password: hashedPassword,
                 role: UserRole.CANDIDATE,
                 status: "ACTIVE"
@@ -219,29 +219,30 @@ async function main() {
     let attempt = await prisma.assessmentAttempt.findFirst({
         where: {
             candidateId: candidate.id,
-            assessmentId: assessment.id,
-            status: AttemptStatus.IN_PROGRESS
+            assessmentId: assessment.id
         }
     });
-    if (!attempt || new Date(attempt.startedAt || attempt.createdAt).getTime() + (assessment.durationMinutes || 60) * 60 * 1000 < Date.now()) {
-        if (attempt) {
-            // update existing attempt to refresh timer
-            attempt = await prisma.assessmentAttempt.update({
-                where: { id: attempt.id },
-                data: { startedAt: new Date(), status: AttemptStatus.IN_PROGRESS }
-            });
-        } else {
-            attempt = await prisma.assessmentAttempt.create({
-                data: {
-                    candidateId: candidate.id,
-                    applicationId: application.id,
-                    assessmentId: assessment.id,
-                    status: AttemptStatus.IN_PROGRESS,
-                    startedAt: new Date()
-                }
-            });
-        }
-        console.log("Created/Refreshed assessment attempt.");
+    if (!attempt) {
+        attempt = await prisma.assessmentAttempt.create({
+            data: {
+                candidateId: candidate.id,
+                applicationId: application.id,
+                assessmentId: assessment.id,
+                status: AttemptStatus.IN_PROGRESS,
+                startedAt: new Date()
+            }
+        });
+        console.log("Created fresh assessment attempt.");
+    } else {
+        attempt = await prisma.assessmentAttempt.update({
+            where: { id: attempt.id },
+            data: { 
+                status: AttemptStatus.IN_PROGRESS, 
+                startedAt: new Date(),
+                submittedAt: null
+            }
+        });
+        console.log("Refreshed assessment attempt status to IN_PROGRESS.");
     }
 
     // 6. Resolve / Create pre-saved Answer to GET
