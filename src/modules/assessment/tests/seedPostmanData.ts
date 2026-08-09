@@ -4,7 +4,7 @@ import { AttemptStatus, QuestionType, UserRole, EvaluationStatus } from "@prisma
 import bcrypt from "bcrypt";
 
 async function main() {
-    console.log("Checking database for Postman evaluation test data...");
+    console.log("Checking database for Postman evaluation & ATS test data...");
 
     const hashedPassword = await bcrypt.hash("Password@123", 10);
 
@@ -52,6 +52,20 @@ async function main() {
         console.log("Created employer user.");
     }
 
+    // Ensure Employer Profile exists
+    let employerProfile = await prisma.employer.findUnique({
+        where: { userId: employerUser.id }
+    });
+    if (!employerProfile) {
+        employerProfile = await prisma.employer.create({
+            data: {
+                userId: employerUser.id,
+                fullName: "Postman Employer Recruiter"
+            }
+        });
+        console.log("Created Employer profile.");
+    }
+
     // 3. Resolve Company & Member
     let company = await prisma.company.findFirst();
     if (!company) {
@@ -91,7 +105,73 @@ async function main() {
         role: employerUser.role
     });
 
-    // 4. Job & Application
+    // 4. Resolve custom Hiring Workflow Stages
+    let workflow = await prisma.workflow.findFirst({
+        where: { companyId: company.id }
+    });
+    if (!workflow) {
+        workflow = await prisma.workflow.create({
+            data: {
+                name: "Postman Integration Workflow",
+                companyId: company.id,
+                status: "ACTIVE"
+            }
+        });
+    }
+
+    let stageLib1 = await prisma.stageLibrary.findFirst({
+        where: { name: "Technical Assessment Stage", companyId: company.id }
+    });
+    if (!stageLib1) {
+        stageLib1 = await prisma.stageLibrary.create({
+            data: {
+                name: "Technical Assessment Stage",
+                type: "CUSTOM",
+                companyId: company.id
+            }
+        });
+    }
+
+    let stageLib2 = await prisma.stageLibrary.findFirst({
+        where: { name: "Technical Interview Stage", companyId: company.id }
+    });
+    if (!stageLib2) {
+        stageLib2 = await prisma.stageLibrary.create({
+            data: {
+                name: "Technical Interview Stage",
+                type: "CUSTOM",
+                companyId: company.id
+            }
+        });
+    }
+
+    let stage1 = await prisma.workflowStage.findFirst({
+        where: { workflowId: workflow.id, stageLibraryId: stageLib1.id }
+    });
+    if (!stage1) {
+        stage1 = await prisma.workflowStage.create({
+            data: {
+                workflowId: workflow.id,
+                stageLibraryId: stageLib1.id,
+                order: 1
+            }
+        });
+    }
+
+    let stage2 = await prisma.workflowStage.findFirst({
+        where: { workflowId: workflow.id, stageLibraryId: stageLib2.id }
+    });
+    if (!stage2) {
+        stage2 = await prisma.workflowStage.create({
+            data: {
+                workflowId: workflow.id,
+                stageLibraryId: stageLib2.id,
+                order: 2
+            }
+        });
+    }
+
+    // 5. Job & Application
     let job = await prisma.job.findFirst({
         where: { companyId: company.id }
     });
@@ -104,8 +184,14 @@ async function main() {
                 description: "Postman evaluation description",
                 employmentType: "FULL_TIME",
                 workplaceType: "REMOTE",
-                createdById: employerUser.id
+                createdById: employerUser.id,
+                workflowId: workflow.id
             }
+        });
+    } else {
+        job = await prisma.job.update({
+            where: { id: job.id },
+            data: { workflowId: workflow.id }
         });
     }
 
@@ -131,7 +217,25 @@ async function main() {
         });
     }
 
-    // 5. Assessment
+    // Map Application to ApplicationWorkflow at stage 1
+    let appWorkflow = await prisma.applicationWorkflow.findUnique({
+        where: { applicationId: application.id }
+    });
+    if (!appWorkflow) {
+        appWorkflow = await prisma.applicationWorkflow.create({
+            data: {
+                applicationId: application.id,
+                workflowStageId: stage1.id
+            }
+        });
+    } else {
+        appWorkflow = await prisma.applicationWorkflow.update({
+            where: { id: appWorkflow.id },
+            data: { workflowStageId: stage1.id } // Reset back to first stage for transitions
+        });
+    }
+
+    // 6. Assessment
     let assessment = await prisma.assessment.findFirst({
         where: { companyId: company.id, status: "PUBLISHED" }
     });
@@ -223,7 +327,6 @@ async function main() {
         }
     });
     if (!dsaQuestion) {
-        // Find a programming language
         let lang = await prisma.programmingLanguage.findFirst();
         if (!lang) {
             lang = await prisma.programmingLanguage.create({
@@ -269,7 +372,7 @@ async function main() {
 
     const languageId = dsaQuestion.dsaDetail?.supportedLanguages[0]?.programmingLanguageId || "";
 
-    // 6. Reset / Resolve Attempts
+    // 7. Reset / Resolve Attempts
     // IN_PROGRESS Attempt
     let inProgressAttempt = await prisma.assessmentAttempt.findFirst({
         where: { candidateId: candidate.id, assessmentId: assessment.id, status: AttemptStatus.IN_PROGRESS }
@@ -309,7 +412,6 @@ async function main() {
         });
     }
 
-    // Ensure submittedAttempt has MCQ answer pre-saved
     let mcqAnswer = await prisma.assessmentAnswer.findUnique({
         where: { attemptId_questionId: { attemptId: submittedAttempt.id, questionId: mcqQuestion.id } }
     });
@@ -349,6 +451,7 @@ async function main() {
     console.log("==================================================");
     console.log(`Candidate JWT:\n${candidateToken}\n`);
     console.log(`Employer JWT:\n${employerToken}\n`);
+    console.log(`Application ID: ${application.id}`);
     console.log(`IN_PROGRESS Attempt ID: ${inProgressAttempt.id}`);
     console.log(`SUBMITTED Attempt ID: ${submittedAttempt.id}`);
     console.log(`COMPLETED Attempt ID: ${completedAttempt.id}`);

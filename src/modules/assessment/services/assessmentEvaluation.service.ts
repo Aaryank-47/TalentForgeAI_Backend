@@ -1,5 +1,6 @@
 import { AssessmentEvaluationRepository } from "../repositories/assessmentEvaluation.repository.js";
 import prisma from "../../../config/database.js";
+import { AssessmentATSIntegrationService } from "./atsIntegration.service.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
@@ -391,6 +392,11 @@ export class AssessmentResultService {
             passed,
             EvaluationStatus.COMPLETED
         );
+
+        // Process ATS integration outcome
+        await AssessmentATSIntegrationService.processAssessmentResult(attemptId).catch(err => {
+            logger.error({ attemptId, err }, "ATS integration process assessment result failed.");
+        });
 
         return {
             overallScore,

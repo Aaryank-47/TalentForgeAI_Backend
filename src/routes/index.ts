@@ -15,6 +15,7 @@ import assessmentRoutes from '../modules/assessment/routes/assessmentBuilder..ro
 import assessmentAssignmentRoutes from '../modules/assessment/routes/assessmentAssignment.routes.js';
 import assessmentAttemptRoutes from '../modules/assessment/routes/candidateAssessment.routes.js';
 import assessmentEvaluationRoutes from '../modules/assessment/routes/assessmentEvaluation.routes.js';
+import atsIntegrationRoutes from '../modules/assessment/routes/atsIntegration.routes.js';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use("/jobs", jobRoutes);
 router.use("/assessments/assignments", assessmentAssignmentRoutes);
 router.use("/assessment-attempts", assessmentAttemptRoutes);
 router.use("/assessment/evaluation", assessmentEvaluationRoutes);
+router.use("/assessment/applications", atsIntegrationRoutes);
 router.use("/candidate", candidateRoutes);
 router.use("/candidates", candidatesRoutes);
 router.use("/candidate/applications", applicationRoutes);
