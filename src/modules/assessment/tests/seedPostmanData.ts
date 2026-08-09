@@ -1,19 +1,19 @@
 import prisma from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
-import { AttemptStatus, QuestionType, UserRole } from "@prisma/client";
+import { AttemptStatus, QuestionType, UserRole, EvaluationStatus } from "@prisma/client";
 import bcrypt from "bcrypt";
 
 async function main() {
-    console.log("Checking database for Postman test data...");
+    console.log("Checking database for Postman evaluation test data...");
 
     const hashedPassword = await bcrypt.hash("Password@123", 10);
 
-    // 1. Resolve / Create Candidate User
-    let user = await prisma.user.findFirst({
+    // 1. Candidate User
+    let candidateUser = await prisma.user.findFirst({
         where: { email: "aaryankamalwanshi274@gmail.com" }
     });
-    if (!user) {
-        user = await prisma.user.create({
+    if (!candidateUser) {
+        candidateUser = await prisma.user.create({
             data: {
                 email: "aaryankamalwanshi274@gmail.com",
                 password: hashedPassword,
@@ -21,79 +21,106 @@ async function main() {
                 status: "ACTIVE"
             }
         });
-        console.log("Created test candidate user.");
-    } else {
-        user = await prisma.user.update({
-            where: { id: user.id },
-            data: { password: hashedPassword }
-        });
-        console.log("Updated test candidate password.");
+        console.log("Created candidate user.");
     }
 
     let candidate = await prisma.candidate.findUnique({
-        where: { userId: user.id }
+        where: { userId: candidateUser.id }
     });
     if (!candidate) {
         candidate = await prisma.candidate.create({
             data: {
-                userId: user.id,
-                fullName: "Postman Test Candidate"
+                userId: candidateUser.id,
+                fullName: "Postman Candidate"
             }
         });
-        console.log("Created test candidate profile.");
     }
 
-    // 2. Generate Candidate JWT Access Token
-    const accessToken = JwtHelper.generateAccessToken({
-        id: user.id,
-        email: user.email,
-        role: user.role
+    // 2. Employer User
+    let employerUser = await prisma.user.findFirst({
+        where: { email: "employer-evaluator@example.com" }
+    });
+    if (!employerUser) {
+        employerUser = await prisma.user.create({
+            data: {
+                email: "employer-evaluator@example.com",
+                password: hashedPassword,
+                role: UserRole.EMPLOYER,
+                status: "ACTIVE"
+            }
+        });
+        console.log("Created employer user.");
+    }
+
+    // 3. Resolve Company & Member
+    let company = await prisma.company.findFirst();
+    if (!company) {
+        company = await prisma.company.create({
+            data: {
+                companyName: "TalentForge Corp",
+                slug: "talentforge-corp",
+                status: "ACTIVE"
+            }
+        });
+    }
+
+    let companyMember = await prisma.companyMember.findFirst({
+        where: { userId: employerUser.id, companyId: company.id }
+    });
+    if (!companyMember) {
+        companyMember = await prisma.companyMember.create({
+            data: {
+                userId: employerUser.id,
+                companyId: company.id,
+                role: "OWNER",
+                status: "ACTIVE"
+            }
+        });
+    }
+
+    // Generate JWTs
+    const candidateToken = JwtHelper.generateAccessToken({
+        id: candidateUser.id,
+        email: candidateUser.email,
+        role: candidateUser.role
     });
 
-    // 3. Resolve / Create Job & Application
-    let job = await prisma.job.findFirst();
+    const employerToken = JwtHelper.generateAccessToken({
+        id: employerUser.id,
+        email: employerUser.email,
+        role: employerUser.role
+    });
+
+    // 4. Job & Application
+    let job = await prisma.job.findFirst({
+        where: { companyId: company.id }
+    });
     if (!job) {
-        let company = await prisma.company.findFirst();
-        if (!company) {
-            company = await prisma.company.create({
-                data: {
-                    companyName: "Postman Test Company",
-                    slug: "postman-test-company",
-                    status: "ACTIVE"
-                }
-            });
-        }
         job = await prisma.job.create({
             data: {
                 companyId: company.id,
-                title: "Software Engineer",
-                slug: "se-postman-test",
-                description: "Job description for postman testing",
+                title: "Full Stack Engineer",
+                slug: "full-stack-engineer-real",
+                description: "Postman evaluation description",
                 employmentType: "FULL_TIME",
                 workplaceType: "REMOTE",
-                createdById: user.id
+                createdById: employerUser.id
             }
         });
-        console.log("Created test job.");
     }
 
     let application = await prisma.application.findFirst({
         where: { candidateId: candidate.id }
     });
     if (!application) {
-        let resume = await prisma.resume.findFirst({
-            where: { candidateId: candidate.id }
+        let resume = await prisma.resume.create({
+            data: {
+                candidateId: candidate.id,
+                resumeName: "My Resume",
+                resumeUrl: "http://example.com/resume.pdf",
+                fileSize: 1024
+            }
         });
-        if (!resume) {
-            resume = await prisma.resume.create({
-                data: {
-                    candidateId: candidate.id,
-                    resumeName: "My Resume",
-                    resumeUrl: "http://example.com/resume.pdf",
-                    fileSize: 1024
-                }
-            });
-        }
         application = await prisma.application.create({
             data: {
                 candidateId: candidate.id,
@@ -102,46 +129,23 @@ async function main() {
                 status: "APPLIED"
             }
         });
-        console.log("Created test application.");
     }
 
-    // 4. Resolve / Create Assessment & Section & Question
+    // 5. Assessment
     let assessment = await prisma.assessment.findFirst({
-        where: { status: "PUBLISHED" }
+        where: { companyId: company.id, status: "PUBLISHED" }
     });
     if (!assessment) {
-        let company = await prisma.company.findFirst();
-        if (!company) {
-            company = await prisma.company.create({
-                data: {
-                    companyName: "Postman Test Company",
-                    slug: "postman-test-company",
-                    status: "ACTIVE"
-                }
-            });
-        }
-        let companyMember = await prisma.companyMember.findFirst({
-            where: { companyId: company.id }
-        });
-        if (!companyMember) {
-            companyMember = await prisma.companyMember.create({
-                data: {
-                    userId: user.id,
-                    companyId: company.id,
-                    role: "OWNER"
-                }
-            });
-        }
         assessment = await prisma.assessment.create({
             data: {
                 companyId: company.id,
-                title: "Postman Dev Assessment",
+                title: "Postman Assessment Evaluation Suite",
                 durationMinutes: 60,
                 status: "PUBLISHED",
+                passingScore: 50.0,
                 createdById: companyMember.id
             }
         });
-        console.log("Created test assessment.");
     }
 
     let section = await prisma.assessmentSection.findFirst({
@@ -153,33 +157,41 @@ async function main() {
                 assessmentId: assessment.id,
                 title: "Section 1",
                 displayOrder: 1,
-                sectionType: "MCQ"
+                sectionType: QuestionType.MCQ
             }
         });
     }
 
+    // MCQ Question
     let mcqQuestion = await prisma.question.findFirst({
-        where: { type: QuestionType.MCQ }
+        where: { type: QuestionType.MCQ, companyId: company.id },
+        include: {
+            mcqDetail: {
+                include: {
+                    options: true
+                }
+            }
+        }
     });
     if (!mcqQuestion) {
         mcqQuestion = await prisma.question.create({
             data: {
-                title: "Sample MCQ",
-                description: "Is this a test?",
+                title: "MCQ evaluation question",
+                description: "Choose option",
                 type: QuestionType.MCQ,
                 difficulty: "EASY",
                 estimatedTime: 10,
-                defaultMarks: 5.0,
+                defaultMarks: 50.0,
                 ownership: "COMPANY",
-                companyId: assessment.companyId,
+                companyId: company.id,
                 mcqDetail: {
                     create: {
                         allowMultipleCorrectAnswers: false,
                         options: {
                             createMany: {
                                 data: [
-                                    { optionText: "Yes", displayOrder: 1, isCorrect: true },
-                                    { optionText: "No", displayOrder: 2, isCorrect: false }
+                                    { optionText: "True", displayOrder: 1, isCorrect: true },
+                                    { optionText: "False", displayOrder: 2, isCorrect: false }
                                 ]
                             }
                         }
@@ -194,84 +206,155 @@ async function main() {
                 }
             }
         });
-        console.log("Created test question.");
-    }
-
-    const sectionItem = await prisma.assessmentSectionItem.findFirst({
-        where: { sectionId: section.id, questionId: mcqQuestion.id }
-    });
-    if (!sectionItem) {
-        const lastItem = await prisma.assessmentSectionItem.findFirst({
-            where: { sectionId: section.id },
-            orderBy: { displayOrder: "desc" }
-        });
-        const order = lastItem ? lastItem.displayOrder + 1 : 1;
         await prisma.assessmentSectionItem.create({
-            data: {
-                sectionId: section.id,
-                questionId: mcqQuestion.id,
-                displayOrder: order
-            }
+            data: { sectionId: section.id, questionId: mcqQuestion.id, displayOrder: 1 }
         });
     }
 
-    // 5. Resolve / Create Assessment Attempt
-    let attempt = await prisma.assessmentAttempt.findFirst({
-        where: {
-            candidateId: candidate.id,
-            assessmentId: assessment.id
+    // DSA Question
+    let dsaQuestion = await prisma.question.findFirst({
+        where: { type: QuestionType.DSA, companyId: company.id },
+        include: {
+            dsaDetail: {
+                include: {
+                    supportedLanguages: true
+                }
+            }
         }
     });
-    if (!attempt) {
-        attempt = await prisma.assessmentAttempt.create({
+    if (!dsaQuestion) {
+        // Find a programming language
+        let lang = await prisma.programmingLanguage.findFirst();
+        if (!lang) {
+            lang = await prisma.programmingLanguage.create({
+                data: { name: "Python", slug: "python", isActive: true }
+            });
+        }
+        dsaQuestion = await prisma.question.create({
+            data: {
+                title: "DSA evaluation question",
+                description: "Reverse string",
+                type: QuestionType.DSA,
+                difficulty: "MEDIUM",
+                estimatedTime: 30,
+                defaultMarks: 50.0,
+                ownership: "COMPANY",
+                companyId: company.id,
+                dsaDetail: {
+                    create: {
+                        starterCode: "def reverse(): pass",
+                        referenceSolution: "def reverse(): pass",
+                        memoryLimit: 256,
+                        timeLimit: 1000,
+                        supportedLanguages: {
+                            create: {
+                                programmingLanguageId: lang.id
+                            }
+                        }
+                    }
+                }
+            },
+            include: {
+                dsaDetail: {
+                    include: {
+                        supportedLanguages: true
+                    }
+                }
+            }
+        });
+        await prisma.assessmentSectionItem.create({
+            data: { sectionId: section.id, questionId: dsaQuestion.id, displayOrder: 2 }
+        });
+    }
+
+    const languageId = dsaQuestion.dsaDetail?.supportedLanguages[0]?.programmingLanguageId || "";
+
+    // 6. Reset / Resolve Attempts
+    // IN_PROGRESS Attempt
+    let inProgressAttempt = await prisma.assessmentAttempt.findFirst({
+        where: { candidateId: candidate.id, assessmentId: assessment.id, status: AttemptStatus.IN_PROGRESS }
+    });
+    if (!inProgressAttempt) {
+        inProgressAttempt = await prisma.assessmentAttempt.create({
             data: {
                 candidateId: candidate.id,
                 applicationId: application.id,
                 assessmentId: assessment.id,
                 status: AttemptStatus.IN_PROGRESS,
-                startedAt: new Date()
-            }
-        });
-        console.log("Created fresh assessment attempt.");
-    } else {
-        attempt = await prisma.assessmentAttempt.update({
-            where: { id: attempt.id },
-            data: { 
-                status: AttemptStatus.IN_PROGRESS, 
                 startedAt: new Date(),
-                submittedAt: null
+                evaluationStatus: EvaluationStatus.PENDING
             }
         });
-        console.log("Refreshed assessment attempt status to IN_PROGRESS.");
+    } else {
+        await prisma.assessmentAttempt.update({
+            where: { id: inProgressAttempt.id },
+            data: { startedAt: new Date(), evaluationStatus: EvaluationStatus.PENDING }
+        });
     }
 
-    // 6. Resolve / Create pre-saved Answer to GET
-    let answer = await prisma.assessmentAnswer.findUnique({
-        where: {
-            attemptId_questionId: {
-                attemptId: attempt.id,
-                questionId: mcqQuestion.id
-            }
-        }
+    // SUBMITTED Attempt
+    let submittedAttempt = await prisma.assessmentAttempt.findFirst({
+        where: { candidateId: candidate.id, assessmentId: assessment.id, status: AttemptStatus.SUBMITTED, evaluationStatus: EvaluationStatus.PENDING }
     });
-    if (!answer) {
-        answer = await prisma.assessmentAnswer.create({
+    if (!submittedAttempt) {
+        submittedAttempt = await prisma.assessmentAttempt.create({
             data: {
-                attemptId: attempt.id,
-                questionId: mcqQuestion.id,
+                candidateId: candidate.id,
+                applicationId: application.id,
+                assessmentId: assessment.id,
+                status: AttemptStatus.SUBMITTED,
                 startedAt: new Date(),
-                selectedOptionIds: []
+                evaluationStatus: EvaluationStatus.PENDING
             }
         });
-        console.log("Created test answer.");
+    }
+
+    // Ensure submittedAttempt has MCQ answer pre-saved
+    let mcqAnswer = await prisma.assessmentAnswer.findUnique({
+        where: { attemptId_questionId: { attemptId: submittedAttempt.id, questionId: mcqQuestion.id } }
+    });
+    if (!mcqAnswer) {
+        await prisma.assessmentAnswer.create({
+            data: {
+                attemptId: submittedAttempt.id,
+                questionId: mcqQuestion.id,
+                startedAt: new Date(),
+                selectedOptionIds: [mcqQuestion.mcqDetail?.options[0]?.id || ""]
+            }
+        });
+    }
+
+    // COMPLETED Attempt
+    let completedAttempt = await prisma.assessmentAttempt.findFirst({
+        where: { candidateId: candidate.id, assessmentId: assessment.id, status: AttemptStatus.SUBMITTED, evaluationStatus: EvaluationStatus.COMPLETED }
+    });
+    if (!completedAttempt) {
+        completedAttempt = await prisma.assessmentAttempt.create({
+            data: {
+                candidateId: candidate.id,
+                applicationId: application.id,
+                assessmentId: assessment.id,
+                status: AttemptStatus.SUBMITTED,
+                startedAt: new Date(),
+                evaluationStatus: EvaluationStatus.COMPLETED,
+                overallScore: 50.0,
+                percentage: 50.0,
+                passed: true
+            }
+        });
     }
 
     console.log("\n==================================================");
-    console.log("POSTMAN TEST DATA SUITE READY");
+    console.log("POSTMAN EVALUATION TEST SUITE READY");
     console.log("==================================================");
-    console.log(`Bearer Token (JWT):\n${accessToken}\n`);
-    console.log(`Attempt ID: ${attempt.id}`);
-    console.log(`Question ID: ${mcqQuestion.id}`);
+    console.log(`Candidate JWT:\n${candidateToken}\n`);
+    console.log(`Employer JWT:\n${employerToken}\n`);
+    console.log(`IN_PROGRESS Attempt ID: ${inProgressAttempt.id}`);
+    console.log(`SUBMITTED Attempt ID: ${submittedAttempt.id}`);
+    console.log(`COMPLETED Attempt ID: ${completedAttempt.id}`);
+    console.log(`MCQ Question ID: ${mcqQuestion.id}`);
+    console.log(`DSA Question ID: ${dsaQuestion.id}`);
+    console.log(`DSA Programming Language ID: ${languageId}`);
     console.log("==================================================\n");
 }
 
