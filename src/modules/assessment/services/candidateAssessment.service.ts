@@ -12,7 +12,9 @@ import type {
     PaginatedAssessmentAttemptResponse,
     AssessmentAttemptResumeResponse,
     AssessmentSubmissionResponse,
-    AssessmentAnswerResponse
+    AssessmentAnswerResponse,
+    DetailedAssessmentAnswerResponse,
+    ClearAssessmentAnswerResponse
 } from "../interfaces/candidateAssessment.interface.js";
 import {
     type SaveAssessmentAnswerDto,
@@ -381,6 +383,117 @@ export class AssessmentAttemptService {
         } catch (dbError: any) {
             throw dbError;
         }
+    }
+
+    static async getAnswers(
+        userId: string,
+        attemptId: string
+    ): Promise<DetailedAssessmentAnswerResponse[]> {
+        const attempt = await AssessmentAttemptRepository.findAttemptById(attemptId);
+        if (!attempt) {
+            throw new NotFoundError("Assessment attempt not found.");
+        }
+
+        if (attempt.candidate.userId !== userId) {
+            throw new ForbiddenError("You do not have permission to access this attempt.");
+        }
+
+        const answers = await AssessmentAttemptRepository.findAnswersByAttempt(attemptId);
+        return answers.map(answer => ({
+            answerId: answer.id,
+            attemptId: answer.attemptId,
+            questionId: answer.questionId,
+            selectedOptionIds: answer.selectedOptionIds,
+            codeResponse: answer.codeResponse,
+            submissionUrl: answer.submissionUrl,
+            attachmentUrls: answer.attachmentUrls,
+            meta: answer.meta,
+            startedAt: answer.startedAt,
+            updatedAt: answer.updatedAt
+        }));
+    }
+
+    static async getAnswer(
+        userId: string,
+        attemptId: string,
+        questionId: string
+    ): Promise<DetailedAssessmentAnswerResponse> {
+        const attempt = await AssessmentAttemptRepository.findAttemptById(attemptId);
+        if (!attempt) {
+            throw new NotFoundError("Assessment attempt not found.");
+        }
+
+        if (attempt.candidate.userId !== userId) {
+            throw new ForbiddenError("You do not have permission to access this attempt.");
+        }
+
+        const answer = await AssessmentAttemptRepository.findAnswerByAttemptAndQuestion(attemptId, questionId);
+        if (!answer) {
+            throw new NotFoundError("Assessment answer not found.");
+        }
+
+        return {
+            answerId: answer.id,
+            attemptId: answer.attemptId,
+            questionId: answer.questionId,
+            selectedOptionIds: answer.selectedOptionIds,
+            codeResponse: answer.codeResponse,
+            submissionUrl: answer.submissionUrl,
+            attachmentUrls: answer.attachmentUrls,
+            meta: answer.meta,
+            startedAt: answer.startedAt,
+            updatedAt: answer.updatedAt
+        };
+    }
+
+    static async clearAnswer(
+        userId: string,
+        attemptId: string,
+        questionId: string
+    ): Promise<ClearAssessmentAnswerResponse> {
+        const attempt = await AssessmentAttemptRepository.findAttemptById(attemptId);
+        if (!attempt) {
+            throw new NotFoundError("Assessment attempt not found.");
+        }
+
+        if (attempt.candidate.userId !== userId) {
+            throw new ForbiddenError("You do not have permission to access this attempt.");
+        }
+
+        if (attempt.status !== AttemptStatus.IN_PROGRESS) {
+            if (attempt.status === AttemptStatus.SUBMITTED) {
+                throw new ConflictError("Cannot clear answer for a submitted attempt.");
+            }
+            if (attempt.status === AttemptStatus.CANCELLED) {
+                throw new ConflictError("Cannot clear answer for a cancelled attempt.");
+            }
+            if (attempt.status === AttemptStatus.EXPIRED) {
+                throw new ConflictError("Cannot clear answer for an expired attempt.");
+            }
+            throw new ConflictError(`Cannot clear answer for an attempt with status: ${attempt.status}`);
+        }
+
+        const durationSeconds = (attempt.assessment.durationMinutes || 0) * 60;
+        const startedAt = attempt.startedAt || attempt.createdAt;
+        const endsAt = new Date(startedAt.getTime() + durationSeconds * 1000);
+        const remainingSeconds = Math.max(0, Math.floor((endsAt.getTime() - Date.now()) / 1000));
+        
+        if (remainingSeconds <= 0) {
+            await AssessmentAttemptRepository.updateAttemptStatus(attemptId, AttemptStatus.EXPIRED);
+            throw new ConflictError("Assessment attempt has expired.");
+        }
+
+        const answer = await AssessmentAttemptRepository.findAnswerByAttemptAndQuestion(attemptId, questionId);
+        if (!answer) {
+            throw new NotFoundError("Assessment answer not found.");
+        }
+
+        await AssessmentAttemptRepository.deleteAnswer(attemptId, questionId);
+
+        return {
+            attemptId,
+            questionId
+        };
     }
 }
 

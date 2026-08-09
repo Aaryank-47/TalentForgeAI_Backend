@@ -87,6 +87,10 @@ export const projectSaveValidationSchema = z.object({
     meta: metaValidator.optional()
 }).strict();
 
+export const attemptIdParamSchema = z.object({
+    attemptId: questionIdValidator
+});
+
 export const saveAnswerParamsSchema = z.object({
     attemptId: questionIdValidator,
     questionId: questionIdValidator

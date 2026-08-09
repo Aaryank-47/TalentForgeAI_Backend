@@ -82,4 +82,39 @@ export class AssessmentAttemptController {
             );
         }
     );
+
+    static getAnswers = asyncHandler(
+        async (req: Request, res: Response) => {
+            const attemptId = req.params.attemptId as string;
+            const result = await AssessmentAttemptService.getAnswers(req.user!.id, attemptId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment answers retrieved successfully.", result)
+            );
+        }
+    );
+
+    static getAnswer = asyncHandler(
+        async (req: Request, res: Response) => {
+            const attemptId = req.params.attemptId as string;
+            const questionId = req.params.questionId as string;
+            const result = await AssessmentAttemptService.getAnswer(req.user!.id, attemptId, questionId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment answer retrieved successfully.", result)
+            );
+        }
+    );
+
+    static clearAnswer = asyncHandler(
+        async (req: Request, res: Response) => {
+            const attemptId = req.params.attemptId as string;
+            const questionId = req.params.questionId as string;
+            const result = await AssessmentAttemptService.clearAnswer(req.user!.id, attemptId, questionId);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Assessment answer cleared successfully.", result)
+            );
+        }
+    );
 }

@@ -56,3 +56,21 @@ export interface AssessmentAnswerResponse {
     questionId: string;
     updatedAt: Date;
 }
+
+export interface DetailedAssessmentAnswerResponse {
+    answerId: string;
+    attemptId: string;
+    questionId: string;
+    selectedOptionIds: string[];
+    codeResponse: string | null;
+    submissionUrl: string | null;
+    attachmentUrls: string[];
+    meta: any;
+    startedAt: Date | null;
+    updatedAt: Date;
+}
+
+export interface ClearAssessmentAnswerResponse {
+    attemptId: string;
+    questionId: string;
+}

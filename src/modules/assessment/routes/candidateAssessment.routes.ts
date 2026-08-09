@@ -3,7 +3,12 @@ import { AssessmentAttemptController } from "../controllers/candidateAssessment.
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { startAssessmentAttemptSchema, saveAnswerParamsSchema, saveAssessmentAnswerSchema } from "../dto/candidateAssessment.dto.js";
+import { 
+    startAssessmentAttemptSchema, 
+    saveAnswerParamsSchema, 
+    saveAssessmentAnswerSchema, 
+    attemptIdParamSchema 
+} from "../dto/candidateAssessment.dto.js";
 import { UserRole } from "@prisma/client";
 
 const router = Router();
@@ -44,6 +49,30 @@ router.put(
     validate(saveAnswerParamsSchema, "params"),
     validate(saveAssessmentAnswerSchema, "body"),
     AssessmentAttemptController.saveAnswer
+);
+
+router.get(
+    "/:attemptId/answers",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    validate(attemptIdParamSchema, "params"),
+    AssessmentAttemptController.getAnswers
+);
+
+router.get(
+    "/:attemptId/answers/:questionId",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    validate(saveAnswerParamsSchema, "params"),
+    AssessmentAttemptController.getAnswer
+);
+
+router.delete(
+    "/:attemptId/answers/:questionId",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE),
+    validate(saveAnswerParamsSchema, "params"),
+    AssessmentAttemptController.clearAnswer
 );
 
 export default router;

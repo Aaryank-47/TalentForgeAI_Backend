@@ -243,5 +243,23 @@ export class AssessmentAttemptRepository {
             }
         });
     }
+
+    static async findAnswersByAttempt(attemptId: string) {
+        return await prisma.assessmentAnswer.findMany({
+            where: { attemptId },
+            orderBy: { startedAt: "asc" }
+        });
+    }
+
+    static async deleteAnswer(attemptId: string, questionId: string) {
+        return await prisma.assessmentAnswer.delete({
+            where: {
+                attemptId_questionId: {
+                    attemptId,
+                    questionId
+                }
+            }
+        });
+    }
 }
 
