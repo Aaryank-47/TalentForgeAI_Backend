@@ -272,6 +272,7 @@ model Company {
   stageLibraries    StageLibrary[]
   questions         Question[]
   assessments       Assessment[]
+  interviews        Interview[]
 }
 
 model CompanyMember {
@@ -293,6 +294,10 @@ model CompanyMember {
   updatedAssessments  Assessment[]        @relation("AssessmentUpdatedBy")
   archivedAssessments Assessment[]        @relation("AssessmentArchivedBy")
   deletedAssessments  Assessment[]        @relation("AssessmentDeletedBy")
+
+  createdInterviews            Interview[]                   @relation("InterviewCreatedBy")
+  interviewAssignments         InterviewAssignment[]         @relation("InterviewAssignmentAssignedBy")
+  interviewSessionParticipants InterviewSessionParticipant[]
 
   @@unique([userId, companyId])
   @@index([companyId])
@@ -365,6 +370,7 @@ model Job {
   workflowId     String?
   workflow       Workflow?       @relation(fields: [workflowId], references: [id])
   jobAssessments JobAssessment[]
+  jobInterviews  JobInterview[]
 
   @@index([companyId])
   @@index([status])
@@ -448,12 +454,13 @@ model Application {
 
   hiredAt DateTime?
 
-  candidate           Candidate            @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  job                 Job                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  resume              Resume               @relation(fields: [resumeId], references: [id])
-  applicationWorkflow ApplicationWorkflow?
-  assessmentAttempts  AssessmentAttempt[]
+  candidate             Candidate              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job                   Job                    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resume                Resume                 @relation(fields: [resumeId], references: [id])
+  applicationWorkflow   ApplicationWorkflow?
+  assessmentAttempts    AssessmentAttempt[]
   assessmentInvitations AssessmentInvitation[]
+  interviewAssignments  InterviewAssignment[]
 
   @@unique([candidateId, jobId])
   @@index([candidateId])
@@ -572,27 +579,30 @@ model StageLibrary {
 }
 
 model WorkflowStage {
-  id                       String                    @id @default(cuid())
-  workflowId               String
-  workflow                 Workflow                  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  stageLibraryId           String
-  stageLibrary             StageLibrary              @relation(fields: [stageLibraryId], references: [id], onDelete: Cascade)
-  order                    Int
-  isEnabled                Boolean                   @default(true)
-  isFinal                  Boolean                   @default(false)
-  createdAt                DateTime                  @default(now())
-  updatedAt                DateTime                  @updatedAt
-  applicationWorkflows     ApplicationWorkflow[]
-  workflowHistoriesFrom    WorkflowHistory[]         @relation("FromStage")
-  workflowHistoriesTo      WorkflowHistory[]         @relation("ToStage")
-  assessmentId             String?
-  assessment               Assessment?               @relation(fields: [assessmentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  id                    String                @id @default(cuid())
+  workflowId            String
+  workflow              Workflow              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stageLibraryId        String
+  stageLibrary          StageLibrary          @relation(fields: [stageLibraryId], references: [id], onDelete: Cascade)
+  order                 Int
+  isEnabled             Boolean               @default(true)
+  isFinal               Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  applicationWorkflows  ApplicationWorkflow[]
+  workflowHistoriesFrom WorkflowHistory[]     @relation("FromStage")
+  workflowHistoriesTo   WorkflowHistory[]     @relation("ToStage")
+  assessmentId          String?
+  assessment            Assessment?           @relation(fields: [assessmentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  interviewId           String?
+  interview             Interview?            @relation(fields: [interviewId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@unique([workflowId, order])
   @@unique([workflowId, stageLibraryId])
   @@index([workflowId])
   @@index([stageLibraryId])
   @@index([assessmentId])
+  @@index([interviewId])
 }
 
 model ApplicationWorkflow {
@@ -949,10 +959,10 @@ model Assessment {
   archivedAt   DateTime?
 
   // Relations
-  sections       AssessmentSection[]
-  attempts       AssessmentAttempt[]
-  jobs           JobAssessment[]
-  workflowStages WorkflowStage[]
+  sections              AssessmentSection[]
+  attempts              AssessmentAttempt[]
+  jobs                  JobAssessment[]
+  workflowStages        WorkflowStage[]
   assessmentInvitations AssessmentInvitation[]
 
   @@index([companyId])
@@ -1081,18 +1091,186 @@ enum InvitationStatus {
 }
 
 model AssessmentInvitation {
-  id            String           @id @default(cuid())
-  applicationId String
-  application   Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  assessmentId  String
-  assessment    Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
-  token         String           @unique
-  status        InvitationStatus @default(PENDING)
-  idempotencyKey String?         @unique
-  expiresAt     DateTime
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id             String           @id @default(cuid())
+  applicationId  String
+  application    Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  assessmentId   String
+  assessment     Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  token          String           @unique
+  status         InvitationStatus @default(PENDING)
+  idempotencyKey String?          @unique
+  expiresAt      DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@index([applicationId])
   @@index([assessmentId])
+}
+
+// ==========================================
+// INTERVIEW MODULE
+// ==========================================
+
+enum InterviewType {
+  AI
+  NORMAL
+}
+
+enum InterviewMode {
+  INDIVIDUAL
+  GROUP
+}
+
+enum InterviewStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum InterviewSessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum InterviewAssignmentCreationSource {
+  AUTOMATIC
+  MANUAL
+}
+
+enum InterviewParticipantType {
+  CANDIDATE
+  INTERVIEWER
+}
+
+model Interview {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   CompanyMember @relation("InterviewCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  title           String
+  description     String?
+  instructions    String?
+  type            InterviewType
+  mode            InterviewMode
+  status          InterviewStatus @default(DRAFT)
+  durationMinutes Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  jobInterviews   JobInterview[]
+  sessions        InterviewSession[]
+  assignments     InterviewAssignment[]
+  workflowStages  WorkflowStage[]
+  aiConfiguration AIInterviewConfiguration?
+
+  @@index([companyId])
+  @@index([createdById])
+  @@index([status])
+}
+
+model JobInterview {
+  jobId        String
+  job          Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  interviewId  String
+  interview    Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  displayOrder Int       @default(0)
+  isMandatory  Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  @@id([jobId, interviewId])
+  @@index([jobId])
+  @@index([interviewId])
+}
+
+model InterviewAssignment {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+
+  creationSource InterviewAssignmentCreationSource
+
+  assignedById String?
+  assignedBy   CompanyMember? @relation("InterviewAssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessionParticipants InterviewSessionParticipant[]
+
+  @@unique([interviewId, applicationId])
+  @@index([interviewId])
+  @@index([applicationId])
+  @@index([assignedById])
+}
+
+model InterviewSession {
+  id          String    @id @default(cuid())
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  status InterviewSessionStatus @default(SCHEDULED)
+
+  scheduledAt DateTime
+  startedAt   DateTime?
+  endedAt     DateTime?
+
+  roomId String? // For normal live sessions
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants InterviewSessionParticipant[]
+
+  @@index([interviewId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model InterviewSessionParticipant {
+  id              String                   @id @default(cuid())
+  sessionId       String
+  session         InterviewSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participantType InterviewParticipantType
+
+  assignmentId String?
+  assignment   InterviewAssignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  companyMemberId String?
+  companyMember   CompanyMember? @relation(fields: [companyMemberId], references: [id], onDelete: Cascade)
+
+  hasJoined Boolean   @default(false)
+  joinedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sessionId, assignmentId])
+  @@unique([sessionId, companyMemberId])
+  @@index([sessionId])
+  @@index([assignmentId])
+  @@index([companyMemberId])
+}
+
+model AIInterviewConfiguration {
+  id          String    @id @default(cuid())
+  interviewId String    @unique
+  interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  systemPrompt      String?
+  evaluationMetrics Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([interviewId])
 }
