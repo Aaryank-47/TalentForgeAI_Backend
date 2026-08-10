@@ -3,6 +3,7 @@ import { z } from "zod";
 
 dotenv.config({
     path: "src/config/.env",
+    override: true,
 });
 
 const envSchema = z.object({

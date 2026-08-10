@@ -4,6 +4,7 @@ import type { Application, Request, Response } from 'express';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import apiRouter from './routes/index.js';
 import compression from 'compression';
 
@@ -11,11 +12,15 @@ import { requestLogger } from './common/middleware/requestLogger.middleware.js'
 import { notFoundMiddleware } from './common/middleware/notFound.middleware.js'
 import { errorMiddleware } from './common/middleware/error.middleware.js';
 import { globalRateLimiter } from "./common/middleware/rateLimit.middleware.js";
+import env from './config/env.js';
 
 
 const app: Application = express();
 
-
+app.use(cors({
+    origin: env.app.frontendUrl || 'http://localhost:5173',
+    credentials: true,
+}));
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
@@ -31,7 +36,7 @@ app.get('/', (req: Request, res: Response) => {
         message: "TalentForge AI Backend Running"
     })
 })
-
+    
 app.use("/api/v1", apiRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

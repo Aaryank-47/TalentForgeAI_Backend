@@ -4,3 +4,4 @@ node_modules
 src/config/.env
 /src/generated/prisma
 prisma/seed.ts
+backend_architecture_report.md
