@@ -117,4 +117,71 @@ describe("Interviews API Service tests", () => {
         expect(aiConfig).toBeDefined();
         expect(aiConfig?.systemPrompt).toBe(aiInterviewData.aiConfiguration.systemPrompt);
     });
+
+    test("should retrieve paginated list of interviews", async () => {
+        const query = {
+            page: "1",
+            limit: "10",
+            sortBy: "createdAt",
+            sortOrder: "desc" as const
+        };
+        const result = await InterviewsServices.getCompanyInterviews(company.id, query);
+
+        expect(result).toBeDefined();
+        expect(Array.isArray(result.items)).toBe(true);
+        expect(result.pagination).toBeDefined();
+        expect(result.pagination.totalItems).toBeGreaterThanOrEqual(1);
+    });
+
+    test("should retrieve a single interview by ID", async () => {
+        // Create an interview first
+        const newInt = await InterviewsServices.createInterview(company.id, companyMember.id, {
+            title: "Test GET BY ID",
+            type: InterviewType.NORMAL,
+            mode: InterviewMode.INDIVIDUAL
+        });
+
+        const result = await InterviewsServices.getInterviewById(company.id, newInt.id);
+
+        expect(result).toBeDefined();
+        expect(result.id).toBe(newInt.id);
+        expect(result.title).toBe("Test GET BY ID");
+        expect(Array.isArray(result.jobs)).toBe(true);
+    });
+
+    test("should update an interview", async () => {
+        // Create an interview
+        const newInt = await InterviewsServices.createInterview(company.id, companyMember.id, {
+            title: "Test UPDATE",
+            type: InterviewType.NORMAL,
+            mode: InterviewMode.INDIVIDUAL
+        });
+
+        const updateData = {
+            title: "Test UPDATE - Modified",
+            durationMinutes: 90
+        };
+
+        const result = await InterviewsServices.updateInterview(company.id, newInt.id, updateData);
+
+        expect(result).toBeDefined();
+        expect(result.id).toBe(newInt.id);
+        expect(result.title).toBe(updateData.title);
+        expect(result.durationMinutes).toBe(updateData.durationMinutes);
+    });
+
+    test("should archive an interview", async () => {
+        // Create an interview
+        const newInt = await InterviewsServices.createInterview(company.id, companyMember.id, {
+            title: "Test ARCHIVE",
+            type: InterviewType.NORMAL,
+            mode: InterviewMode.INDIVIDUAL
+        });
+
+        const result = await InterviewsServices.archiveInterview(company.id, newInt.id);
+
+        expect(result).toBeDefined();
+        expect(result.id).toBe(newInt.id);
+        expect(result.status).toBe("ARCHIVED");
+    });
 });
