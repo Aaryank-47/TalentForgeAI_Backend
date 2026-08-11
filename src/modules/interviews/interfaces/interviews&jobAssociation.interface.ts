@@ -89,3 +89,54 @@ export interface ArchiveInterviewResponse {
     id: string;
     status: string;
 }
+
+export interface CreateJobInterviewData {
+    jobId: string;
+    interviewId: string;
+    displayOrder: number;
+    isMandatory: boolean;
+}
+
+export interface JobInterviewResponse {
+    jobId: string;
+    interviewId: string;
+    displayOrder: number;
+    isMandatory: boolean;
+}
+
+export interface JobInterviewWithInterviewResponse extends JobInterviewResponse {
+    interview: {
+        id: string;
+        title: string;
+        type: string;
+        mode: string;
+        durationMinutes: number | null;
+        status: string;
+    };
+}
+
+export interface RemoveJobInterviewResponse {
+    jobId: string;
+    interviewId: string;
+}
+
+export const jobInterviewWithInterviewSelect = {
+    jobId: true,
+    interviewId: true,
+    displayOrder: true,
+    isMandatory: true,
+    interview: {
+        select: {
+            id: true,
+            title: true,
+            type: true,
+            mode: true,
+            durationMinutes: true,
+            status: true,
+        }
+    }
+} satisfies Prisma.JobInterviewSelect;
+
+export type JobInterviewWithInterviewPayload = Prisma.JobInterviewGetPayload<{
+    select: typeof jobInterviewWithInterviewSelect;
+}>;

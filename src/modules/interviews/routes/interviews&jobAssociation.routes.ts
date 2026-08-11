@@ -1,10 +1,13 @@
 import { Router } from "express";
-import { InterviewsController } from "../controller/interviews&jobAssociation.controller.js";
+import { InterviewsController, JobInterviewsController } from "../controller/interviews&jobAssociation.controller.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
-import { 
+import {
     createInterviewDto,
     interviewListQueryDto,
-    updateInterviewDto
+    updateInterviewDto,
+    attachInterviewToJobDto,
+    reorderJobInterviewsDto,
+    changeInterviewStatusDto
 } from "../dto/interviews&jobAssociation.dto.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
@@ -48,12 +51,54 @@ router.patch(
     InterviewsController.updateInterview
 );
 
-router.delete(
-    "/:companyId/interviews/:interviewId",
+router.patch(
+    "/:companyId/interviews/:interviewId/status",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
     loadCompanyMembership,
-    InterviewsController.archiveInterview
+    validate(changeInterviewStatusDto, "body"),
+    InterviewsController.changeInterviewStatus
+);
+
+// --- Job-Interview Association Routes --- //
+
+router.post(
+    "/:companyId/jobs/:jobId/interviews",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    validate(attachInterviewToJobDto, "body"),
+    JobInterviewsController.attachInterview
+);
+
+router.get(
+    "/company/:companyId/jobs/:jobId/interviews",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    JobInterviewsController.getInterviews
+);
+
+router.delete(
+    "/company/:companyId/jobs/:jobId/interviews/:interviewId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    JobInterviewsController.removeInterview
+);
+
+router.patch(
+    "/company/:companyId/jobs/:jobId/interviews/order",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    validate(reorderJobInterviewsDto, "body"),
+    JobInterviewsController.reorderInterviews
+);
+
+router.get(
+    "/debug/job-interviews/all",
+    JobInterviewsController.getAllJobInterviews
 );
 
 export default router;

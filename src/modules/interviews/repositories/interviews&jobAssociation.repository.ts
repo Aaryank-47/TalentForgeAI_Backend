@@ -1,13 +1,16 @@
 import type { CreateInterviewDto } from "../dto/interviews&jobAssociation.dto.js";
 import prisma from "../../../config/database.js";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, InterviewStatus } from "@prisma/client";
 import {
     interviewSelect,
     type InterviewResponse,
     interviewListSelect,
     type InterviewSummary,
     interviewDetailSelect,
-    type InterviewDetailPayload
+    type InterviewDetailPayload,
+    type CreateJobInterviewData,
+    type JobInterviewWithInterviewPayload,
+    jobInterviewWithInterviewSelect
 } from "../interfaces/interviews&jobAssociation.interface.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 
@@ -81,9 +84,10 @@ export class InterviewsRepositories {
         });
     }
 
-    static async archiveInterview(
+    static async changeInterviewStatus(
         companyId: string,
-        interviewId: string
+        interviewId: string,
+        status: InterviewStatus
     ) {
         return prisma.interview.update({
             where: {
@@ -91,12 +95,92 @@ export class InterviewsRepositories {
                 companyId
             },
             data: {
-                status: "ARCHIVED"
+                status
             },
             select: {
                 id: true,
                 status: true
             }
         });
+    }
+}
+
+export class JobInterviewsRepositories {
+    static async createJobInterview(data: CreateJobInterviewData) {
+        return prisma.jobInterview.create({
+            data
+        });
+    }
+
+    static async findJobInterviews(jobId: string): Promise<JobInterviewWithInterviewPayload[]> {
+        return prisma.jobInterview.findMany({
+            where: { jobId },
+            orderBy: { displayOrder: 'asc' },
+            select: jobInterviewWithInterviewSelect
+        });
+    }
+
+    static async findAllJobInterviews() {
+        return prisma.jobInterview.findMany({
+            include: { interview: true }
+        });
+    }
+
+    static async findJobInterview(jobId: string, interviewId: string) {
+        return prisma.jobInterview.findUnique({
+            where: {
+                jobId_interviewId: {
+                    jobId,
+                    interviewId
+                }
+            }
+        });
+    }
+
+    static async findLastJobInterview(jobId: string) {
+        return prisma.jobInterview.findFirst({
+            where: { jobId },
+            orderBy: { displayOrder: 'desc' }
+        });
+    }
+
+    static async deleteJobInterview(jobId: string, interviewId: string) {
+        return prisma.jobInterview.delete({
+            where: {
+                jobId_interviewId: {
+                    jobId,
+                    interviewId
+                }
+            }
+        });
+    }
+
+    static async deleteAllJobInterviewsByInterviewId(interviewId: string) {
+        return prisma.jobInterview.deleteMany({
+            where: {
+                interviewId
+            }
+        });
+    }
+
+    static async updateJobInterviewOrders(
+        jobId: string,
+        orders: { interviewId: string; displayOrder: number }[]
+    ) {
+        return prisma.$transaction(
+            orders.map(order => 
+                prisma.jobInterview.update({
+                    where: {
+                        jobId_interviewId: {
+                            jobId,
+                            interviewId: order.interviewId
+                        }
+                    },
+                    data: {
+                        displayOrder: order.displayOrder
+                    }
+                })
+            )
+        );
     }
 }

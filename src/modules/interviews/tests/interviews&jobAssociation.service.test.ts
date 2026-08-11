@@ -6,7 +6,7 @@ import {
     afterAll,
 } from "@jest/globals";
 import prisma, { closeDatabase } from "../../../config/database.js";
-import { InterviewsServices } from "../services/interviews&jobAssociation.service.js";
+import { InterviewsServices, JobInterviewsServices } from "../services/interviews&jobAssociation.service.js";
 import { UserRole, CompanyStatus, InterviewType, InterviewMode } from "@prisma/client";
 
 describe("Interviews API Service tests", () => {
@@ -48,9 +48,6 @@ describe("Interviews API Service tests", () => {
         });
     });
 
-    afterAll(async () => {
-        await closeDatabase();
-    });
 
     test("should successfully create a NORMAL interview", async () => {
         const interviewData = {
@@ -170,7 +167,7 @@ describe("Interviews API Service tests", () => {
         expect(result.durationMinutes).toBe(updateData.durationMinutes);
     });
 
-    test("should archive an interview", async () => {
+    test("should change interview status to ARCHIVED", async () => {
         // Create an interview
         const newInt = await InterviewsServices.createInterview(company.id, companyMember.id, {
             title: "Test ARCHIVE",
@@ -178,10 +175,153 @@ describe("Interviews API Service tests", () => {
             mode: InterviewMode.INDIVIDUAL
         });
 
-        const result = await InterviewsServices.archiveInterview(company.id, newInt.id);
+        const result = await InterviewsServices.changeInterviewStatus(company.id, newInt.id, "ARCHIVED" as any);
 
         expect(result).toBeDefined();
         expect(result.id).toBe(newInt.id);
         expect(result.status).toBe("ARCHIVED");
     });
+});
+
+describe("JobInterviewsServices tests", () => {
+    let employerUser: any;
+    let company: any;
+    let companyMember: any;
+    let job: any;
+    let interview1: any;
+    let interview2: any;
+
+    beforeAll(async () => {
+        const testId = `test_job_int_${Date.now()}`;
+
+        employerUser = await prisma.user.create({
+            data: {
+                email: `employer_${testId}@example.com`,
+                password: "hashedpassword",
+                role: UserRole.EMPLOYER,
+                status: "ACTIVE"
+            }
+        });
+
+        company = await prisma.company.create({
+            data: {
+                companyName: `Test Company ${testId}`,
+                slug: `test-company-${testId}`,
+                status: CompanyStatus.ACTIVE,
+                isVerified: true
+            }
+        });
+
+        companyMember = await prisma.companyMember.create({
+            data: {
+                userId: employerUser.id,
+                companyId: company.id,
+                role: "ADMIN",
+                status: "ACTIVE"
+            }
+        });
+
+        job = await prisma.job.create({
+            data: {
+                companyId: company.id,
+                title: "Backend Engineer",
+                slug: `backend-engineer-${testId}`,
+                description: "Test job description",
+                employmentType: "FULL_TIME",
+                workplaceType: "REMOTE",
+                createdById: companyMember.id
+            }
+        });
+
+        interview1 = await InterviewsServices.createInterview(company.id, companyMember.id, {
+            title: "Technical Interview",
+            type: InterviewType.NORMAL,
+            mode: InterviewMode.INDIVIDUAL
+        });
+        
+        await prisma.interview.update({
+            where: { id: interview1.id },
+            data: { status: 'ACTIVE' }
+        });
+
+        interview2 = await InterviewsServices.createInterview(company.id, companyMember.id, {
+            title: "HR Interview",
+            type: InterviewType.NORMAL,
+            mode: InterviewMode.INDIVIDUAL
+        });
+
+        await prisma.interview.update({
+            where: { id: interview2.id },
+            data: { status: 'ACTIVE' }
+        });
+    });
+
+
+    test("should attach an interview to a job", async () => {
+        const result = await JobInterviewsServices.attachInterviewToJob(company.id, job.id, {
+            interviewId: interview1.id,
+            displayOrder: 1,
+            isMandatory: true
+        });
+
+        expect(result).toBeDefined();
+        expect(result.jobId).toBe(job.id);
+        expect(result.interviewId).toBe(interview1.id);
+        expect(result.displayOrder).toBe(1);
+    });
+
+    test("should prevent attaching the same interview twice", async () => {
+        await expect(JobInterviewsServices.attachInterviewToJob(company.id, job.id, {
+            interviewId: interview1.id,
+            displayOrder: 2
+        })).rejects.toThrow("Interview is already attached to this job");
+    });
+
+    test("should attach a second interview with default displayOrder", async () => {
+        const result = await JobInterviewsServices.attachInterviewToJob(company.id, job.id, {
+            interviewId: interview2.id
+        });
+
+        expect(result).toBeDefined();
+        expect(result.displayOrder).toBe(2);
+    });
+
+    test("should get all job interviews ordered by displayOrder", async () => {
+        const results = await JobInterviewsServices.getJobInterviews(company.id, job.id);
+        
+        expect(results.length).toBe(2);
+        expect(results[0]?.interviewId).toBe(interview1.id);
+        expect(results[1]?.interviewId).toBe(interview2.id);
+        expect(results[0]?.interview.title).toBe("Technical Interview");
+    });
+
+    test("should reorder job interviews", async () => {
+        const results = await JobInterviewsServices.reorderJobInterviews(company.id, job.id, {
+            interviews: [
+                { interviewId: interview1.id, displayOrder: 2 },
+                { interviewId: interview2.id, displayOrder: 1 }
+            ]
+        });
+
+        expect(results.length).toBe(2);
+        expect(results[0]?.interviewId).toBe(interview2.id); // Since it has displayOrder 1 now
+        expect(results[0]?.displayOrder).toBe(1);
+        expect(results[1]?.interviewId).toBe(interview1.id);
+        expect(results[1]?.displayOrder).toBe(2);
+    });
+
+    test("should remove an interview from a job", async () => {
+        const result = await JobInterviewsServices.removeInterviewFromJob(company.id, job.id, interview1.id);
+
+        expect(result).toBeDefined();
+        expect(result.interviewId).toBe(interview1.id);
+
+        const currentInterviews = await JobInterviewsServices.getJobInterviews(company.id, job.id);
+        expect(currentInterviews.length).toBe(1);
+        expect(currentInterviews[0]?.interviewId).toBe(interview2.id);
+    });
+});
+
+afterAll(async () => {
+    await closeDatabase();
 });

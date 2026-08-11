@@ -53,3 +53,28 @@ export const updateInterviewDto = z.object({
 });
 
 export type UpdateInterviewDto = z.infer<typeof updateInterviewDto>;
+
+export const changeInterviewStatusDto = z.object({
+    status: interviewStatusValidator
+});
+
+export type ChangeInterviewStatusDto = z.infer<typeof changeInterviewStatusDto>;
+
+export const attachInterviewToJobDto = z.object({
+    interviewId: z.string().cuid({ message: "Invalid interview ID" }),
+    displayOrder: z.number().int().min(1).optional(),
+    isMandatory: z.boolean().optional()
+});
+
+export type AttachInterviewToJobRequest = z.infer<typeof attachInterviewToJobDto>;
+
+export const reorderJobInterviewsDto = z.object({
+    interviews: z.array(
+        z.object({
+            interviewId: z.string().cuid({ message: "Invalid interview ID" }),
+            displayOrder: z.number().int().min(1)
+        })
+    ).min(1, { message: "At least one interview must be provided for reordering" })
+});
+
+export type ReorderJobInterviewsRequest = z.infer<typeof reorderJobInterviewsDto>;
