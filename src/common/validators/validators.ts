@@ -25,7 +25,13 @@ import {
   AttemptStatus,
   EvaluationStatus,
   ReviewStatus,
-  AssessmentStatus
+  AssessmentStatus,
+  InterviewType,
+  InterviewMode,
+  InterviewStatus,
+  InterviewSessionStatus,
+  InterviewAssignmentCreationSource,
+  InterviewParticipantType
 } from "@prisma/client";
 
 // General / User
@@ -990,3 +996,59 @@ export const attachmentUrlsValidator = z.array(z.string().url("Please enter vali
 export const codeResponseValidator = z.string().optional();
 export const submissionUrlValidator = z.string().url("Please enter a valid submission URL").optional();
 export const metaValidator = z.any().optional();
+
+// Interviews
+export const interviewIdValidator = uuidValidator;
+export const interviewTitleValidator = z
+  .string()
+  .trim()
+  .min(3, "Title must be at least 3 characters long")
+  .max(150, "Title must be at most 150 characters long");
+export const interviewDescriptionValidator = z
+  .string()
+  .trim()
+  .max(1000, "Description must be at most 1000 characters long")
+  .optional();
+export const interviewInstructionsValidator = z
+  .string()
+  .trim()
+  .max(2000, "Instructions must be at most 2000 characters long")
+  .optional();
+export const interviewTypeValidator = z.nativeEnum(InterviewType);
+export const interviewModeValidator = z.nativeEnum(InterviewMode);
+export const interviewStatusValidator = z.nativeEnum(InterviewStatus);
+export const interviewDurationMinutesValidator = z
+  .number()
+  .int("Duration must be an integer")
+  .positive("Duration must be positive")
+  .optional();
+
+// Job Interview
+export const jobInterviewDisplayOrderValidator = z
+  .number()
+  .int("Display order must be an integer")
+  .nonnegative("Display order cannot be negative");
+export const jobInterviewIsMandatoryValidator = z.boolean();
+
+// Interview Assignment
+export const interviewAssignmentIdValidator = uuidValidator;
+export const interviewAssignmentCreationSourceValidator = z.nativeEnum(InterviewAssignmentCreationSource);
+
+// Interview Session
+export const interviewSessionIdValidator = uuidValidator;
+export const interviewSessionStatusValidator = z.nativeEnum(InterviewSessionStatus);
+export const interviewSessionScheduledAtValidator = z.coerce.date();
+export const interviewSessionStartedAtValidator = z.coerce.date().optional();
+export const interviewSessionEndedAtValidator = z.coerce.date().optional();
+export const interviewSessionRoomIdValidator = z.string().trim().optional();
+
+// Interview Session Participant
+export const interviewSessionParticipantIdValidator = uuidValidator;
+export const interviewParticipantTypeValidator = z.nativeEnum(InterviewParticipantType);
+export const interviewParticipantHasJoinedValidator = z.boolean();
+export const interviewParticipantJoinedAtValidator = z.coerce.date().optional();
+
+// AI Interview Configuration
+export const aiInterviewConfigurationIdValidator = uuidValidator;
+export const aiInterviewSystemPromptValidator = z.string().trim().optional();
+export const aiInterviewEvaluationMetricsValidator = z.any().optional();
