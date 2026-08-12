@@ -1,4 +1,4 @@
-import type { CreateInterviewDto } from "../dto/interviews&jobAssociation.dto.js";
+import type { CreateInterviewDto } from "../dto/interviews.dto.js";
 import prisma from "../../../config/database.js";
 import type { Prisma, InterviewStatus } from "@prisma/client";
 import {
@@ -11,7 +11,7 @@ import {
     type CreateJobInterviewData,
     type JobInterviewWithInterviewPayload,
     jobInterviewWithInterviewSelect
-} from "../interfaces/interviews&jobAssociation.interface.js";
+} from "../interfaces/interviews.interface.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 
 export class InterviewsRepositories {
@@ -168,7 +168,7 @@ export class JobInterviewsRepositories {
         orders: { interviewId: string; displayOrder: number }[]
     ) {
         return prisma.$transaction(
-            orders.map(order => 
+            orders.map(order =>
                 prisma.jobInterview.update({
                     where: {
                         jobId_interviewId: {

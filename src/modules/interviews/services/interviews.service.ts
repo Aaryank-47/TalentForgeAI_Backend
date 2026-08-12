@@ -1,5 +1,5 @@
-import { InterviewsRepositories, JobInterviewsRepositories } from "../repositories/interviews&jobAssociation.repository.js";
-import type { CreateInterviewDto, InterviewListQueryDto, UpdateInterviewDto, AttachInterviewToJobRequest, ReorderJobInterviewsRequest } from "../dto/interviews&jobAssociation.dto.js";
+import { InterviewsRepositories, JobInterviewsRepositories } from "../repositories/interviews.repository.js";
+import type { CreateInterviewDto, InterviewListQueryDto, UpdateInterviewDto, AttachInterviewToJobRequest, ReorderJobInterviewsRequest } from "../dto/interviews.dto.js";
 import type {
     InterviewResponse,
     PaginatedInterviewResponse,
@@ -8,7 +8,7 @@ import type {
     JobInterviewResponse,
     JobInterviewWithInterviewResponse,
     RemoveJobInterviewResponse
-} from "../interfaces/interviews&jobAssociation.interface.js";
+} from "../interfaces/interviews.interface.js";
 import { JobsRepository } from "../../jobs/repository/jobs.repository.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";

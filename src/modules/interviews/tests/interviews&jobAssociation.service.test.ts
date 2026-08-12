@@ -6,7 +6,7 @@ import {
     afterAll,
 } from "@jest/globals";
 import prisma, { closeDatabase } from "../../../config/database.js";
-import { InterviewsServices, JobInterviewsServices } from "../services/interviews&jobAssociation.service.js";
+import { InterviewsServices, JobInterviewsServices } from "../services/interviews.service.js";
 import { UserRole, CompanyStatus, InterviewType, InterviewMode } from "@prisma/client";
 
 describe("Interviews API Service tests", () => {
@@ -105,7 +105,7 @@ describe("Interviews API Service tests", () => {
         expect(result.id).toBeDefined();
         expect(result.title).toBe(aiInterviewData.title);
         expect(result.type).toBe(InterviewType.AI);
-        
+
         // Verify that AI configuration is created
         const aiConfig = await prisma.aIInterviewConfiguration.findUnique({
             where: { interviewId: result.id }
@@ -238,7 +238,7 @@ describe("JobInterviewsServices tests", () => {
             type: InterviewType.NORMAL,
             mode: InterviewMode.INDIVIDUAL
         });
-        
+
         await prisma.interview.update({
             where: { id: interview1.id },
             data: { status: 'ACTIVE' }
@@ -288,7 +288,7 @@ describe("JobInterviewsServices tests", () => {
 
     test("should get all job interviews ordered by displayOrder", async () => {
         const results = await JobInterviewsServices.getJobInterviews(company.id, job.id);
-        
+
         expect(results.length).toBe(2);
         expect(results[0]?.interviewId).toBe(interview1.id);
         expect(results[1]?.interviewId).toBe(interview2.id);

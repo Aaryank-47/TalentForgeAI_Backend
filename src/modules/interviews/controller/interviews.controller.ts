@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
-import { InterviewsServices, JobInterviewsServices } from "../services/interviews&jobAssociation.service.js";
+import { InterviewsServices, JobInterviewsServices } from "../services/interviews.service.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 
 export class InterviewsController {

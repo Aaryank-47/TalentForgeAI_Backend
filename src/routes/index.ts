@@ -16,7 +16,7 @@ import assessmentAssignmentRoutes from '../modules/assessment/routes/assessmentA
 import assessmentAttemptRoutes from '../modules/assessment/routes/candidateAssessment.routes.js';
 import assessmentEvaluationRoutes from '../modules/assessment/routes/assessmentEvaluation.routes.js';
 import atsIntegrationRoutes from '../modules/assessment/routes/atsIntegration.routes.js';
-import interviewsRoutes from '../modules/interviews/routes/interviews&jobAssociation.routes.js';
+import interviewsRoutes from '../modules/interviews/routes/interviews.routes.js';
 
 const router = Router();
 

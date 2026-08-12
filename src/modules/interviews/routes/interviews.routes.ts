@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { InterviewsController, JobInterviewsController } from "../controller/interviews&jobAssociation.controller.js";
+import { InterviewsController, JobInterviewsController } from "../controller/interviews.controller.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import {
     createInterviewDto,
@@ -8,7 +8,7 @@ import {
     attachInterviewToJobDto,
     reorderJobInterviewsDto,
     changeInterviewStatusDto
-} from "../dto/interviews&jobAssociation.dto.js";
+} from "../dto/interviews.dto.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { UserRole } from "@prisma/client"
@@ -19,7 +19,7 @@ const router = Router();
 router.post(
     "/:companyId/create/interview",
     authMiddleware,
-    authorize(UserRole.EMPLOYER,UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
     loadCompanyMembership,
     validate(createInterviewDto, "body"),
     InterviewsController.createInterview
