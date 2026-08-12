@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { InterviewsController, JobInterviewsController } from "../controller/interviews.controller.js";
+import { InterviewsController, JobInterviewsController, InterviewAssignmentsController } from "../controller/interviews.controller.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import {
     createInterviewDto,
@@ -7,7 +7,9 @@ import {
     updateInterviewDto,
     attachInterviewToJobDto,
     reorderJobInterviewsDto,
-    changeInterviewStatusDto
+    changeInterviewStatusDto,
+    createInterviewAssignmentsDto,
+    getInterviewAssignmentsQueryDto
 } from "../dto/interviews.dto.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
@@ -101,4 +103,41 @@ router.get(
     JobInterviewsController.getAllJobInterviews
 );
 
+// --- Interview Assignments Routes --- //
+
+router.post(
+    "/:companyId/interviews/:interviewId/assignments",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    validate(createInterviewAssignmentsDto, "body"),
+    InterviewAssignmentsController.createAssignments
+);
+
+router.get(
+    "/:companyId/interviews/:interviewId/assignments",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    validate(getInterviewAssignmentsQueryDto, "query"),
+    InterviewAssignmentsController.getAssignments
+);
+
+router.get(
+    "/:companyId/interviews/:interviewId/assignments/:assignmentId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewAssignmentsController.getAssignmentById
+);
+
+router.delete(
+    "/:companyId/interviews/:interviewId/assignments/:assignmentId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewAssignmentsController.deleteAssignment
+);
+
 export default router;
+

@@ -1,19 +1,30 @@
-import { InterviewsRepositories, JobInterviewsRepositories } from "../repositories/interviews.repository.js";
-import type { CreateInterviewDto, InterviewListQueryDto, UpdateInterviewDto, AttachInterviewToJobRequest, ReorderJobInterviewsRequest } from "../dto/interviews.dto.js";
+import { InterviewsRepositories, JobInterviewsRepositories, InterviewAssignmentsRepositories } from "../repositories/interviews.repository.js";
+import { ApplicationRepository } from "../../application/repositories/application.repository.js";
+import type { 
+    CreateInterviewDto, 
+    InterviewListQueryDto, 
+    UpdateInterviewDto, 
+    AttachInterviewToJobRequest, 
+    ReorderJobInterviewsRequest, 
+    CreateInterviewAssignmentsRequest, 
+    GetInterviewAssignmentsQueryDto } from "../dto/interviews.dto.js";
 import type {
     InterviewResponse,
     PaginatedInterviewResponse,
     InterviewDetailResponse,
-    ArchiveInterviewResponse,
     JobInterviewResponse,
     JobInterviewWithInterviewResponse,
-    RemoveJobInterviewResponse
+    RemoveJobInterviewResponse,
+    InterviewAssignmentResponse, 
+    PaginatedInterviewAssignmentResponse, 
+    InterviewAssignmentDetailResponse 
 } from "../interfaces/interviews.interface.js";
 import { JobsRepository } from "../../jobs/repository/jobs.repository.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-import { JobStatus, InterviewStatus } from "@prisma/client";
+import { ApplicationStatus, JobStatus, InterviewStatus, InterviewAssignmentCreationSource } from "@prisma/client";
+import { ConflictError } from "../../../common/errors/ConflictError.js";
 
 export class InterviewsServices {
     static async createInterview(
@@ -268,5 +279,131 @@ export class JobInterviewsServices {
 
     static async getAllJobInterviews(): Promise<any> {
         return JobInterviewsRepositories.findAllJobInterviews();
+    }
+}
+
+export class InterviewAssignmentsServices {
+    static async createInterviewAssignments(
+        companyId: string,
+        companyMemberId: string,
+        interviewId: string,
+        data: CreateInterviewAssignmentsRequest
+    ): Promise<InterviewAssignmentResponse[]> {
+        const interview = await InterviewsRepositories.getInterviewById(companyId, interviewId);
+        if (!interview) {
+            throw new NotFoundError("Interview not found or does not belong to this company.");
+        }
+
+        if (interview.status !== InterviewStatus.ACTIVE) {
+            throw new BadRequestError(`Cannot assign applications to an interview with status: ${interview.status}`);
+        }
+
+        const applicationIds = [...new Set(data.applicationIds)];
+
+        const applications = await ApplicationRepository.getApplicationsByIds(applicationIds);
+
+        if (applications.length !== applicationIds.length) {
+            throw new NotFoundError("One or more applications not found.");
+        }
+
+        const validJobIds = new Set(interview.jobInterviews.map((j: any) => j.jobId));
+
+        for (const app of applications) {
+            if (!validJobIds.has(app.jobId)) {
+                throw new BadRequestError(`Application ${app.id} belongs to Job ${app.job.title} which is not associated with this Interview.`);
+            }
+
+            if (
+                app.status === ApplicationStatus.REJECTED || 
+                app.status === ApplicationStatus.WITHDRAWN
+            ) {
+                throw new BadRequestError(`Application ${app.id} is in an ineligible state: ${app.status}`);
+            }
+        }
+
+        const existingAssignments = await InterviewAssignmentsRepositories.findExistingAssignments(
+            interviewId,
+            applicationIds
+        );
+
+        if (existingAssignments.length > 0) {
+            const conflictIds = existingAssignments.map(ea => ea.applicationId).join(", ");
+            throw new ConflictError(`Conflict: The following applications are already assigned to this interview: ${conflictIds}`);
+        }
+
+        const assignmentsData = applicationIds.map(appId => ({
+            interviewId,
+            applicationId: appId,
+            creationSource: InterviewAssignmentCreationSource.MANUAL,
+            assignedById: companyMemberId
+        }));
+
+        return InterviewAssignmentsRepositories.createInterviewAssignments(assignmentsData);
+    }
+
+    static async getInterviewAssignments(
+        companyId: string,
+        interviewId: string,
+        query: GetInterviewAssignmentsQueryDto
+    ): Promise<PaginatedInterviewAssignmentResponse> {
+        const interview = await InterviewsRepositories.getInterviewById(companyId, interviewId);
+        if (!interview) {
+            throw new NotFoundError("Interview not found or does not belong to this company.");
+        }
+
+        const pagination = PaginationHelper.getPagination({
+            page: query.page,
+            limit: query.limit
+        });
+
+        const { data, total } = await InterviewAssignmentsRepositories.findInterviewAssignments(
+            interviewId,
+            pagination
+        );
+
+        const paginatedResult = PaginationHelper.buildResponse(data, pagination, total);
+
+        return {
+            items: paginatedResult.data,
+            pagination: paginatedResult.pagination
+        };
+    }
+
+    static async getInterviewAssignment(
+        companyId: string,
+        interviewId: string,
+        assignmentId: string
+    ): Promise<InterviewAssignmentDetailResponse> {
+        const interview = await InterviewsRepositories.getInterviewById(companyId, interviewId);
+        if (!interview) {
+            throw new NotFoundError("Interview not found or does not belong to this company.");
+        }
+
+        const assignment = await InterviewAssignmentsRepositories.findInterviewAssignmentById(interviewId, assignmentId);
+        if (!assignment) {
+            throw new NotFoundError("Interview assignment not found for this interview.");
+        }
+
+        return assignment;
+    }
+
+    static async deleteInterviewAssignment(
+        companyId: string,
+        interviewId: string,
+        assignmentId: string
+    ): Promise<{ assignmentId: string }> {
+        const interview = await InterviewsRepositories.getInterviewById(companyId, interviewId);
+        if (!interview) {
+            throw new NotFoundError("Interview not found or does not belong to this company.");
+        }
+
+        const assignment = await InterviewAssignmentsRepositories.findInterviewAssignmentById(interviewId, assignmentId);
+        if (!assignment) {
+            throw new NotFoundError("Interview assignment not found for this interview.");
+        }
+
+        await InterviewAssignmentsRepositories.deleteInterviewAssignment(assignmentId);
+
+        return { assignmentId };
     }
 }

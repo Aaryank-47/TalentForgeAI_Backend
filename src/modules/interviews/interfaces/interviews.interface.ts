@@ -140,3 +140,93 @@ export const jobInterviewWithInterviewSelect = {
 export type JobInterviewWithInterviewPayload = Prisma.JobInterviewGetPayload<{
     select: typeof jobInterviewWithInterviewSelect;
 }>;
+
+export const interviewAssignmentSelect = {
+    id: true,
+    interviewId: true,
+    applicationId: true,
+    creationSource: true,
+    createdAt: true,
+    application: {
+        select: {
+            id: true,
+            status: true,
+            candidate: {
+                select: {
+                    id: true,
+                    fullName: true
+                }
+            },
+            job: {
+                select: {
+                    id: true,
+                    title: true
+                }
+            }
+        }
+    }
+} satisfies Prisma.InterviewAssignmentSelect;
+
+export type InterviewAssignmentPayload = Prisma.InterviewAssignmentGetPayload<{
+    select: typeof interviewAssignmentSelect;
+}>;
+
+export type InterviewAssignmentResponse = Omit<InterviewAssignmentPayload, 'application'> & {
+    application: {
+        id: string;
+        status: string;
+        candidate: {
+            id: string;
+            fullName: string;
+        };
+        job: {
+            id: string;
+            title: string;
+        };
+    }
+};
+
+export const interviewAssignmentDetailSelect = {
+    ...interviewAssignmentSelect,
+    interview: {
+        select: {
+            id: true,
+            title: true,
+            type: true,
+            mode: true,
+            durationMinutes: true,
+        }
+    }
+} satisfies Prisma.InterviewAssignmentSelect;
+
+export type InterviewAssignmentDetailPayload = Prisma.InterviewAssignmentGetPayload<{
+    select: typeof interviewAssignmentDetailSelect;
+}>;
+
+export type InterviewAssignmentDetailResponse = Omit<InterviewAssignmentDetailPayload, 'application'> & {
+    application: {
+        id: string;
+        status: string;
+        candidate: {
+            id: string;
+            fullName: string;
+        };
+        job: {
+            id: string;
+            title: string;
+        };
+    };
+    interview: {
+        id: string;
+        title: string;
+        type: string;
+        mode: string;
+        durationMinutes: number | null;
+    }
+};
+
+export interface PaginatedInterviewAssignmentResponse {
+    items: InterviewAssignmentResponse[];
+    pagination: PaginationMeta;
+}
+

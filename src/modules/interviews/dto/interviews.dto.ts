@@ -78,3 +78,20 @@ export const reorderJobInterviewsDto = z.object({
 });
 
 export type ReorderJobInterviewsRequest = z.infer<typeof reorderJobInterviewsDto>;
+
+export const createInterviewAssignmentsDto = z.object({
+    applicationIds: z.array(z.string().cuid({ message: "Invalid application ID" }))
+        .min(1, { message: "At least one application ID must be provided" })
+        .refine((ids) => new Set(ids).size === ids.length, {
+            message: "Duplicate application IDs are not allowed",
+        }),
+});
+
+export type CreateInterviewAssignmentsRequest = z.infer<typeof createInterviewAssignmentsDto>;
+
+export const getInterviewAssignmentsQueryDto = z.object({
+    page: z.string().optional(),
+    limit: z.string().optional(),
+});
+
+export type GetInterviewAssignmentsQueryDto = z.infer<typeof getInterviewAssignmentsQueryDto>;

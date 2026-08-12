@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
-import { InterviewsServices, JobInterviewsServices } from "../services/interviews.service.js";
+import { InterviewsServices, JobInterviewsServices, InterviewAssignmentsServices } from "../services/interviews.service.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 
 export class InterviewsController {
@@ -181,3 +181,95 @@ export class JobInterviewsController {
         }
     );
 }
+
+export class InterviewAssignmentsController {
+    static createAssignments = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const companyMemberId = (req as any).companyMember?.id;
+            const interviewId = req.params.interviewId as string;
+
+            if (!companyMemberId) {
+                return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                    success: false,
+                    message: "Unauthorized: Company member not found"
+                });
+            }
+
+            const assignments = await InterviewAssignmentsServices.createInterviewAssignments(
+                companyId,
+                companyMemberId,
+                interviewId,
+                req.body
+            );
+
+            return res.status(201).json({
+                success: true,
+                message: "Applications assigned to interview successfully",
+                data: assignments
+            });
+        }
+    );
+
+    static getAssignments = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const interviewId = req.params.interviewId as string;
+            const query = req.query;
+
+            const result = await InterviewAssignmentsServices.getInterviewAssignments(
+                companyId,
+                interviewId,
+                query
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview assignments fetched successfully",
+                data: result.items,
+                pagination: result.pagination
+            });
+        }
+    );
+
+    static getAssignmentById = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const interviewId = req.params.interviewId as string;
+            const assignmentId = req.params.assignmentId as string;
+
+            const assignment = await InterviewAssignmentsServices.getInterviewAssignment(
+                companyId,
+                interviewId,
+                assignmentId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview assignment fetched successfully",
+                data: assignment
+            });
+        }
+    );
+
+    static deleteAssignment = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const interviewId = req.params.interviewId as string;
+            const assignmentId = req.params.assignmentId as string;
+
+            const result = await InterviewAssignmentsServices.deleteInterviewAssignment(
+                companyId,
+                interviewId,
+                assignmentId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview assignment removed successfully",
+                data: result
+            });
+        }
+    );
+}
+

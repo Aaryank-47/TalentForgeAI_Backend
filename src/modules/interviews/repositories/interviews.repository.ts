@@ -10,7 +10,11 @@ import {
     type InterviewDetailPayload,
     type CreateJobInterviewData,
     type JobInterviewWithInterviewPayload,
-    jobInterviewWithInterviewSelect
+    jobInterviewWithInterviewSelect,
+    interviewAssignmentSelect,
+    interviewAssignmentDetailSelect,
+    type InterviewAssignmentResponse,
+    type InterviewAssignmentDetailResponse
 } from "../interfaces/interviews.interface.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 
@@ -184,3 +188,81 @@ export class JobInterviewsRepositories {
         );
     }
 }
+
+export class InterviewAssignmentsRepositories {
+    static async createInterviewAssignments(
+        assignments: Prisma.InterviewAssignmentCreateManyInput[]
+    ) {
+        return prisma.$transaction(async (tx) => {
+            await tx.interviewAssignment.createMany({
+                data: assignments
+            });
+            
+            // Return the created assignments by looking them up
+            return tx.interviewAssignment.findMany({
+                where: {
+                    OR: assignments.map(a => ({
+                        interviewId: a.interviewId,
+                        applicationId: a.applicationId
+                    }))
+                },
+                select: interviewAssignmentSelect
+            });
+        });
+    }
+
+    static async findInterviewAssignments(
+        interviewId: string,
+        pagination: PaginationResult
+    ): Promise<{ data: InterviewAssignmentResponse[], total: number }> {
+        const where: Prisma.InterviewAssignmentWhereInput = {
+            interviewId
+        };
+
+        const [data, total] = await Promise.all([
+            prisma.interviewAssignment.findMany({
+                where,
+                skip: pagination.skip,
+                take: pagination.take,
+                orderBy: { [pagination.sortBy]: pagination.sortOrder },
+                select: interviewAssignmentSelect
+            }),
+            prisma.interviewAssignment.count({ where })
+        ]);
+
+        return { data: data as InterviewAssignmentResponse[], total };
+    }
+
+    static async findInterviewAssignmentById(
+        interviewId: string,
+        assignmentId: string
+    ): Promise<InterviewAssignmentDetailResponse | null> {
+        return prisma.interviewAssignment.findUnique({
+            where: {
+                id: assignmentId,
+                interviewId
+            },
+            select: interviewAssignmentDetailSelect
+        }) as Promise<InterviewAssignmentDetailResponse | null>;
+    }
+
+    static async findExistingAssignments(
+        interviewId: string,
+        applicationIds: string[]
+    ) {
+        return prisma.interviewAssignment.findMany({
+            where: {
+                interviewId,
+                applicationId: { in: applicationIds }
+            }
+        });
+    }
+
+    static async deleteInterviewAssignment(assignmentId: string) {
+        return prisma.interviewAssignment.delete({
+            where: {
+                id: assignmentId
+            }
+        });
+    }
+}
