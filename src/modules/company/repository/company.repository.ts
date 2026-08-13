@@ -267,6 +267,18 @@ export class CompanyRepository {
         });
     }
 
+    static async findMembersByIds(
+        memberIds: string[]
+    ) {
+        return prisma.companyMember.findMany({
+            where: {
+                id: {
+                    in: memberIds
+                }
+            }
+        });
+    }
+
     static async updateLogo(
         companyId: string,
         logoUrl: string

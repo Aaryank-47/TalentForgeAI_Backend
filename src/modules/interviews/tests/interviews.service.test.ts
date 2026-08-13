@@ -322,6 +322,190 @@ describe("JobInterviewsServices tests", () => {
     });
 });
 
+describe("InterviewSessionsServices & ParticipantsServices tests", () => {
+    let employerUser: any;
+    let company: any;
+    let companyMember: any;
+    let candidateUser: any;
+    let candidate: any;
+    let job: any;
+    let resume: any;
+    let application: any;
+    let interview: any;
+    let assignment: any;
+    let session: any;
+
+    beforeAll(async () => {
+        const testId = `test_sess_${Date.now()}`;
+
+        // Create Employer User
+        employerUser = await prisma.user.create({
+            data: {
+                email: `employer_${testId}@example.com`,
+                password: "hashedpassword",
+                role: UserRole.EMPLOYER,
+                status: "ACTIVE"
+            }
+        });
+
+        // Create Company
+        company = await prisma.company.create({
+            data: {
+                companyName: `Test Company ${testId}`,
+                slug: `test-company-${testId}`,
+                status: CompanyStatus.ACTIVE,
+                isVerified: true
+            }
+        });
+
+        // Add user to company as active member
+        companyMember = await prisma.companyMember.create({
+            data: {
+                userId: employerUser.id,
+                companyId: company.id,
+                role: "ADMIN",
+                status: "ACTIVE"
+            }
+        });
+
+        // Create Candidate User
+        candidateUser = await prisma.user.create({
+            data: {
+                email: `candidate_${testId}@example.com`,
+                password: "hashedpassword",
+                role: UserRole.CANDIDATE,
+                status: "ACTIVE"
+            }
+        });
+
+        candidate = await prisma.candidate.create({
+            data: {
+                userId: candidateUser.id,
+                fullName: "Test Candidate",
+            }
+        });
+
+        job = await prisma.job.create({
+            data: {
+                companyId: company.id,
+                title: "Backend Engineer",
+                slug: `backend-engineer-${testId}`,
+                description: "Test job description",
+                employmentType: "FULL_TIME",
+                workplaceType: "REMOTE",
+                createdById: companyMember.id,
+                status: "PUBLISHED"
+            }
+        });
+
+        resume = await prisma.resume.create({
+            data: {
+                candidateId: candidate.id,
+                resumeName: "resume.pdf",
+                resumeUrl: "https://example.com/resume.pdf",
+                fileSize: 1024
+            }
+        });
+
+        application = await prisma.application.create({
+            data: {
+                candidateId: candidate.id,
+                jobId: job.id,
+                resumeId: resume.id
+            }
+        });
+
+        interview = await prisma.interview.create({
+            data: {
+                title: "Tech Interview",
+                type: InterviewType.NORMAL,
+                mode: InterviewMode.INDIVIDUAL,
+                durationMinutes: 60,
+                companyId: company.id,
+                createdById: companyMember.id,
+                status: "ACTIVE"
+            }
+        });
+
+        // Attach interview to job
+        await prisma.jobInterview.create({
+            data: {
+                jobId: job.id,
+                interviewId: interview.id,
+                displayOrder: 1,
+                isMandatory: true
+            }
+        });
+
+        assignment = await prisma.interviewAssignment.create({
+            data: {
+                interviewId: interview.id,
+                applicationId: application.id,
+                creationSource: "MANUAL",
+                assignedById: companyMember.id
+            }
+        });
+    });
+
+    test("should create an interview session with participants", async () => {
+        const scheduledAt = new Date(Date.now() + 86400000).toISOString(); // Tomorrow
+        
+        const { InterviewSessionsServices } = await import("../services/interviews.service.js");
+
+        session = await InterviewSessionsServices.createSession(
+            company.id,
+            interview.id,
+            {
+                scheduledAt,
+                assignmentIds: [assignment.id],
+                companyMemberIds: [companyMember.id]
+            }
+        );
+
+        expect(session).toBeDefined();
+        expect(session.interviewId).toBe(interview.id);
+        expect(session.status).toBe("SCHEDULED");
+        expect(session.participants).toHaveLength(2);
+        
+        const candidateParticipant = session.participants.find((p: any) => p.participantType === "CANDIDATE");
+        expect(candidateParticipant).toBeDefined();
+        expect(candidateParticipant.assignmentId).toBe(assignment.id);
+
+        const interviewerParticipant = session.participants.find((p: any) => p.participantType === "INTERVIEWER");
+        expect(interviewerParticipant).toBeDefined();
+        expect(interviewerParticipant.companyMemberId).toBe(companyMember.id);
+    });
+
+    test("should get sessions for an interview", async () => {
+        const { InterviewSessionsServices } = await import("../services/interviews.service.js");
+        const sessions = await InterviewSessionsServices.getInterviewSessions(company.id, interview.id);
+        expect(sessions).toBeDefined();
+        expect(sessions.length).toBeGreaterThan(0);
+        expect(sessions[0]?.id).toBe(session.id);
+    });
+
+    test("should update a session schedule", async () => {
+        const { InterviewSessionsServices } = await import("../services/interviews.service.js");
+        const newScheduledAt = new Date(Date.now() + 172800000).toISOString(); // Day after tomorrow
+
+        const updated = await InterviewSessionsServices.updateSession(company.id, session.id, {
+            scheduledAt: newScheduledAt
+        });
+
+        expect(updated).toBeDefined();
+        expect(new Date(updated.scheduledAt).toISOString()).toBe(newScheduledAt);
+    });
+
+    test("should fail to remove participant if not found or session already started (simulated)", async () => {
+        const { InterviewSessionParticipantsServices } = await import("../services/interviews.service.js");
+        
+        await expect(
+            InterviewSessionParticipantsServices.removeParticipant(company.id, session.id, "fake-id")
+        ).rejects.toThrow("Participant not found");
+    });
+});
+
 afterAll(async () => {
     await closeDatabase();
 });
+

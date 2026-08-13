@@ -1,4 +1,4 @@
-import { InterviewsRepositories, JobInterviewsRepositories, InterviewAssignmentsRepositories } from "../repositories/interviews.repository.js";
+import { InterviewsRepositories, JobInterviewsRepositories, InterviewAssignmentsRepositories, InterviewSessionsRepositories, InterviewSessionParticipantsRepositories } from "../repositories/interviews.repository.js";
 import { ApplicationRepository } from "../../application/repositories/application.repository.js";
 import type { 
     CreateInterviewDto, 
@@ -7,7 +7,10 @@ import type {
     AttachInterviewToJobRequest, 
     ReorderJobInterviewsRequest, 
     CreateInterviewAssignmentsRequest, 
-    GetInterviewAssignmentsQueryDto } from "../dto/interviews.dto.js";
+    GetInterviewAssignmentsQueryDto,
+    CreateInterviewSessionRequest,
+    UpdateInterviewSessionRequest,
+    AddSessionParticipantsRequest } from "../dto/interviews.dto.js";
 import type {
     InterviewResponse,
     PaginatedInterviewResponse,
@@ -17,14 +20,56 @@ import type {
     RemoveJobInterviewResponse,
     InterviewAssignmentResponse, 
     PaginatedInterviewAssignmentResponse, 
-    InterviewAssignmentDetailResponse 
+    InterviewAssignmentDetailResponse,
+    InterviewSessionResponse,
+    InterviewSessionDetailResponse,
+    InterviewSessionParticipantResponse
 } from "../interfaces/interviews.interface.js";
 import { JobsRepository } from "../../jobs/repository/jobs.repository.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
-import { ApplicationStatus, JobStatus, InterviewStatus, InterviewAssignmentCreationSource } from "@prisma/client";
+import { ApplicationStatus, JobStatus, InterviewStatus, InterviewAssignmentCreationSource, InterviewSessionStatus, InterviewParticipantType } from "@prisma/client";
+import prisma from "../../../config/database.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { CompanyRepository } from "../../company/repository/company.repository.js";
+
+async function validateSessionParticipants(
+    companyId: string,
+    interviewId: string,
+    assignments: string[],
+    members: string[]
+) {
+    if (assignments.length > 0) {
+        const dbAssignments = await prisma.interviewAssignment.findMany({
+            where: { id: { in: assignments } }
+        });
+
+        if (dbAssignments.length !== assignments.length) {
+            throw new NotFoundError("One or more assignments not found.");
+        }
+
+        for (const assignment of dbAssignments) {
+            if (assignment.interviewId !== interviewId) {
+                throw new BadRequestError(`Assignment ${assignment.id} does not belong to this interview.`);
+            }
+        }
+    }
+
+    if (members.length > 0) {
+        const dbMembers = await CompanyRepository.findMembersByIds(members);
+
+        if (dbMembers.length !== members.length) {
+            throw new NotFoundError("One or more company members not found.");
+        }
+
+        for (const member of dbMembers) {
+            if (member.companyId !== companyId) {
+                throw new BadRequestError(`Company member ${member.id} does not belong to this company.`);
+            }
+        }
+    }
+}
 
 export class InterviewsServices {
     static async createInterview(
@@ -407,3 +452,185 @@ export class InterviewAssignmentsServices {
         return { assignmentId };
     }
 }
+
+export class InterviewSessionsServices {
+    static async createSession(
+        companyId: string,
+        interviewId: string,
+        data: CreateInterviewSessionRequest
+    ): Promise<InterviewSessionResponse> {
+        const interview = await InterviewsRepositories.getInterviewById(companyId, interviewId);
+        if (!interview) {
+            throw new NotFoundError("Interview not found or does not belong to this company.");
+        }
+
+        const assignments = data.assignmentIds ? [...new Set(data.assignmentIds)] : [];
+        const members = data.companyMemberIds ? [...new Set(data.companyMemberIds)] : [];
+
+        await validateSessionParticipants(companyId, interviewId, assignments, members);
+
+        const participantsData = [
+            ...assignments.map(id => ({
+                participantType: InterviewParticipantType.CANDIDATE,
+                assignmentId: id
+            })),
+            ...members.map(id => ({
+                participantType: InterviewParticipantType.INTERVIEWER,
+                companyMemberId: id
+            }))
+        ];
+
+        return InterviewSessionsRepositories.createSessionWithParticipants(
+            {
+                interviewId,
+                scheduledAt: data.scheduledAt
+            },
+            participantsData
+        );
+    }
+
+    static async getInterviewSessions(
+        companyId: string,
+        interviewId: string
+    ): Promise<InterviewSessionResponse[]> {
+        const interview = await InterviewsRepositories.getInterviewById(companyId, interviewId);
+        if (!interview) {
+            throw new NotFoundError("Interview not found or does not belong to this company.");
+        }
+
+        return InterviewSessionsRepositories.findSessionsByInterviewId(interviewId);
+    }
+
+    static async getSession(
+        companyId: string,
+        sessionId: string
+    ): Promise<InterviewSessionDetailResponse> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        return session;
+    }
+
+    static async updateSession(
+        companyId: string,
+        sessionId: string,
+        data: UpdateInterviewSessionRequest
+    ): Promise<InterviewSessionResponse> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        if (session.status !== InterviewSessionStatus.SCHEDULED) {
+            throw new BadRequestError(`Cannot update schedule for a session with status: ${session.status}`);
+        }
+
+        const updateData: any = {};
+        if (data.scheduledAt !== undefined) {
+            updateData.scheduledAt = data.scheduledAt;
+        }
+
+        return InterviewSessionsRepositories.updateSession(sessionId, updateData);
+    }
+}
+
+export class InterviewSessionParticipantsServices {
+    static async addParticipants(
+        companyId: string,
+        sessionId: string,
+        data: AddSessionParticipantsRequest
+    ): Promise<InterviewSessionParticipantResponse[]> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        if (session.status !== InterviewSessionStatus.SCHEDULED) {
+            throw new BadRequestError(`Cannot add participants to a session with status: ${session.status}`);
+        }
+
+        const assignments = data.assignmentIds ? [...new Set(data.assignmentIds)] : [];
+        const members = data.companyMemberIds ? [...new Set(data.companyMemberIds)] : [];
+
+        await validateSessionParticipants(companyId, session.interviewId, assignments, members);
+
+        const participantsData = [
+            ...assignments.map(id => ({
+                sessionId,
+                participantType: InterviewParticipantType.CANDIDATE,
+                assignmentId: id
+            })),
+            ...members.map(id => ({
+                sessionId,
+                participantType: InterviewParticipantType.INTERVIEWER,
+                companyMemberId: id
+            }))
+        ];
+
+        try {
+            return await InterviewSessionParticipantsRepositories.addParticipants(participantsData);
+        } catch (error: any) {
+            if (error.code === 'P2002') {
+                throw new ConflictError("One or more participants are already in this session.");
+            }
+            throw error;
+        }
+    }
+
+    static async getParticipants(
+        companyId: string,
+        sessionId: string
+    ): Promise<InterviewSessionParticipantResponse[]> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        return InterviewSessionParticipantsRepositories.findSessionParticipants(sessionId);
+    }
+
+    static async removeParticipant(
+        companyId: string,
+        sessionId: string,
+        participantId: string
+    ): Promise<void> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        if (session.status !== InterviewSessionStatus.SCHEDULED) {
+            throw new BadRequestError(`Cannot remove participant from a session with status: ${session.status}`);
+        }
+
+        const participant = await InterviewSessionParticipantsRepositories.findParticipantById(participantId);
+        if (!participant || participant.sessionId !== sessionId) {
+            throw new NotFoundError("Participant not found in this session.");
+        }
+
+        await InterviewSessionParticipantsRepositories.deleteParticipant(participantId);
+    }
+}
+

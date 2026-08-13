@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
-import { InterviewsServices, JobInterviewsServices, InterviewAssignmentsServices } from "../services/interviews.service.js";
+import { InterviewsServices, JobInterviewsServices, InterviewAssignmentsServices, InterviewSessionsServices, InterviewSessionParticipantsServices } from "../services/interviews.service.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 
 export class InterviewsController {
@@ -252,23 +252,152 @@ export class InterviewAssignmentsController {
         }
     );
 
-    static deleteAssignment = asyncHandler(
+    static async deleteAssignment(req: Request, res: Response) {
+        const companyId = req.params.companyId as string;
+        const interviewId = req.params.interviewId as string;
+        const assignmentId = req.params.assignmentId as string;
+
+        const result = await InterviewAssignmentsServices.deleteInterviewAssignment(
+            companyId,
+            interviewId,
+            assignmentId
+        );
+
+        return res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Interview assignment removed successfully",
+            data: result
+        });
+    }
+}
+
+export class InterviewSessionsController {
+    static createSession = asyncHandler(
         async (req: Request, res: Response) => {
             const companyId = req.params.companyId as string;
             const interviewId = req.params.interviewId as string;
-            const assignmentId = req.params.assignmentId as string;
 
-            const result = await InterviewAssignmentsServices.deleteInterviewAssignment(
+            const session = await InterviewSessionsServices.createSession(
                 companyId,
                 interviewId,
-                assignmentId
+                req.body
+            );
+
+            return res.status(201).json({
+                success: true,
+                message: "Interview session created successfully",
+                data: session
+            });
+        }
+    );
+
+    static getSessions = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const interviewId = req.params.interviewId as string;
+
+            const sessions = await InterviewSessionsServices.getInterviewSessions(
+                companyId,
+                interviewId
             );
 
             return res.status(HTTP_STATUS.OK).json({
                 success: true,
-                message: "Interview assignment removed successfully",
-                data: result
+                message: "Interview sessions fetched successfully",
+                data: sessions
             });
+        }
+    );
+
+    static getSessionById = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+
+            const session = await InterviewSessionsServices.getSession(
+                companyId,
+                sessionId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview session fetched successfully",
+                data: session
+            });
+        }
+    );
+
+    static updateSession = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+
+            const session = await InterviewSessionsServices.updateSession(
+                companyId,
+                sessionId,
+                req.body
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview session updated successfully",
+                data: session
+            });
+        }
+    );
+}
+
+export class InterviewSessionParticipantsController {
+    static addParticipants = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+
+            const participants = await InterviewSessionParticipantsServices.addParticipants(
+                companyId,
+                sessionId,
+                req.body
+            );
+
+            return res.status(201).json({
+                success: true,
+                message: "Participants added successfully",
+                data: participants
+            });
+        }
+    );
+
+    static getParticipants = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+
+            const participants = await InterviewSessionParticipantsServices.getParticipants(
+                companyId,
+                sessionId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Session participants fetched successfully",
+                data: participants
+            });
+        }
+    );
+
+    static removeParticipant = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+            const participantId = req.params.participantId as string;
+
+            await InterviewSessionParticipantsServices.removeParticipant(
+                companyId,
+                sessionId,
+                participantId
+            );
+
+            return res.status(HTTP_STATUS.NO_CONTENT).send();
         }
     );
 }

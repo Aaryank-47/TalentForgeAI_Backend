@@ -14,7 +14,13 @@ import {
     interviewAssignmentSelect,
     interviewAssignmentDetailSelect,
     type InterviewAssignmentResponse,
-    type InterviewAssignmentDetailResponse
+    type InterviewAssignmentDetailResponse,
+    interviewSessionSelect,
+    type InterviewSessionResponse,
+    interviewSessionDetailSelect,
+    type InterviewSessionDetailResponse,
+    interviewSessionParticipantSelect,
+    type InterviewSessionParticipantResponse
 } from "../interfaces/interviews.interface.js";
 import type { PaginationResult } from "../../../common/types/pagination.types.js";
 
@@ -263,6 +269,96 @@ export class InterviewAssignmentsRepositories {
             where: {
                 id: assignmentId
             }
+        });
+    }
+}
+
+export class InterviewSessionsRepositories {
+    static async createSessionWithParticipants(
+        sessionData: Prisma.InterviewSessionUncheckedCreateInput,
+        participants: Prisma.InterviewSessionParticipantUncheckedCreateWithoutSessionInput[]
+    ): Promise<InterviewSessionResponse> {
+        return prisma.$transaction(async (tx) => {
+            const session = await tx.interviewSession.create({
+                data: {
+                    ...sessionData,
+                    participants: {
+                        create: participants
+                    }
+                },
+                select: interviewSessionSelect
+            });
+
+            return session;
+        });
+    }
+
+    static async findSessionsByInterviewId(interviewId: string): Promise<InterviewSessionResponse[]> {
+        return prisma.interviewSession.findMany({
+            where: { interviewId },
+            orderBy: { scheduledAt: 'asc' },
+            select: interviewSessionSelect
+        });
+    }
+
+    static async findSessionById(sessionId: string): Promise<InterviewSessionDetailResponse | null> {
+        return prisma.interviewSession.findUnique({
+            where: { id: sessionId },
+            select: interviewSessionDetailSelect
+        }) as Promise<InterviewSessionDetailResponse | null>;
+    }
+
+    static async updateSession(
+        sessionId: string,
+        data: Prisma.InterviewSessionUpdateInput
+    ): Promise<InterviewSessionResponse> {
+        return prisma.interviewSession.update({
+            where: { id: sessionId },
+            data,
+            select: interviewSessionSelect
+        });
+    }
+}
+
+export class InterviewSessionParticipantsRepositories {
+    static async addParticipants(
+        participants: Prisma.InterviewSessionParticipantCreateManyInput[]
+    ): Promise<InterviewSessionParticipantResponse[]> {
+        return prisma.$transaction(async (tx) => {
+            await tx.interviewSessionParticipant.createMany({
+                data: participants
+            });
+
+            return tx.interviewSessionParticipant.findMany({
+                where: {
+                    OR: participants.map(p => ({
+                        sessionId: p.sessionId,
+                        ...(p.assignmentId ? { assignmentId: p.assignmentId } : {}),
+                        ...(p.companyMemberId ? { companyMemberId: p.companyMemberId } : {})
+                    }))
+                },
+                select: interviewSessionParticipantSelect
+            });
+        });
+    }
+
+    static async findSessionParticipants(sessionId: string): Promise<InterviewSessionParticipantResponse[]> {
+        return prisma.interviewSessionParticipant.findMany({
+            where: { sessionId },
+            select: interviewSessionParticipantSelect
+        });
+    }
+    
+    static async findParticipantById(participantId: string): Promise<InterviewSessionParticipantResponse | null> {
+        return prisma.interviewSessionParticipant.findUnique({
+            where: { id: participantId },
+            select: interviewSessionParticipantSelect
+        });
+    }
+
+    static async deleteParticipant(participantId: string): Promise<void> {
+        await prisma.interviewSessionParticipant.delete({
+            where: { id: participantId }
         });
     }
 }

@@ -230,3 +230,61 @@ export interface PaginatedInterviewAssignmentResponse {
     pagination: PaginationMeta;
 }
 
+export const interviewSessionParticipantSelect = {
+    id: true,
+    sessionId: true,
+    participantType: true,
+    assignmentId: true,
+    companyMemberId: true,
+    hasJoined: true,
+    joinedAt: true,
+    createdAt: true,
+    updatedAt: true
+} satisfies Prisma.InterviewSessionParticipantSelect;
+
+export type InterviewSessionParticipantPayload = Prisma.InterviewSessionParticipantGetPayload<{
+    select: typeof interviewSessionParticipantSelect;
+}>;
+
+export type InterviewSessionParticipantResponse = InterviewSessionParticipantPayload;
+
+export const interviewSessionSelect = {
+    id: true,
+    interviewId: true,
+    status: true,
+    scheduledAt: true,
+    startedAt: true,
+    endedAt: true,
+    roomId: true,
+    createdAt: true,
+    updatedAt: true,
+    participants: {
+        select: interviewSessionParticipantSelect
+    }
+} satisfies Prisma.InterviewSessionSelect;
+
+export type InterviewSessionPayload = Prisma.InterviewSessionGetPayload<{
+    select: typeof interviewSessionSelect;
+}>;
+
+export type InterviewSessionResponse = InterviewSessionPayload;
+
+export const interviewSessionDetailSelect = {
+    ...interviewSessionSelect,
+    interview: {
+        select: {
+            id: true,
+            companyId: true,
+            title: true,
+            type: true,
+            mode: true
+        }
+    }
+} satisfies Prisma.InterviewSessionSelect;
+
+export type InterviewSessionDetailPayload = Prisma.InterviewSessionGetPayload<{
+    select: typeof interviewSessionDetailSelect;
+}>;
+
+export type InterviewSessionDetailResponse = InterviewSessionDetailPayload;
+

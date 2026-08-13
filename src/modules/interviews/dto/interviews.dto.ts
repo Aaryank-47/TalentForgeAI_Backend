@@ -94,4 +94,29 @@ export const getInterviewAssignmentsQueryDto = z.object({
     limit: z.string().optional(),
 });
 
-export type GetInterviewAssignmentsQueryDto = z.infer<typeof getInterviewAssignmentsQueryDto>;
+export type GetInterviewAssignmentsQueryDto = z.infer<typeof getInterviewAssignmentsQueryDto>;
+
+export const createInterviewSessionDto = z.object({
+    scheduledAt: z.string().datetime({ message: "Invalid ISO datetime string" }).refine(val => new Date(val) > new Date(), { message: "scheduledAt must be in the future" }),
+    assignmentIds: z.array(z.string().cuid({ message: "Invalid assignment ID" })).optional(),
+    companyMemberIds: z.array(z.string().cuid({ message: "Invalid company member ID" })).optional()
+});
+
+export type CreateInterviewSessionRequest = z.infer<typeof createInterviewSessionDto>;
+
+export const updateInterviewSessionDto = z.object({
+    scheduledAt: z.string().datetime({ message: "Invalid ISO datetime string" }).refine(val => new Date(val) > new Date(), { message: "scheduledAt must be in the future" }).optional()
+});
+
+export type UpdateInterviewSessionRequest = z.infer<typeof updateInterviewSessionDto>;
+
+export const addSessionParticipantsDto = z.object({
+    assignmentIds: z.array(z.string().cuid({ message: "Invalid assignment ID" })).optional(),
+    companyMemberIds: z.array(z.string().cuid({ message: "Invalid company member ID" })).optional()
+}).refine(data => {
+    const hasAssignments = data.assignmentIds && data.assignmentIds.length > 0;
+    const hasMembers = data.companyMemberIds && data.companyMemberIds.length > 0;
+    return hasAssignments || hasMembers;
+}, { message: "At least one assignmentId or companyMemberId must be provided" });
+
+export type AddSessionParticipantsRequest = z.infer<typeof addSessionParticipantsDto>;
