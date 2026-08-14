@@ -1,0 +1,18 @@
+import type { Server } from "socket.io";
+import { socketAuthMiddleware } from "./interview.socket.auth.js";
+import { registerInterviewHandlers } from "./interview.socket.handler.js";
+
+export function initializeInterviewSocket(io: Server){
+    const interviewNamespace = io.of("/interviews");
+    interviewNamespace.use(socketAuthMiddleware);
+
+    interviewNamespace.on("connection",(socket) =>{
+        console.log(`Interview socket connected : ${socket.id}`);
+
+        registerInterviewHandlers(socket);
+        
+        socket.on("disconnect",() => {
+            console.log(`Interview socket disconnected : ${socket.id}`);
+        })
+    })
+}
