@@ -361,4 +361,33 @@ export class InterviewSessionParticipantsRepositories {
             where: { id: participantId }
         });
     }
+
+    static async findParticipantForSession(userId: string, sessionId: string) {
+        return prisma.interviewSessionParticipant.findFirst({
+            where: {
+                sessionId,
+                OR: [
+                    { assignment: { application: { candidate: { userId } } } },
+                    { companyMember: { userId } }
+                ]
+            },
+            include: {
+                session: {
+                    include: {
+                        interview: true
+                    }
+                }
+            }
+        });
+    }
+
+    static async updateParticipantJoinedStatus(participantId: string) {
+        return prisma.interviewSessionParticipant.update({
+            where: { id: participantId },
+            data: {
+                hasJoined: true,
+                joinedAt: new Date()
+            }
+        });
+    }
 }

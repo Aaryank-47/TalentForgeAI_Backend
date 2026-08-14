@@ -632,5 +632,35 @@ export class InterviewSessionParticipantsServices {
 
         await InterviewSessionParticipantsRepositories.deleteParticipant(participantId);
     }
+
+    static async verifyAndJoinSession(
+        userId: string,
+        sessionId: string
+    ): Promise<{
+        participantId: string;
+        participantType: string;
+        sessionId: string;
+        companyId: string;
+    }> {
+        const participant = await InterviewSessionParticipantsRepositories.findParticipantForSession(userId, sessionId);
+
+        if (!participant) {
+            throw new NotFoundError("You are not authorized to join this interview");
+        }
+
+        const restrictedStatuses = ["COMPLETED", "CANCELLED", "EXPIRED"];
+        if (restrictedStatuses.includes(participant.session.status)) {
+            throw new BadRequestError(`Cannot join! Interview is already ${participant.session.status.toLowerCase()}`);
+        }
+
+        await InterviewSessionParticipantsRepositories.updateParticipantJoinedStatus(participant.id);
+
+        return {
+            participantId: participant.id,
+            participantType: participant.participantType,
+            sessionId: participant.sessionId,
+            companyId: participant.session.interview.companyId
+        };
+    }
 }
 

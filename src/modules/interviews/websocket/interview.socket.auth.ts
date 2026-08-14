@@ -9,11 +9,20 @@ export function socketAuthMiddleware(
         const token = socket.handshake.auth?.token ||
             socket.handshake.headers?.authorization;
 
-        if (!token) {
-            return next(new Error("Authentication error : Token is required"));
+        if (!token || typeof token !== "string") {
+            return next(new Error("Authentication error : Token is required and must be a string"));
         }
 
-        const cleanToken = token.startsWith("Bearer") ? token.split(" ")[1] : token;
+        let cleanToken = token;
+        if (token.startsWith("Bearer ")) {
+            cleanToken = token.substring(7).trim();
+        } else if (token.startsWith("Bearer")) {
+            return next(new Error("Authentication error : Malformed Authorization header format"));
+        }
+
+        if (!cleanToken) {
+            return next(new Error("Authentication error : Token is empty"));
+        }
 
         const decodedToken = JwtHelper.verifyAccessToken(cleanToken);
 

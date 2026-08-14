@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io";
 import { InterviewRoomManager } from "./interview.room.manager.js";
-import prisma from "../../../config/database.js";
 import { registerWebRTCSignalingHandlers } from "../webrtc/signaling.handler.js";
+import { InterviewSessionParticipantsServices } from "../services/interviews.service.js";
 
 
 export function registerInterviewHandlers(socket: Socket) {
@@ -15,46 +15,8 @@ export function registerInterviewHandlers(socket: Socket) {
             }) => {
             const { sessionId } = data;
             try {
-                const participant = await prisma.interviewSessionParticipant.findFirst({
-                    where: {
-                        sessionId: sessionId,
-                        OR: [
-                            {
-                                assignment: {
-                                    application: {
-                                        candidate: {
-                                            userId: user.id
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                companyMember: {
-                                    userId: user.id
-                                }
-                            }
-                        ]
-                    },
-                    include: {
-                        session: true
-                    }
-                });
-
-                if (!participant) {
-                    socket.emit(
-                        "error", {
-                        message: "You are not authorized to join this interview"
-                    });
-                    return;
-                }
-
-                const restrictedStatuses = ["COMPLETED", "CANCELLED", "EXPIRED"];
-                if (restrictedStatuses.includes(participant.session.status)) {
-                    socket.emit("error", {
-                        message: `Cannot join! Interview is already ${participant.session.status.toLocaleLowerCase()}`
-                    })
-                    return;
-                }
+                // Delegate validation and database updates to the service layer
+                await InterviewSessionParticipantsServices.verifyAndJoinSession(user.id, sessionId);
 
                 const oldSocketId = InterviewRoomManager.joinRoom(sessionId, {
                     socketId: socket.id,
@@ -76,14 +38,6 @@ export function registerInterviewHandlers(socket: Socket) {
                 // Join the room
                 socket.join(sessionId);
 
-                await prisma.interviewSessionParticipant.update({
-                    where: { id: participant.id },
-                    data: {
-                        hasJoined: true,
-                        joinedAt: new Date()
-                    }
-                });
-
                 // Notify others in room that a user has joined
                 socket.to(sessionId).emit("user-joined", {
                     userId: user.id,
@@ -95,10 +49,9 @@ export function registerInterviewHandlers(socket: Socket) {
                 const currentParticipants = InterviewRoomManager.getParticipant(sessionId);
                 socket.emit("room-users", currentParticipants);
 
-            } catch (error) {
-                socket.emit("error", {
-                    message: "Internal server error joining room"
-                });
+            } catch (error: any) {
+                const message = error.message || "Internal server error joining room";
+                socket.emit("error", { message });
             }
         });
 

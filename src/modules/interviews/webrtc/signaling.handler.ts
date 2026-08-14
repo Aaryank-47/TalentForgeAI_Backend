@@ -1,15 +1,12 @@
 import type { Socket } from "socket.io";
 import { InterviewRoomManager } from "../websocket/interview.room.manager.js";
+import type { WebRTCOfferPayload, WebRTCAnswerPayload, IceCandidatePayload } from "./signaling.types.js";
 
 
 export function registerWebRTCSignalingHandlers(socket: Socket) {
     // Relays WebRTC offer to the targeted peer socket ID
     socket.on("webrtc-offer", (
-        data: {
-            sessionId: string;
-            offer: any;
-            to: string;
-        }
+        data: WebRTCOfferPayload
     ) => {
         // SECURITY CHECK: Verify both sender and recipient belong to this room
         if (!InterviewRoomManager.isSocketInRoom(data.sessionId, socket.id) ||
@@ -24,13 +21,7 @@ export function registerWebRTCSignalingHandlers(socket: Socket) {
         });
     });
 
-    socket.on("webrtc-answer", (
-        data: {
-            sessionId: string;
-            answer: any;
-            to: string;
-        }
-    ) => {
+    socket.on("webrtc-answer", (data: WebRTCAnswerPayload) => {
         if (!InterviewRoomManager.isSocketInRoom(data.sessionId, socket.id) ||
             !InterviewRoomManager.isSocketInRoom(data.sessionId, data.to)) {
             socket.emit("error", { message: "Unauthorized signaling action" });
@@ -43,13 +34,7 @@ export function registerWebRTCSignalingHandlers(socket: Socket) {
     });
 
     // Relays ICE Candidate information to the peer socket ID
-    socket.on("webrtc-candidate", (
-        data: {
-            sessionId: string;
-            candidate: any;
-            to: string;
-        }
-    ) => {
+    socket.on("webrtc-candidate", (data: IceCandidatePayload) => {
         if (!InterviewRoomManager.isSocketInRoom(data.sessionId, socket.id) ||
             !InterviewRoomManager.isSocketInRoom(data.sessionId, data.to)) {
             socket.emit("error", { message: "Unauthorized signaling action" });
