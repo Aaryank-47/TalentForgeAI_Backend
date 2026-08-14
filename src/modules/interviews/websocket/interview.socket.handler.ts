@@ -1,6 +1,7 @@
 import type { Socket } from "socket.io";
 import { InterviewRoomManager } from "./interview.room.manager.js";
 import prisma from "../../../config/database.js";
+import { registerWebRTCSignalingHandlers } from "../webrtc/signaling.handler.js";
 
 
 export function registerInterviewHandlers(socket: Socket) {
@@ -61,42 +62,8 @@ export function registerInterviewHandlers(socket: Socket) {
         }
     });
 
-    // WEBRTC SIGNALING EVENTS (Relays details to peers in the room)
-    socket.on("webrtc-offer", (
-        data: {
-            sessionId: string,
-            offer: any,
-            to: string
-        }) => {
-        socket.to(data.to).emit("webrtc-offer", {
-            from: socket.id,
-            offer: data.offer
-        });
-    });
-
-    socket.on("webrtc-answer", (
-        data: {
-            sessionId: string,
-            answer: any,
-            to: string
-        }) => {
-        socket.to(data.to).emit("webrtc-answer", {
-            from: socket.id,
-            answer: data.answer
-        });
-    });
-
-    socket.on("webrtc-candidate", (
-        data: {
-            sessionId: string,
-            candidate: any,
-            to: string
-        }) => {
-        socket.to(data.to).emit("webrtc-candidate", {
-            from: socket.id,
-            candidate: data.candidate
-        });
-    });
+    // Delegate WebRTC signaling handlers (offer, answer, candidate) to the dedicated module
+    registerWebRTCSignalingHandlers(socket);
 
     // TEXT CHAT EVENT
     socket.on("send-message", (data: {
