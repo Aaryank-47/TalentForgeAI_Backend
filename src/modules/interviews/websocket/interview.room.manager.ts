@@ -6,12 +6,18 @@ export class InterviewRoomManager {
     static joinRoom(
         sessionId: string,
         participant: ActiveParticipant
-    ): void {
+    ): string | null {
         if (!this.activeRooms.has(sessionId)) {
             this.activeRooms.set(sessionId, new Map());
         }
         const room = this.activeRooms.get(sessionId)!;
-        room.set(participant.userId, participant)
+        let oldSocketId: string | null = null;
+        const existing = room.get(participant.userId);
+        if (existing) {
+            oldSocketId = existing.socketId;
+        }
+        room.set(participant.userId, participant);
+        return oldSocketId
     }
 
     static leaveRoom(
@@ -33,6 +39,17 @@ export class InterviewRoomManager {
         if (room.size === 0) this.activeRooms.delete(sessionId);
 
         return removeUserId;
+    }
+    
+    //checking if specific socketID is present in a specific session room 
+    static isSocketInRoom(
+        sessionId: string,
+        socketId: string
+    ):boolean{
+        const room = this.activeRooms.get(sessionId);
+        if(!room) return false;
+        
+        return Array.from(room.values()).some(participant => participant.socketId === socketId);
     }
 
     static getParticipant(
