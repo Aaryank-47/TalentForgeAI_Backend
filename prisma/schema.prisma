@@ -1230,6 +1230,8 @@ model InterviewSession {
   updatedAt DateTime @updatedAt
 
   participants InterviewSessionParticipant[]
+  aiQuestions  AIInterviewQuestion[]
+  aiResult     AIInterviewResult?
 
   @@index([interviewId])
   @@index([status])
@@ -1268,9 +1270,82 @@ model AIInterviewConfiguration {
 
   systemPrompt      String?
   evaluationMetrics Json?
+  questionCount     Int                @default(5)
+  difficulty        QuestionDifficulty @default(MEDIUM)
+  allowFollowUps    Boolean            @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
 
-  @@index([interviewId])
+enum AIRecommendation {
+  STRONG_HIRE
+  HIRE
+  HOLD
+  REJECT
+  STRONG_REJECT
+}
+
+model AIInterviewQuestion {
+  id                 String                @id @default(cuid())
+  sessionId          String
+  session            InterviewSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sequence           Int
+  question           String
+  topic              String?
+  skill              String?
+  difficulty         QuestionDifficulty?
+  expectedAreas      Json?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  answer             AIInterviewAnswer?
+  parentAIQuestionId String?
+  parentQuestion     AIInterviewQuestion?  @relation("QuestionFollowUps", fields: [parentAIQuestionId], references: [id], onDelete: SetNull)
+  followUpQuestions  AIInterviewQuestion[] @relation("QuestionFollowUps")
+
+  @@unique([sessionId, sequence])
+  @@index([parentAIQuestionId])
+}
+
+model AIInterviewAnswer {
+  id         String                 @id @default(cuid())
+  questionId String                 @unique
+  question   AIInterviewQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerText String
+  answeredAt DateTime               @default(now())
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  evaluation AIInterviewEvaluation?
+}
+
+model AIInterviewEvaluation {
+  id                String            @id @default(cuid())
+  answerId          String            @unique
+  answer            AIInterviewAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  score             Float
+  technicalAccuracy Float?
+  relevance         Float?
+  completeness      Float?
+  communication     Float?
+  feedback          String?
+  strengths         Json?
+  weaknesses        Json?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model AIInterviewResult {
+  id                  String            @id @default(cuid())
+  sessionId           String            @unique
+  session             InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  overallScore        Float
+  technicalScore      Float?
+  communicationScore  Float?
+  problemSolvingScore Float?
+  overallFeedback     String?
+  strengths           Json?
+  weaknesses          Json?
+  recommendation      AIRecommendation?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 }
