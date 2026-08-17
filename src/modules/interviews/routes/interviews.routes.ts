@@ -18,6 +18,7 @@ import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { UserRole } from "@prisma/client"
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
+import aiInterviewRoutes from "../AI-interview/routes/ai.interview.routes.js";
 
 const router = Router();
 
@@ -204,6 +205,8 @@ router.delete(
     loadCompanyMembership,
     InterviewSessionParticipantsController.removeParticipant
 );
+
+router.use("/ai", aiInterviewRoutes);
 
 export default router;
 

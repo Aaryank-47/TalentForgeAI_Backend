@@ -11,7 +11,7 @@ import type {
 export class OpenRouterClient {
     static async generateText (
         prompt: GenerateTextRequest
-    ):Promise<String>{
+    ):Promise<string>{
         const messages: OpenRouterChatRequest["messages"] = [];
 
         if(prompt.systemPrompt){
@@ -27,7 +27,7 @@ export class OpenRouterClient {
         });
 
         const response = await fetch(
-            `${openRouterConfig}/chat/completions`,
+            `${openRouterConfig.baseUrl}/chat/completions`,
             {
                 method: "POST",
                 headers:{

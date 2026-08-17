@@ -308,6 +308,50 @@ export class InterviewSessionsRepositories {
         }) as Promise<InterviewSessionDetailResponse | null>;
     }
 
+    static async findSessionWithJobAndAIConfig(sessionId: string) {
+        return prisma.interviewSession.findUnique({
+            where: { id: sessionId },
+            include: {
+                aiQuestions: {
+                    include: {
+                        answer: true
+                    }
+                },
+                participants: {
+                    include: {
+                        assignment: {
+                            include: {
+                                application: {
+                                    include: {
+                                        job: {
+                                            include: {
+                                                skills: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                interview: {
+                    include: {
+                        aiConfiguration: true,
+                        jobInterviews: {
+                            include: {
+                                job: {
+                                    include: {
+                                        skills: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     static async updateSession(
         sessionId: string,
         data: Prisma.InterviewSessionUpdateInput

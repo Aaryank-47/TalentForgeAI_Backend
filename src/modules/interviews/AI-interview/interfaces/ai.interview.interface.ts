@@ -35,3 +35,8 @@ export interface AIInterviewGenerationContext {
         evaluationMetrics?: unknown;
     };
 }
+
+export interface AIGeneratedPrompt {
+    systemPrompt: string;
+    userPrompt: string;
+}
