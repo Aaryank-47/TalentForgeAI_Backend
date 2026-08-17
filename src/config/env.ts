@@ -28,6 +28,9 @@ const envSchema = z.object({
     ELASTICSEARCH_USERNAME: z.string().optional(),
     ELASTICSEARCH_PASSWORD: z.string().optional(),
     ELASTICSEARCH_API_KEY: z.string().optional(),
+    OPENROUTER_API_KEY: z.string().min(1),
+    OPENROUTER_BASE_URL: z.string().min(1).default("https://openrouter.ai/api/v1"),
+    OPENROUTER_MODEL: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -73,6 +76,11 @@ export const env = {
         username: parsedEnv.data.ELASTICSEARCH_USERNAME,
         password: parsedEnv.data.ELASTICSEARCH_PASSWORD,
         apiKey: parsedEnv.data.ELASTICSEARCH_API_KEY,
+    },
+    openRouter: {
+        apiKey: parsedEnv.data.OPENROUTER_API_KEY,
+        baseUrl: parsedEnv.data.OPENROUTER_BASE_URL,
+        model: parsedEnv.data.OPENROUTER_MODEL,
     },
 } as const;
 
