@@ -1311,8 +1311,9 @@ model AIInterviewAnswer {
   id         String                 @id @default(cuid())
   questionId String                 @unique
   question   AIInterviewQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  answerText String
-  answeredAt DateTime               @default(now())
+  answerText   String
+  recordingUrl String?
+  answeredAt   DateTime               @default(now())
   createdAt  DateTime               @default(now())
   updatedAt  DateTime               @updatedAt
   evaluation AIInterviewEvaluation?

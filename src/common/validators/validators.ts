@@ -1114,8 +1114,12 @@ export const aiInterviewEvaluationFeedbackValidator = z
   .trim()
   .max(2000, "Feedback must be at most 2000 characters long")
   .optional();
-export const aiInterviewEvaluationStrengthsValidator = z.any().optional();
-export const aiInterviewEvaluationWeaknessesValidator = z.any().optional();
+export const aiInterviewEvaluationStrengthsValidator = z.array(
+  z.string().min(1)
+);
+export const aiInterviewEvaluationWeaknessesValidator = z.array(
+  z.string().min(1)
+);
 
 // AI Interview Result
 export const aiInterviewResultIdValidator = uuidValidator;

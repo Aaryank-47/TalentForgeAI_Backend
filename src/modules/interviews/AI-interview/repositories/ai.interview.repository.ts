@@ -1,72 +1,155 @@
 import prisma from "../../../../config/database.js";
-export class AIInterviewQuestionsRepository {
-    static async createInterviewQuestions({
-        sessionId,
-        questions
-    }: {
-        sessionId: string;
-        questions: any[];
-    }) {
-        const createdQuestions = await prisma.$transaction(
-            questions.map((q: any) =>
-                prisma.aIInterviewQuestion.create({
-                    data: {
-                        sessionId,
-                        sequence: q.sequence,
-                        question: q.question,
-                        topic: q.topic || null,
-                        skill: q.skill || null,
-                        difficulty: q.difficulty || null,
-                        expectedAreas: q.expectedAreas || [],
-                        parentAIQuestionId: null
-                    }
-                })
-            )
-        );
+import type { 
+    CreateAIQuestionInput, 
+    SaveAIAnswerInput, 
+    CreateAIEvaluationInput,
+    CreateAIInterviewResultInput
+} from "../interfaces/ai.interview.interface.js";
 
-        return createdQuestions;
+export class AIInterviewQuestionsRepository {
+    static async createQuestion(data: CreateAIQuestionInput) {
+        return prisma.aIInterviewQuestion.create({
+            data: {
+                sessionId: data.sessionId,
+                sequence: data.sequence,
+                question: data.question,
+                topic: data.topic ?? null,
+                skill: data.skill ?? null,
+                difficulty: data.difficulty ?? null,
+                expectedAreas: data.expectedAreas,
+                parentAIQuestionId: data.parentAIQuestionId ?? null
+            }
+        });
     }
 
-    static async saveAnswerAndCreateFollowUp({
-        sessionId,
-        parentQuestionId,
-        answerText,
-        followUp
-    }: {
-        sessionId: string;
-        parentQuestionId: string;
-        answerText: string;
-        followUp: {
-            sequence: number;
-            question: string;
-            topic?: string | null;
-            skill?: string | null;
-            difficulty?: any | null;
-            expectedAreas?: string[] | null;
-        };
-    }) {
-        return prisma.$transaction(async (tx) => {
-            const answer = await tx.aIInterviewAnswer.create({
-                data: {
-                    questionId: parentQuestionId,
-                    answerText
-                }
-            });
+    static async saveAnswer(data: SaveAIAnswerInput) {
+        const { questionId, answerText, recordingUrl } = data;
+        return prisma.aIInterviewAnswer.create({
+            data: {
+                questionId,
+                answerText,
+                recordingUrl: recordingUrl ?? null
+            }
+        });
+    }
 
-            const followUpQuestion = await tx.aIInterviewQuestion.create({
-                data: {
-                    sessionId,
-                    sequence: followUp.sequence,
-                    question: followUp.question,
-                    topic: followUp.topic || null,
-                    skill: followUp.skill || null,
-                    difficulty: followUp.difficulty || null,
-                    expectedAreas: followUp.expectedAreas || [],
-                    parentAIQuestionId: parentQuestionId
+    static async getQuestionsBySessionId(sessionId: string) {
+        return prisma.aIInterviewQuestion.findMany({
+            where: {
+                sessionId
+            },
+            include: {
+                answer: {
+                    include: {
+                        evaluation: true
+                    }
                 }
-            });
+            },
+            orderBy: {
+                sequence: "asc"
+            }
+        });
+    }
 
-            return { answer, followUpQuestion };
+    static async getSessionHistory(sessionId: string) {
+        return prisma.aIInterviewQuestion.findMany({
+            where: { sessionId },
+            include: {
+                answer: {
+                    include: {
+                        evaluation: true
+                    }
+                }
+            },
+            orderBy: {
+                sequence: "asc"
+            }
+        });
+    }
+
+    static async findCurrentUnansweredQuestion(sessionId: string) {
+        return prisma.aIInterviewQuestion.findFirst({
+            where: {
+                sessionId,
+                answer: null
+            },
+            orderBy: {
+                sequence: "asc"
+            }
+        });
+    }
+
+    static async findExpiredSessions() {
+        const activeSessions = await prisma.interviewSession.findMany({
+            where: {
+                status: "IN_PROGRESS",
+                startedAt: { not: null }
+            },
+            include: {
+                interview: {
+                    select: {
+                        durationMinutes: true
+                    }
+                }
+            }
+        });
+
+        const now = new Date();
+        return activeSessions.filter(session => {
+            const durationMinutes = session.interview.durationMinutes ?? 30;
+            const expiresAt = new Date(session.startedAt!.getTime() + durationMinutes * 60 * 1000);
+            return now >= expiresAt;
+        });
+    }
+
+    static async markSessionExpired(sessionId: string) {
+        return prisma.interviewSession.update({
+            where: { id: sessionId },
+            data: {
+                status: "EXPIRED",
+                endedAt: new Date()
+            }
+        });
+    }
+}
+
+export class AIInterviewEvaluationRepository {
+    static async create(data: CreateAIEvaluationInput) {
+        return prisma.aIInterviewEvaluation.create({
+            data
+        });
+    }
+
+    static async findFinalEvaluationBySessionId(sessionId: string) {
+        return prisma.aIInterviewResult.findUnique({
+            where: { sessionId }
+        });
+    }
+
+    static async upsertResult(data: CreateAIInterviewResultInput) {
+        return prisma.aIInterviewResult.upsert({
+            where: { sessionId: data.sessionId },
+            create: {
+                sessionId: data.sessionId,
+                overallScore: data.overallScore,
+                technicalScore: data.technicalScore ?? null,
+                communicationScore: data.communicationScore ?? null,
+                problemSolvingScore: data.problemSolvingScore ?? null,
+                overallFeedback: data.overallFeedback ?? null,
+                strengths: data.strengths ?? [],
+                weaknesses: data.weaknesses ?? [],
+                recommendation: data.recommendation ?? null
+            },
+            update: {
+                overallScore: data.overallScore,
+                technicalScore: data.technicalScore ?? null,
+                communicationScore: data.communicationScore ?? null,
+                problemSolvingScore: data.problemSolvingScore ?? null,
+                overallFeedback: data.overallFeedback ?? null,
+                strengths: data.strengths ?? [],
+                weaknesses: data.weaknesses ?? [],
+                recommendation: data.recommendation ?? null
+            }
         });
     }
 }

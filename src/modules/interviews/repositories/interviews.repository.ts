@@ -203,7 +203,7 @@ export class InterviewAssignmentsRepositories {
             await tx.interviewAssignment.createMany({
                 data: assignments
             });
-            
+
             // Return the created assignments by looking them up
             return tx.interviewAssignment.findMany({
                 where: {
@@ -392,7 +392,7 @@ export class InterviewSessionParticipantsRepositories {
             select: interviewSessionParticipantSelect
         });
     }
-    
+
     static async findParticipantById(participantId: string): Promise<InterviewSessionParticipantResponse | null> {
         return prisma.interviewSessionParticipant.findUnique({
             where: { id: participantId },
@@ -434,4 +434,4 @@ export class InterviewSessionParticipantsRepositories {
             }
         });
     }
-}
+}

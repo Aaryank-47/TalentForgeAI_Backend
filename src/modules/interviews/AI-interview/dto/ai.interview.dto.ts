@@ -5,7 +5,10 @@ import {
     aiInterviewQuestionTopicValidator,
     aiInterviewQuestionSkillValidator,
     aiInterviewQuestionDifficultyValidator,
-    aiInterviewAnswerTextValidator
+    aiInterviewAnswerTextValidator,
+    aiInterviewEvaluationScoreValidator,
+    aiInterviewEvaluationStrengthsValidator,
+    aiInterviewEvaluationWeaknessesValidator
 } from "../../../../common/validators/validators.js";
 
 export const AIGeneratedQuestionsSchema = z.object({
@@ -23,15 +26,56 @@ export const AIGeneratedQuestionsSchema = z.object({
 
 export type AIGeneratedQuestionsDto = z.infer<typeof AIGeneratedQuestionsSchema>;
 
-export const generateFollowUpDto = z.object({
-    answerText: aiInterviewAnswerTextValidator
+export const AIEvaluationValidator = z.object({
+    score: aiInterviewEvaluationScoreValidator,
+    evaluation: z.string().min(1),
+    strengths: aiInterviewEvaluationStrengthsValidator,
+    weaknesses: aiInterviewEvaluationWeaknessesValidator
 });
 
-export type GenerateFollowUpRequest = z.infer<typeof generateFollowUpDto>;
+export type AIEvaluationResponse =
+    z.infer<typeof AIEvaluationValidator>;
 
-export const aiFollowUpQuestionResponseSchema = z.object({
-    question: z.string().trim().min(5, "Question must be at least 5 characters long"),
-    expectedAreas: z.array(z.string()).optional()
+export const AIQuestionProgressionValidator = z.object({
+    shouldFollowUp: z.boolean(),
+    reason: z.string(),
+    followUpQuestion: z.object({
+        question: aiInterviewQuestionTextValidator,
+        topic: aiInterviewQuestionTopicValidator.nullable(),
+        skill: aiInterviewQuestionSkillValidator.nullable(),
+        difficulty: aiInterviewQuestionDifficultyValidator.nullable(),
+        expectedAreas: z.array(z.string())
+    }).nullable()
 });
 
-export type AIInterviewFollowUpQuestionResponse = z.infer<typeof aiFollowUpQuestionResponseSchema>;
+export type AIQuestionProgressionResultDto = z.infer<typeof AIQuestionProgressionValidator>;
+
+export const AIGeneratedQuestionSchema = z.object({
+    question: aiInterviewQuestionTextValidator,
+    topic: aiInterviewQuestionTopicValidator.nullable(),
+    skill: aiInterviewQuestionSkillValidator.nullable(),
+    difficulty: aiInterviewQuestionDifficultyValidator.nullable(),
+    expectedAreas: z.array(z.string())
+});
+
+export const AICombinedEvaluationAndProgressionValidator = z.object({
+    evaluation: z.object({
+        score: aiInterviewEvaluationScoreValidator,
+        evaluation: z.string().min(1),
+        strengths: aiInterviewEvaluationStrengthsValidator,
+        weaknesses: aiInterviewEvaluationWeaknessesValidator
+    }),
+    progression: z.object({
+        shouldFollowUp: z.boolean(),
+        reason: z.string(),
+        followUpQuestion: z.object({
+            question: aiInterviewQuestionTextValidator,
+            topic: aiInterviewQuestionTopicValidator.nullable(),
+            skill: aiInterviewQuestionSkillValidator.nullable(),
+            difficulty: aiInterviewQuestionDifficultyValidator.nullable(),
+            expectedAreas: z.array(z.string())
+        }).nullable()
+    })
+});
+
+export type AICombinedEvaluationAndProgression = z.infer<typeof AICombinedEvaluationAndProgressionValidator>;
