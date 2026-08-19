@@ -223,6 +223,11 @@ Generate the final interview evaluation based strictly on this data.
 
 export class AIQuestionService {
     static async generateFirstQuestion(sessionId: string) {
+        const existingQuestions = await AIInterviewQuestionsRepository.getQuestionsBySessionId(sessionId);
+        if (existingQuestions.length > 0) {
+            return existingQuestions[0]!;
+        }
+
         const session = await InterviewSessionsRepositories.findSessionWithJobAndAIConfig(sessionId);
         if (!session) {
             throw new NotFoundError(`Interview session with ID "${sessionId}" not found.`);
@@ -280,7 +285,8 @@ export class AIQuestionService {
 
         const result = AIGeneratedQuestionSchema.safeParse(parsed);
         if (!result.success) {
-            throw new BadRequestError("AI returned an invalid question structure.");
+            console.error("[generateFirstQuestion] Zod Validation Error:", result.error);
+            throw new BadRequestError(`AI returned an invalid question structure: ${result.error.issues.map(i => i.message).join(", ")}`);
         }
 
         return AIInterviewQuestionsRepository.createQuestion({
@@ -356,7 +362,8 @@ export class AIQuestionService {
 
         const result = AIGeneratedQuestionSchema.safeParse(parsed);
         if (!result.success) {
-            throw new BadRequestError("AI returned an invalid question structure.");
+            console.error("[generateFirstQuestion] Zod Validation Error:", result.error);
+            throw new BadRequestError(`AI returned an invalid question structure: ${result.error.issues.map(i => i.message).join(", ")}`);
         }
 
         return AIInterviewQuestionsRepository.createQuestion({
@@ -387,6 +394,7 @@ export class AIInterviewSessionService {
             skill?: string | null;
             difficulty?: unknown;
         } | null;
+        message?: string;
         reason?: string;
     }> {
         const session = await InterviewSessionsRepositories.findSessionWithJobAndAIConfig(sessionId);
@@ -422,7 +430,7 @@ export class AIInterviewSessionService {
             return {
                 sessionId,
                 status: session.status,
-                reason: "SESSION_INACTIVE"
+                reason: "SESSION_EXPIRED"
             };
         }
 
@@ -494,12 +502,14 @@ export class AIInterviewSessionService {
 
         const mainQuestionsCount = questions.filter(q => q.parentAIQuestionId === null).length;
         const config = session.interview.aiConfiguration;
+        const maxTotalQuestions = Math.min(Math.max(config.questionCount + 2, 7), 8);
 
-        if (mainQuestionsCount >= config.questionCount) {
+        if (mainQuestionsCount >= config.questionCount || questions.length >= maxTotalQuestions) {
             await AIInterviewCompletionService.finalizeSession(sessionId);
             return {
                 sessionId,
-                status: "COMPLETED"
+                status: "COMPLETED",
+                message: "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation."
             };
         }
 
@@ -650,6 +660,7 @@ export class AIInterviewSessionService {
                 difficulty: progressionResult.nextQuestion.difficulty
             } : null,
             completed: progressionResult.completed,
+            sendOffMessage: progressionResult.completed ? (progressionResult as any).sendOffMessage || "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation." : null,
             result: progressionResult.completed ? progressionResult.result : null
         };
     }
@@ -750,8 +761,22 @@ export class AIQuestionProgressionService {
             weaknesses: combinedResult.evaluation.weaknesses
         });
 
+        const mainQuestionsCount = fullHistory.filter(q => q.parentAIQuestionId === null).length;
+        const maxTotalQuestions = Math.min(Math.max(config.questionCount + 2, 7), 8);
+
+        if (mainQuestionsCount >= config.questionCount || fullHistory.length >= maxTotalQuestions) {
+            const completionResult = await AIInterviewCompletionService.finalizeSession(session.id);
+            return {
+                evaluation: savedEvaluation,
+                nextQuestion: null,
+                completed: true,
+                sendOffMessage: "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation.",
+                result: completionResult.aiResult
+            };
+        }
+
         const decision = combinedResult.progression;
-        if (decision.shouldFollowUp && decision.followUpQuestion) {
+        if (decision.shouldFollowUp && decision.followUpQuestion && fullHistory.length < maxTotalQuestions) {
             const maxSequence = fullHistory.reduce((max, q) => Math.max(max, q.sequence), 0);
             const followUpQuestion = await AIInterviewQuestionsRepository.createQuestion({
                 sessionId: session.id,
@@ -767,17 +792,6 @@ export class AIQuestionProgressionService {
                 evaluation: savedEvaluation,
                 nextQuestion: followUpQuestion,
                 completed: false
-            };
-        }
-
-        const mainQuestionsCount = fullHistory.filter(q => q.parentAIQuestionId === null).length;
-        if (mainQuestionsCount >= config.questionCount) {
-            const completionResult = await AIInterviewCompletionService.finalizeSession(session.id);
-            return {
-                evaluation: savedEvaluation,
-                nextQuestion: null,
-                completed: true,
-                result: completionResult.aiResult
             };
         }
 

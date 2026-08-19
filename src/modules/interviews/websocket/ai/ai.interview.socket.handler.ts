@@ -29,7 +29,8 @@ export function registerAIIinterviewSocketHandlers(socket: Socket) {
             if (state.status === "COMPLETED") {
                 socket.emit("ai-interview-completed", {
                     sessionId,
-                    completed: true
+                    completed: true,
+                    message: state.message || "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation."
                 });
                 return;
             }
@@ -76,6 +77,8 @@ export function registerAIIinterviewSocketHandlers(socket: Socket) {
                     return;
                 }
 
+                console.log("user : " + user);
+
                 const result = await AIInterviewSessionService.submitAnswer({
                     userId: user.id,
                     sessionId: data.sessionId,
@@ -94,7 +97,8 @@ export function registerAIIinterviewSocketHandlers(socket: Socket) {
                 if (result.completed) {
                     socket.emit("ai-interview-completed", {
                         sessionId: data.sessionId,
-                        completed: true
+                        completed: true,
+                        message: result.sendOffMessage || "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation."
                     });
                 } else if (result.nextQuestion) {
                     socket.emit("ai-question", result.nextQuestion);

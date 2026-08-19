@@ -8,10 +8,29 @@ import type {
 
 export class AIInterviewQuestionsRepository {
     static async createQuestion(data: CreateAIQuestionInput) {
+        let targetSequence = data.sequence;
+        const existingWithSequence = await prisma.aIInterviewQuestion.findUnique({
+            where: {
+                sessionId_sequence: {
+                    sessionId: data.sessionId,
+                    sequence: targetSequence
+                }
+            }
+        });
+
+        if (existingWithSequence) {
+            const maxQuestion = await prisma.aIInterviewQuestion.findFirst({
+                where: { sessionId: data.sessionId },
+                orderBy: { sequence: "desc" },
+                select: { sequence: true }
+            });
+            targetSequence = (maxQuestion?.sequence ?? 0) + 1;
+        }
+
         return prisma.aIInterviewQuestion.create({
             data: {
                 sessionId: data.sessionId,
-                sequence: data.sequence,
+                sequence: targetSequence,
                 question: data.question,
                 topic: data.topic ?? null,
                 skill: data.skill ?? null,
@@ -116,7 +135,13 @@ export class AIInterviewQuestionsRepository {
 export class AIInterviewEvaluationRepository {
     static async create(data: CreateAIEvaluationInput) {
         return prisma.aIInterviewEvaluation.create({
-            data
+            data: {
+                answerId: data.answerId,
+                score: data.score,
+                feedback: data.evaluation,
+                strengths: data.strengths,
+                weaknesses: data.weaknesses
+            }
         });
     }
 

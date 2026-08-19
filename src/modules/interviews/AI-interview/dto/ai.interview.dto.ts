@@ -1,11 +1,11 @@
 import { z } from "zod";
+import { QuestionDifficulty } from "@prisma/client";
 import {
     aiInterviewQuestionSequenceValidator,
     aiInterviewQuestionTextValidator,
     aiInterviewQuestionTopicValidator,
     aiInterviewQuestionSkillValidator,
     aiInterviewQuestionDifficultyValidator,
-    aiInterviewAnswerTextValidator,
     aiInterviewEvaluationScoreValidator,
     aiInterviewEvaluationStrengthsValidator,
     aiInterviewEvaluationWeaknessesValidator
@@ -36,15 +36,29 @@ export const AIEvaluationValidator = z.object({
 export type AIEvaluationResponse =
     z.infer<typeof AIEvaluationValidator>;
 
+const safeDifficultyPreprocessor = z.preprocess(
+    (val) => {
+        if (typeof val === "string") {
+            const u = val.toUpperCase();
+            if (u === "EASY" || u === "MEDIUM" || u === "HARD") return u;
+            if (u.includes("EASY")) return "EASY";
+            if (u.includes("HARD")) return "HARD";
+            return "MEDIUM";
+        }
+        return val ?? "MEDIUM";
+    },
+    z.nativeEnum(QuestionDifficulty).nullable().optional()
+);
+
 export const AIQuestionProgressionValidator = z.object({
     shouldFollowUp: z.boolean(),
     reason: z.string(),
     followUpQuestion: z.object({
         question: aiInterviewQuestionTextValidator,
-        topic: aiInterviewQuestionTopicValidator.nullable(),
-        skill: aiInterviewQuestionSkillValidator.nullable(),
-        difficulty: aiInterviewQuestionDifficultyValidator.nullable(),
-        expectedAreas: z.array(z.string())
+        topic: aiInterviewQuestionTopicValidator.nullable().optional(),
+        skill: aiInterviewQuestionSkillValidator.nullable().optional(),
+        difficulty: safeDifficultyPreprocessor,
+        expectedAreas: z.array(z.string()).nullish().transform(val => val || [])
     }).nullable()
 });
 
@@ -52,10 +66,10 @@ export type AIQuestionProgressionResultDto = z.infer<typeof AIQuestionProgressio
 
 export const AIGeneratedQuestionSchema = z.object({
     question: aiInterviewQuestionTextValidator,
-    topic: aiInterviewQuestionTopicValidator.nullable(),
-    skill: aiInterviewQuestionSkillValidator.nullable(),
-    difficulty: aiInterviewQuestionDifficultyValidator.nullable(),
-    expectedAreas: z.array(z.string())
+    topic: aiInterviewQuestionTopicValidator.nullable().optional(),
+    skill: aiInterviewQuestionSkillValidator.nullable().optional(),
+    difficulty: safeDifficultyPreprocessor,
+    expectedAreas: z.array(z.string()).nullish().transform(val => val || [])
 });
 
 export const AICombinedEvaluationAndProgressionValidator = z.object({
@@ -70,10 +84,10 @@ export const AICombinedEvaluationAndProgressionValidator = z.object({
         reason: z.string(),
         followUpQuestion: z.object({
             question: aiInterviewQuestionTextValidator,
-            topic: aiInterviewQuestionTopicValidator.nullable(),
-            skill: aiInterviewQuestionSkillValidator.nullable(),
-            difficulty: aiInterviewQuestionDifficultyValidator.nullable(),
-            expectedAreas: z.array(z.string())
+            topic: aiInterviewQuestionTopicValidator.nullable().optional(),
+            skill: aiInterviewQuestionSkillValidator.nullable().optional(),
+            difficulty: safeDifficultyPreprocessor,
+            expectedAreas: z.array(z.string()).nullish().transform(val => val || [])
         }).nullable()
     })
 });

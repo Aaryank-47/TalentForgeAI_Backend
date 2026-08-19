@@ -5,3 +5,8 @@ src/config/.env
 /src/generated/prisma
 prisma/seed.ts
 backend_architecture_report.md
+TalentForge-backend.postman_collection.json
+TalentForge_Backend_Swagger_Documentation.html
+TalentForge_Backend_API_Doc.html
+TalentForge_Backend_API_Doc.md
+TalentForge_Backend_API_Doc.pdf
