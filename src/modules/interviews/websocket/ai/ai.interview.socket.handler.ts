@@ -54,12 +54,49 @@ export function registerAIIinterviewSocketHandlers(socket: Socket) {
         }
     };
 
+    const handleEndSession = async (sessionId: string) => {
+        try {
+            const user = socket.data.user;
+            if (!user) {
+                emitSocketError("UNAUTHORIZED", "Unauthorized");
+                return;
+            }
+
+            if (!sessionId) {
+                emitSocketError("INVALID_QUESTION", "Session ID is required");
+                return;
+            }
+
+            const result = await AIInterviewSessionService.endSession({
+                userId: user.id,
+                sessionId
+            });
+
+            socket.emit("ai-interview-completed", {
+                sessionId,
+                completed: true,
+                message: result.message
+            });
+        } catch (error: any) {
+            console.error("ai-interview end session error:", error);
+            emitSocketError("INTERNAL_ERROR", error.message || "Could not end interview session.");
+        }
+    };
+
     socket.on("ai-interview-start", async (data: { sessionId: string }) => {
         await handleStartOrResume(data?.sessionId);
     });
 
     socket.on("ai-interview-resume", async (data: { sessionId: string }) => {
         await handleStartOrResume(data?.sessionId);
+    });
+
+    socket.on("ai-interview-end", async (data: { sessionId: string }) => {
+        await handleEndSession(data?.sessionId);
+    });
+
+    socket.on("ai-interview-complete", async (data: { sessionId: string }) => {
+        await handleEndSession(data?.sessionId);
     });
 
     socket.on(

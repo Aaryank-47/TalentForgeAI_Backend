@@ -540,6 +540,35 @@ export class AIInterviewSessionService {
         };
     }
 
+    static async endSession(data: { userId: string; sessionId: string }) {
+        const { userId, sessionId } = data;
+        const session = await InterviewSessionsRepositories.findSessionWithJobAndAIConfig(sessionId);
+        if (!session) {
+            throw new NotFoundError("Session not found");
+        }
+
+        const participant = await InterviewSessionParticipantsRepositories.findParticipantForSession(userId, sessionId);
+        if (!participant) {
+            throw new BadRequestError("You are not a participant of this interview");
+        }
+
+        if (session.status === "COMPLETED") {
+            return {
+                sessionId,
+                status: "COMPLETED",
+                message: "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation."
+            };
+        }
+
+        const completionResult = await AIInterviewCompletionService.finalizeSession(sessionId);
+        return {
+            sessionId,
+            status: "COMPLETED",
+            message: "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation.",
+            result: completionResult.aiResult
+        };
+    }
+
     static async submitAnswer(data: {
         userId: string;
         sessionId: string;
