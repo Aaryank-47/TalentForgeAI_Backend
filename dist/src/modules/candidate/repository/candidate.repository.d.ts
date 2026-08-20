@@ -57,6 +57,7 @@ export declare class CandidateRepository {
             createdAt: Date;
             updatedAt: Date;
             candidateId: string;
+            skillId: string | null;
             yearsOfExperience: number | null;
         }[];
         educations: {

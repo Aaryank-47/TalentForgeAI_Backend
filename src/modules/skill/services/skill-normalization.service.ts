@@ -104,15 +104,17 @@ export class SkillNormalizationService {
             }
         }
 
-        // Asynchronously record unknown skill candidates without blocking
+        // Record optional discovery metadata without failing skill normalization.
         if (unknownCandidates.length > 0) {
-            this.skillRepository.recordSkillCandidates(unknownCandidates).catch((err: unknown) => {
+            try {
+                await this.skillRepository.recordSkillCandidates(unknownCandidates);
+            } catch (err: unknown) {
                 logger.warn(
                     `[SkillNormalizationService] Asynchronous candidate recording warning: ${
                         err instanceof Error ? err.message : "Unknown error"
                     }`
                 );
-            });
+            }
         }
 
         const result = Array.from(skillMap.values());

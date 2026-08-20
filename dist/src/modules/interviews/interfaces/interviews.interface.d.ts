@@ -1,0 +1,316 @@
+import type { Prisma } from "@prisma/client";
+import type { PaginationMeta } from "../../../common/types/pagination.types.js";
+export declare const interviewSelect: {
+    id: true;
+    companyId: true;
+    title: true;
+    description: true;
+    instructions: true;
+    type: true;
+    mode: true;
+    durationMinutes: true;
+    status: true;
+    createdAt: true;
+    updatedAt: true;
+    createdBy: {
+        select: {
+            id: true;
+            userId: true;
+        };
+    };
+};
+export type InterviewResponse = Prisma.InterviewGetPayload<{
+    select: typeof interviewSelect;
+}>;
+export declare const interviewListSelect: {
+    id: true;
+    title: true;
+    type: true;
+    mode: true;
+    durationMinutes: true;
+    status: true;
+    createdAt: true;
+};
+export type InterviewSummary = Prisma.InterviewGetPayload<{
+    select: typeof interviewListSelect;
+}>;
+export declare const interviewDetailSelect: {
+    id: true;
+    companyId: true;
+    title: true;
+    description: true;
+    instructions: true;
+    type: true;
+    mode: true;
+    durationMinutes: true;
+    status: true;
+    createdAt: true;
+    updatedAt: true;
+    createdBy: {
+        select: {
+            id: true;
+            userId: true;
+        };
+    };
+    jobInterviews: {
+        select: {
+            jobId: true;
+            job: {
+                select: {
+                    title: true;
+                };
+            };
+            displayOrder: true;
+            isMandatory: true;
+        };
+    };
+};
+export type InterviewDetailPayload = Prisma.InterviewGetPayload<{
+    select: typeof interviewDetailSelect;
+}>;
+export interface InterviewDetailResponse extends Omit<InterviewDetailPayload, 'jobInterviews'> {
+    jobs: {
+        jobId: string;
+        title: string;
+        displayOrder: number;
+        isMandatory: boolean;
+    }[];
+}
+export interface PaginatedInterviewResponse {
+    items: InterviewSummary[];
+    pagination: PaginationMeta;
+}
+export interface ArchiveInterviewResponse {
+    id: string;
+    status: string;
+}
+export interface CreateJobInterviewData {
+    jobId: string;
+    interviewId: string;
+    displayOrder: number;
+    isMandatory: boolean;
+}
+export interface JobInterviewResponse {
+    jobId: string;
+    interviewId: string;
+    displayOrder: number;
+    isMandatory: boolean;
+}
+export interface JobInterviewWithInterviewResponse extends JobInterviewResponse {
+    interview: {
+        id: string;
+        title: string;
+        type: string;
+        mode: string;
+        durationMinutes: number | null;
+        status: string;
+    };
+}
+export interface RemoveJobInterviewResponse {
+    jobId: string;
+    interviewId: string;
+}
+export declare const jobInterviewWithInterviewSelect: {
+    jobId: true;
+    interviewId: true;
+    displayOrder: true;
+    isMandatory: true;
+    interview: {
+        select: {
+            id: true;
+            title: true;
+            type: true;
+            mode: true;
+            durationMinutes: true;
+            status: true;
+        };
+    };
+};
+export type JobInterviewWithInterviewPayload = Prisma.JobInterviewGetPayload<{
+    select: typeof jobInterviewWithInterviewSelect;
+}>;
+export declare const interviewAssignmentSelect: {
+    id: true;
+    interviewId: true;
+    applicationId: true;
+    creationSource: true;
+    createdAt: true;
+    application: {
+        select: {
+            id: true;
+            status: true;
+            candidate: {
+                select: {
+                    id: true;
+                    fullName: true;
+                };
+            };
+            job: {
+                select: {
+                    id: true;
+                    title: true;
+                };
+            };
+        };
+    };
+};
+export type InterviewAssignmentPayload = Prisma.InterviewAssignmentGetPayload<{
+    select: typeof interviewAssignmentSelect;
+}>;
+export type InterviewAssignmentResponse = Omit<InterviewAssignmentPayload, 'application'> & {
+    application: {
+        id: string;
+        status: string;
+        candidate: {
+            id: string;
+            fullName: string;
+        };
+        job: {
+            id: string;
+            title: string;
+        };
+    };
+};
+export declare const interviewAssignmentDetailSelect: {
+    interview: {
+        select: {
+            id: true;
+            title: true;
+            type: true;
+            mode: true;
+            durationMinutes: true;
+        };
+    };
+    id: true;
+    interviewId: true;
+    applicationId: true;
+    creationSource: true;
+    createdAt: true;
+    application: {
+        select: {
+            id: true;
+            status: true;
+            candidate: {
+                select: {
+                    id: true;
+                    fullName: true;
+                };
+            };
+            job: {
+                select: {
+                    id: true;
+                    title: true;
+                };
+            };
+        };
+    };
+};
+export type InterviewAssignmentDetailPayload = Prisma.InterviewAssignmentGetPayload<{
+    select: typeof interviewAssignmentDetailSelect;
+}>;
+export type InterviewAssignmentDetailResponse = Omit<InterviewAssignmentDetailPayload, 'application'> & {
+    application: {
+        id: string;
+        status: string;
+        candidate: {
+            id: string;
+            fullName: string;
+        };
+        job: {
+            id: string;
+            title: string;
+        };
+    };
+    interview: {
+        id: string;
+        title: string;
+        type: string;
+        mode: string;
+        durationMinutes: number | null;
+    };
+};
+export interface PaginatedInterviewAssignmentResponse {
+    items: InterviewAssignmentResponse[];
+    pagination: PaginationMeta;
+}
+export declare const interviewSessionParticipantSelect: {
+    id: true;
+    sessionId: true;
+    participantType: true;
+    assignmentId: true;
+    companyMemberId: true;
+    hasJoined: true;
+    joinedAt: true;
+    createdAt: true;
+    updatedAt: true;
+};
+export type InterviewSessionParticipantPayload = Prisma.InterviewSessionParticipantGetPayload<{
+    select: typeof interviewSessionParticipantSelect;
+}>;
+export type InterviewSessionParticipantResponse = InterviewSessionParticipantPayload;
+export declare const interviewSessionSelect: {
+    id: true;
+    interviewId: true;
+    status: true;
+    scheduledAt: true;
+    startedAt: true;
+    endedAt: true;
+    roomId: true;
+    createdAt: true;
+    updatedAt: true;
+    participants: {
+        select: {
+            id: true;
+            sessionId: true;
+            participantType: true;
+            assignmentId: true;
+            companyMemberId: true;
+            hasJoined: true;
+            joinedAt: true;
+            createdAt: true;
+            updatedAt: true;
+        };
+    };
+};
+export type InterviewSessionPayload = Prisma.InterviewSessionGetPayload<{
+    select: typeof interviewSessionSelect;
+}>;
+export type InterviewSessionResponse = InterviewSessionPayload;
+export declare const interviewSessionDetailSelect: {
+    interview: {
+        select: {
+            id: true;
+            companyId: true;
+            title: true;
+            type: true;
+            mode: true;
+        };
+    };
+    id: true;
+    interviewId: true;
+    status: true;
+    scheduledAt: true;
+    startedAt: true;
+    endedAt: true;
+    roomId: true;
+    createdAt: true;
+    updatedAt: true;
+    participants: {
+        select: {
+            id: true;
+            sessionId: true;
+            participantType: true;
+            assignmentId: true;
+            companyMemberId: true;
+            hasJoined: true;
+            joinedAt: true;
+            createdAt: true;
+            updatedAt: true;
+        };
+    };
+};
+export type InterviewSessionDetailPayload = Prisma.InterviewSessionGetPayload<{
+    select: typeof interviewSessionDetailSelect;
+}>;
+export type InterviewSessionDetailResponse = InterviewSessionDetailPayload;
+//# sourceMappingURL=interviews.interface.d.ts.map

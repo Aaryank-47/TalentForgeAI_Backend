@@ -441,4 +441,95 @@ export declare const attachmentUrlsValidator: z.ZodArray<z.ZodString>;
 export declare const codeResponseValidator: z.ZodOptional<z.ZodString>;
 export declare const submissionUrlValidator: z.ZodOptional<z.ZodString>;
 export declare const metaValidator: z.ZodOptional<z.ZodAny>;
+export declare const interviewIdValidator: z.ZodString;
+export declare const interviewTitleValidator: z.ZodString;
+export declare const interviewDescriptionValidator: z.ZodOptional<z.ZodString>;
+export declare const interviewInstructionsValidator: z.ZodOptional<z.ZodString>;
+export declare const interviewTypeValidator: z.ZodEnum<{
+    AI: "AI";
+    NORMAL: "NORMAL";
+}>;
+export declare const interviewModeValidator: z.ZodEnum<{
+    INDIVIDUAL: "INDIVIDUAL";
+    GROUP: "GROUP";
+}>;
+export declare const interviewStatusValidator: z.ZodEnum<{
+    DRAFT: "DRAFT";
+    ACTIVE: "ACTIVE";
+    ARCHIVED: "ARCHIVED";
+}>;
+export declare const interviewDurationMinutesValidator: z.ZodOptional<z.ZodNumber>;
+export declare const jobInterviewDisplayOrderValidator: z.ZodNumber;
+export declare const jobInterviewIsMandatoryValidator: z.ZodBoolean;
+export declare const interviewAssignmentIdValidator: z.ZodString;
+export declare const interviewAssignmentCreationSourceValidator: z.ZodEnum<{
+    AUTOMATIC: "AUTOMATIC";
+    MANUAL: "MANUAL";
+}>;
+export declare const interviewSessionIdValidator: z.ZodString;
+export declare const interviewSessionStatusValidator: z.ZodEnum<{
+    SCHEDULED: "SCHEDULED";
+    IN_PROGRESS: "IN_PROGRESS";
+    COMPLETED: "COMPLETED";
+    CANCELLED: "CANCELLED";
+    EXPIRED: "EXPIRED";
+}>;
+export declare const interviewSessionScheduledAtValidator: z.ZodCoercedDate<unknown>;
+export declare const interviewSessionStartedAtValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+export declare const interviewSessionEndedAtValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+export declare const interviewSessionRoomIdValidator: z.ZodOptional<z.ZodString>;
+export declare const interviewSessionParticipantIdValidator: z.ZodString;
+export declare const interviewParticipantTypeValidator: z.ZodEnum<{
+    CANDIDATE: "CANDIDATE";
+    INTERVIEWER: "INTERVIEWER";
+}>;
+export declare const interviewParticipantHasJoinedValidator: z.ZodBoolean;
+export declare const interviewParticipantJoinedAtValidator: z.ZodOptional<z.ZodCoercedDate<unknown>>;
+export declare const aiInterviewConfigurationIdValidator: z.ZodString;
+export declare const aiInterviewSystemPromptValidator: z.ZodOptional<z.ZodString>;
+export declare const aiInterviewEvaluationMetricsValidator: z.ZodOptional<z.ZodAny>;
+export declare const aiInterviewQuestionCountValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewDifficultyValidator: z.ZodOptional<z.ZodEnum<{
+    EASY: "EASY";
+    MEDIUM: "MEDIUM";
+    HARD: "HARD";
+}>>;
+export declare const aiInterviewAllowFollowUpsValidator: z.ZodOptional<z.ZodBoolean>;
+export declare const aiInterviewQuestionIdValidator: z.ZodString;
+export declare const aiInterviewQuestionSequenceValidator: z.ZodNumber;
+export declare const aiInterviewQuestionTextValidator: z.ZodString;
+export declare const aiInterviewQuestionTopicValidator: z.ZodOptional<z.ZodString>;
+export declare const aiInterviewQuestionSkillValidator: z.ZodOptional<z.ZodString>;
+export declare const aiInterviewQuestionDifficultyValidator: z.ZodOptional<z.ZodEnum<{
+    EASY: "EASY";
+    MEDIUM: "MEDIUM";
+    HARD: "HARD";
+}>>;
+export declare const aiInterviewQuestionExpectedAreasValidator: z.ZodOptional<z.ZodAny>;
+export declare const aiInterviewAnswerIdValidator: z.ZodString;
+export declare const aiInterviewAnswerTextValidator: z.ZodString;
+export declare const aiInterviewEvaluationIdValidator: z.ZodString;
+export declare const aiInterviewEvaluationScoreValidator: z.ZodNumber;
+export declare const aiInterviewEvaluationTechnicalAccuracyValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewEvaluationRelevanceValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewEvaluationCompletenessValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewEvaluationCommunicationValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewEvaluationFeedbackValidator: z.ZodOptional<z.ZodString>;
+export declare const aiInterviewEvaluationStrengthsValidator: z.ZodArray<z.ZodString>;
+export declare const aiInterviewEvaluationWeaknessesValidator: z.ZodArray<z.ZodString>;
+export declare const aiInterviewResultIdValidator: z.ZodString;
+export declare const aiInterviewResultOverallScoreValidator: z.ZodNumber;
+export declare const aiInterviewResultTechnicalScoreValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewResultCommunicationScoreValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewResultProblemSolvingScoreValidator: z.ZodOptional<z.ZodNumber>;
+export declare const aiInterviewResultOverallFeedbackValidator: z.ZodOptional<z.ZodString>;
+export declare const aiInterviewResultStrengthsValidator: z.ZodOptional<z.ZodAny>;
+export declare const aiInterviewResultWeaknessesValidator: z.ZodOptional<z.ZodAny>;
+export declare const aiInterviewResultRecommendationValidator: z.ZodOptional<z.ZodEnum<{
+    STRONG_HIRE: "STRONG_HIRE";
+    HIRE: "HIRE";
+    HOLD: "HOLD";
+    REJECT: "REJECT";
+    STRONG_REJECT: "STRONG_REJECT";
+}>>;
 //# sourceMappingURL=validators.d.ts.map

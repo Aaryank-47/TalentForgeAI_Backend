@@ -42,5 +42,22 @@ export class AssessmentAttemptController {
         const result = await AssessmentAttemptService.saveAnswer(req.user.id, attemptId, questionId, dto);
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Answer saved successfully.", result));
     });
+    static getAnswers = asyncHandler(async (req, res) => {
+        const attemptId = req.params.attemptId;
+        const result = await AssessmentAttemptService.getAnswers(req.user.id, attemptId);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Assessment answers retrieved successfully.", result));
+    });
+    static getAnswer = asyncHandler(async (req, res) => {
+        const attemptId = req.params.attemptId;
+        const questionId = req.params.questionId;
+        const result = await AssessmentAttemptService.getAnswer(req.user.id, attemptId, questionId);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Assessment answer retrieved successfully.", result));
+    });
+    static clearAnswer = asyncHandler(async (req, res) => {
+        const attemptId = req.params.attemptId;
+        const questionId = req.params.questionId;
+        const result = await AssessmentAttemptService.clearAnswer(req.user.id, attemptId, questionId);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Assessment answer cleared successfully.", result));
+    });
 }
 //# sourceMappingURL=candidateAssessment.controller.js.map

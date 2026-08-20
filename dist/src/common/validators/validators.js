@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Gender, ExperienceLevel, CompanyVisibility, EmploymentType, SalaryPeriod, WorkplaceType, JobStatus, JobVisibility, WorkflowStatus, StageType, UserRole, CompanyMemberRole, CompanyMemberStatus, CompanyStatus, AccountStatus, GradingSystem, ApplicationStatus, QuestionType, QuestionStatus, QuestionDifficulty, QuestionOwnership, TestCaseType, AttemptStatus, EvaluationStatus, ReviewStatus, AssessmentStatus } from "@prisma/client";
+import { Gender, ExperienceLevel, CompanyVisibility, EmploymentType, SalaryPeriod, WorkplaceType, JobStatus, JobVisibility, WorkflowStatus, StageType, UserRole, CompanyMemberRole, CompanyMemberStatus, CompanyStatus, AccountStatus, GradingSystem, ApplicationStatus, QuestionType, QuestionStatus, QuestionDifficulty, QuestionOwnership, TestCaseType, AttemptStatus, EvaluationStatus, ReviewStatus, AssessmentStatus, InterviewType, InterviewMode, InterviewStatus, InterviewSessionStatus, InterviewAssignmentCreationSource, InterviewParticipantType, AIRecommendation } from "@prisma/client";
 // General / User
 export const uuidValidator = z.string().cuid("Please enter a valid UUID");
 export const userIdValidator = uuidValidator;
@@ -840,4 +840,143 @@ export const attachmentUrlsValidator = z.array(z.string().url("Please enter vali
 export const codeResponseValidator = z.string().optional();
 export const submissionUrlValidator = z.string().url("Please enter a valid submission URL").optional();
 export const metaValidator = z.any().optional();
+// Interviews
+export const interviewIdValidator = uuidValidator;
+export const interviewTitleValidator = z
+    .string()
+    .trim()
+    .min(3, "Title must be at least 3 characters long")
+    .max(150, "Title must be at most 150 characters long");
+export const interviewDescriptionValidator = z
+    .string()
+    .trim()
+    .max(1000, "Description must be at most 1000 characters long")
+    .optional();
+export const interviewInstructionsValidator = z
+    .string()
+    .trim()
+    .max(2000, "Instructions must be at most 2000 characters long")
+    .optional();
+export const interviewTypeValidator = z.nativeEnum(InterviewType);
+export const interviewModeValidator = z.nativeEnum(InterviewMode);
+export const interviewStatusValidator = z.nativeEnum(InterviewStatus);
+export const interviewDurationMinutesValidator = z
+    .number()
+    .int("Duration must be an integer")
+    .positive("Duration must be positive")
+    .optional();
+// Job Interview
+export const jobInterviewDisplayOrderValidator = z
+    .number()
+    .int("Display order must be an integer")
+    .nonnegative("Display order cannot be negative");
+export const jobInterviewIsMandatoryValidator = z.boolean();
+// Interview Assignment
+export const interviewAssignmentIdValidator = uuidValidator;
+export const interviewAssignmentCreationSourceValidator = z.nativeEnum(InterviewAssignmentCreationSource);
+// Interview Session
+export const interviewSessionIdValidator = uuidValidator;
+export const interviewSessionStatusValidator = z.nativeEnum(InterviewSessionStatus);
+export const interviewSessionScheduledAtValidator = z.coerce.date();
+export const interviewSessionStartedAtValidator = z.coerce.date().optional();
+export const interviewSessionEndedAtValidator = z.coerce.date().optional();
+export const interviewSessionRoomIdValidator = z.string().trim().optional();
+// Interview Session Participant
+export const interviewSessionParticipantIdValidator = uuidValidator;
+export const interviewParticipantTypeValidator = z.nativeEnum(InterviewParticipantType);
+export const interviewParticipantHasJoinedValidator = z.boolean();
+export const interviewParticipantJoinedAtValidator = z.coerce.date().optional();
+// AI Interview Configuration
+export const aiInterviewConfigurationIdValidator = uuidValidator;
+export const aiInterviewSystemPromptValidator = z.string().trim().optional();
+export const aiInterviewEvaluationMetricsValidator = z.any().optional();
+export const aiInterviewQuestionCountValidator = z
+    .number()
+    .int("Question count must be an integer")
+    .positive("Question count must be positive")
+    .optional();
+export const aiInterviewDifficultyValidator = z.nativeEnum(QuestionDifficulty).optional();
+export const aiInterviewAllowFollowUpsValidator = z.boolean().optional();
+// AI Interview Question
+export const aiInterviewQuestionIdValidator = uuidValidator;
+export const aiInterviewQuestionSequenceValidator = z
+    .number()
+    .int("Sequence must be an integer")
+    .positive("Sequence must be positive");
+export const aiInterviewQuestionTextValidator = z
+    .string()
+    .trim()
+    .min(5, "Question must be at least 5 characters long");
+export const aiInterviewQuestionTopicValidator = z.string().trim().optional();
+export const aiInterviewQuestionSkillValidator = z.string().trim().optional();
+export const aiInterviewQuestionDifficultyValidator = z.nativeEnum(QuestionDifficulty).optional();
+export const aiInterviewQuestionExpectedAreasValidator = z.any().optional();
+// AI Interview Answer
+export const aiInterviewAnswerIdValidator = uuidValidator;
+export const aiInterviewAnswerTextValidator = z
+    .string()
+    .trim()
+    .min(1, "Answer text cannot be empty");
+// AI Interview Evaluation
+export const aiInterviewEvaluationIdValidator = uuidValidator;
+export const aiInterviewEvaluationScoreValidator = z
+    .number()
+    .min(0, "Score cannot be negative")
+    .max(100, "Score cannot exceed 100");
+export const aiInterviewEvaluationTechnicalAccuracyValidator = z
+    .number()
+    .min(0, "Technical accuracy score cannot be negative")
+    .max(100, "Technical accuracy score cannot exceed 100")
+    .optional();
+export const aiInterviewEvaluationRelevanceValidator = z
+    .number()
+    .min(0, "Relevance score cannot be negative")
+    .max(100, "Relevance score cannot exceed 100")
+    .optional();
+export const aiInterviewEvaluationCompletenessValidator = z
+    .number()
+    .min(0, "Completeness score cannot be negative")
+    .max(100, "Completeness score cannot exceed 100")
+    .optional();
+export const aiInterviewEvaluationCommunicationValidator = z
+    .number()
+    .min(0, "Communication score cannot be negative")
+    .max(100, "Communication score cannot exceed 100")
+    .optional();
+export const aiInterviewEvaluationFeedbackValidator = z
+    .string()
+    .trim()
+    .max(2000, "Feedback must be at most 2000 characters long")
+    .optional();
+export const aiInterviewEvaluationStrengthsValidator = z.array(z.string().min(1));
+export const aiInterviewEvaluationWeaknessesValidator = z.array(z.string().min(1));
+// AI Interview Result
+export const aiInterviewResultIdValidator = uuidValidator;
+export const aiInterviewResultOverallScoreValidator = z
+    .number()
+    .min(0, "Overall score cannot be negative")
+    .max(100, "Overall score cannot exceed 100");
+export const aiInterviewResultTechnicalScoreValidator = z
+    .number()
+    .min(0, "Technical score cannot be negative")
+    .max(100, "Technical score cannot exceed 100")
+    .optional();
+export const aiInterviewResultCommunicationScoreValidator = z
+    .number()
+    .min(0, "Communication score cannot be negative")
+    .max(100, "Communication score cannot exceed 100")
+    .optional();
+export const aiInterviewResultProblemSolvingScoreValidator = z
+    .number()
+    .min(0, "Problem solving score cannot be negative")
+    .max(100, "Problem solving score cannot exceed 100")
+    .optional();
+export const aiInterviewResultOverallFeedbackValidator = z
+    .string()
+    .trim()
+    .max(3000, "Overall feedback must be at most 3000 characters long")
+    .optional();
+export const aiInterviewResultStrengthsValidator = z.any().optional();
+export const aiInterviewResultWeaknessesValidator = z.any().optional();
+export const aiInterviewResultRecommendationValidator = z.nativeEnum(AIRecommendation).optional();
 //# sourceMappingURL=validators.js.map

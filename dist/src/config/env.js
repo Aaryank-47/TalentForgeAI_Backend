@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { z } from "zod";
 dotenv.config({
     path: "src/config/.env",
+    override: true,
 });
 const envSchema = z.object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -25,6 +26,12 @@ const envSchema = z.object({
     ELASTICSEARCH_USERNAME: z.string().optional(),
     ELASTICSEARCH_PASSWORD: z.string().optional(),
     ELASTICSEARCH_API_KEY: z.string().optional(),
+    OPENROUTER_API_KEY: z.string().min(1),
+    OPENROUTER_BASE_URL: z.string().min(1).default("https://openrouter.ai/api/v1"),
+    OPENROUTER_MODEL: z.string().min(1),
+    OPENROUTER_TIMEOUT_MS: z.coerce.number().default(30000),
+    REDIS_HOST: z.string().default("localhost"),
+    REDIS_PORT: z.coerce.number().default(6379),
 });
 const parsedEnv = envSchema.safeParse(process.env);
 if (!parsedEnv.success) {
@@ -62,6 +69,16 @@ export const env = {
         username: parsedEnv.data.ELASTICSEARCH_USERNAME,
         password: parsedEnv.data.ELASTICSEARCH_PASSWORD,
         apiKey: parsedEnv.data.ELASTICSEARCH_API_KEY,
+    },
+    openRouter: {
+        apiKey: parsedEnv.data.OPENROUTER_API_KEY,
+        baseUrl: parsedEnv.data.OPENROUTER_BASE_URL,
+        model: parsedEnv.data.OPENROUTER_MODEL,
+        timeoutMs: parsedEnv.data.OPENROUTER_TIMEOUT_MS,
+    },
+    redis: {
+        host: parsedEnv.data.REDIS_HOST,
+        port: parsedEnv.data.REDIS_PORT,
     },
 };
 export default env;

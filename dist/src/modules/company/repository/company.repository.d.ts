@@ -52,6 +52,18 @@ export declare class CompanyRepository {
     static listAllMembers(companyId: string): Promise<CompanyMemberDetails[]>;
     static removeMember(companyId: string, userIds: string[]): Promise<RemoveCompanyMembersResponse>;
     static findMembersByUserIds(companyId: string, userIds: string[]): Promise<CompanyMemberList[]>;
+    static findMembersByIds(memberIds: string[]): Promise<{
+        companyId: string;
+        id: string;
+        role: import("@prisma/client").$Enums.CompanyMemberRole;
+        status: import("@prisma/client").$Enums.CompanyMemberStatus;
+        userId: string;
+        expiresAt: Date | null;
+        joinedAt: Date;
+        invitationToken: string | null;
+        invitedAt: Date | null;
+        invitedBy: string | null;
+    }[]>;
     static updateLogo(companyId: string, logoUrl: string): Promise<CompanyView>;
     static updateCoverImage(companyId: string, coverUrl: string): Promise<CompanyView>;
     static verifyCompany(companyId: string, verifiedBy: string): Promise<CompanyView>;

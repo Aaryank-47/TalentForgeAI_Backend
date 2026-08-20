@@ -278,6 +278,11 @@ export declare class ApplicationRepository {
         resumeUrl: string;
         resumeName: string;
         uploadedAt: Date;
+        parsingStatus: import("@prisma/client").$Enums.ResumeParsingStatus;
+        parsingStartedAt: Date | null;
+        parsingCompletedAt: Date | null;
+        parsingError: string | null;
+        rawParsedData: import("@prisma/client/runtime/client").JsonValue | null;
     } | null>;
     static getJob(jobId: string): Promise<{
         companyId: string;
@@ -495,6 +500,11 @@ export declare class ApplicationRepository {
                 resumeUrl: string;
                 resumeName: string;
                 uploadedAt: Date;
+                parsingStatus: import("@prisma/client").$Enums.ResumeParsingStatus;
+                parsingStartedAt: Date | null;
+                parsingCompletedAt: Date | null;
+                parsingError: string | null;
+                rawParsedData: import("@prisma/client/runtime/client").JsonValue | null;
             };
         } & {
             id: string;
@@ -526,6 +536,7 @@ export declare class ApplicationRepository {
                 createdAt: Date;
                 updatedAt: Date;
                 candidateId: string;
+                skillId: string | null;
                 yearsOfExperience: number | null;
             }[];
             educations: {
@@ -628,6 +639,11 @@ export declare class ApplicationRepository {
             resumeUrl: string;
             resumeName: string;
             uploadedAt: Date;
+            parsingStatus: import("@prisma/client").$Enums.ResumeParsingStatus;
+            parsingStartedAt: Date | null;
+            parsingCompletedAt: Date | null;
+            parsingError: string | null;
+            rawParsedData: import("@prisma/client/runtime/client").JsonValue | null;
         };
     } & {
         id: string;

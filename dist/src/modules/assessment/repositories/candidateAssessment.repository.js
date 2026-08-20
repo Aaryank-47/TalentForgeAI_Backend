@@ -198,5 +198,21 @@ export class AssessmentAttemptRepository {
             }
         });
     }
+    static async findAnswersByAttempt(attemptId) {
+        return await prisma.assessmentAnswer.findMany({
+            where: { attemptId },
+            orderBy: { startedAt: "asc" }
+        });
+    }
+    static async deleteAnswer(attemptId, questionId) {
+        return await prisma.assessmentAnswer.delete({
+            where: {
+                attemptId_questionId: {
+                    attemptId,
+                    questionId
+                }
+            }
+        });
+    }
 }
 //# sourceMappingURL=candidateAssessment.repository.js.map

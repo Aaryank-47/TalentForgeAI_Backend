@@ -34,6 +34,7 @@ export declare class CandidateService {
             createdAt: Date;
             updatedAt: Date;
             candidateId: string;
+            skillId: string | null;
             yearsOfExperience: number | null;
         }[];
         educations: {

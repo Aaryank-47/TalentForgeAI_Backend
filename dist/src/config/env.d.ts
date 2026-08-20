@@ -30,6 +30,16 @@ export declare const env: {
         readonly password: string | undefined;
         readonly apiKey: string | undefined;
     };
+    readonly openRouter: {
+        readonly apiKey: string;
+        readonly baseUrl: string;
+        readonly model: string;
+        readonly timeoutMs: number;
+    };
+    readonly redis: {
+        readonly host: string;
+        readonly port: number;
+    };
 };
 export default env;
 //# sourceMappingURL=env.d.ts.map

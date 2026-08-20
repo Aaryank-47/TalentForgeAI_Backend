@@ -192,6 +192,12 @@ describe("Mode 2: Real Database Assessment Answer Save/Autosave Integration Test
                 status: AttemptStatus.IN_PROGRESS
             }
         });
+        if (attempt) {
+            attempt = await prisma.assessmentAttempt.update({
+                where: { id: attempt.id },
+                data: { startedAt: new Date() }
+            });
+        }
         if (!attempt) {
             attempt = await prisma.assessmentAttempt.create({
                 data: {

@@ -47,6 +47,11 @@ export declare class EmployerApplicationService {
                 resumeUrl: string;
                 resumeName: string;
                 uploadedAt: Date;
+                parsingStatus: import("@prisma/client").$Enums.ResumeParsingStatus;
+                parsingStartedAt: Date | null;
+                parsingCompletedAt: Date | null;
+                parsingError: string | null;
+                rawParsedData: import("@prisma/client/runtime/client").JsonValue | null;
             };
         } & {
             id: string;
@@ -78,6 +83,7 @@ export declare class EmployerApplicationService {
                 createdAt: Date;
                 updatedAt: Date;
                 candidateId: string;
+                skillId: string | null;
                 yearsOfExperience: number | null;
             }[];
             educations: {
@@ -180,6 +186,11 @@ export declare class EmployerApplicationService {
             resumeUrl: string;
             resumeName: string;
             uploadedAt: Date;
+            parsingStatus: import("@prisma/client").$Enums.ResumeParsingStatus;
+            parsingStartedAt: Date | null;
+            parsingCompletedAt: Date | null;
+            parsingError: string | null;
+            rawParsedData: import("@prisma/client/runtime/client").JsonValue | null;
         };
     } & {
         id: string;

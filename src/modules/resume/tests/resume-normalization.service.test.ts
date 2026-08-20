@@ -159,6 +159,9 @@ describe("ResumeNormalizationService & Skill Taxonomy Integration Tests", () => 
   });
 
   it("11. Bulk candidate recording: does not perform sequential individual upsert writes", async () => {
+    jest
+      .spyOn(SkillRepository.prototype, "findSkillsByNormalizedAliases")
+      .mockResolvedValue(new Map());
     const recordSpy = jest.spyOn(SkillRepository.prototype, "recordSkillCandidates");
 
     const input = createBaseInput();

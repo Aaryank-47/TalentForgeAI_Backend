@@ -67,6 +67,9 @@ export declare const projectSaveValidationSchema: z.ZodObject<{
     codeResponse: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     meta: z.ZodOptional<z.ZodOptional<z.ZodAny>>;
 }, z.core.$strict>;
+export declare const attemptIdParamSchema: z.ZodObject<{
+    attemptId: z.ZodString;
+}, z.core.$strip>;
 export declare const saveAnswerParamsSchema: z.ZodObject<{
     attemptId: z.ZodString;
     questionId: z.ZodString;

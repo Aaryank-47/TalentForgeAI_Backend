@@ -1,0 +1,270 @@
+export declare class ATSIntegrationRepository {
+    static findApplicationById(id: string): Promise<({
+        candidate: {
+            userId: string;
+        };
+        job: {
+            companyId: string;
+            workflowId: string | null;
+        };
+    } & {
+        id: string;
+        status: import("@prisma/client").$Enums.ApplicationStatus;
+        updatedAt: Date;
+        jobId: string;
+        candidateId: string;
+        resumeId: string;
+        coverLetter: string | null;
+        appliedAt: Date;
+        lastStatusUpdatedAt: Date | null;
+        withdrawnAt: Date | null;
+        withdrawReason: string | null;
+        rejectedAt: Date | null;
+        rejectionReason: string | null;
+        hiredAt: Date | null;
+    }) | null>;
+    static findCompletedAttemptByApplication(applicationId: string): Promise<({
+        assessment: {
+            title: string;
+        };
+    } & {
+        id: string;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        assessmentId: string;
+        candidateId: string;
+        applicationId: string;
+        currentSectionId: string | null;
+        startedAt: Date | null;
+        submittedAt: Date | null;
+        lastActivityAt: Date | null;
+        attemptNumber: number;
+        timeTakenInSeconds: number | null;
+        completedDurationSeconds: number | null;
+        overallScore: number | null;
+        percentage: number | null;
+        passed: boolean | null;
+        evaluationStatus: import("@prisma/client").$Enums.EvaluationStatus;
+        reviewStatus: import("@prisma/client").$Enums.ReviewStatus;
+    }) | null>;
+    static findAttemptWithAssessmentAndApplication(attemptId: string): Promise<({
+        application: {
+            candidate: {
+                user: {
+                    email: string;
+                    password: string;
+                    otp: string | null;
+                    id: string;
+                    otpExpiresAt: Date | null;
+                    resetPasswordToken: string | null;
+                    resetPasswordTokenExpiresAt: Date | null;
+                    role: import("@prisma/client").$Enums.UserRole;
+                    status: import("@prisma/client").$Enums.AccountStatus;
+                    isEmailVerified: boolean;
+                    lastLoginAt: Date | null;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    deletedAt: Date | null;
+                    deletedById: string | null;
+                    suspendedAt: Date | null;
+                    suspendedById: string | null;
+                    suspendedReason: string | null;
+                    restoredAt: Date | null;
+                    restoredById: string | null;
+                };
+            } & {
+                fullName: string;
+                phoneNumber: string | null;
+                linkedinUrl: string | null;
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                profilePicture: string | null;
+                headline: string | null;
+                bio: string | null;
+                dateOfBirth: Date | null;
+                gender: import("@prisma/client").$Enums.Gender | null;
+                experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
+                currentLocation: string | null;
+                preferredLocation: string | null;
+                currentCompany: string | null;
+                currentDesignation: string | null;
+                totalExperience: number | null;
+                expectedSalary: number | null;
+                currentSalary: number | null;
+                noticePeriod: number | null;
+                githubUrl: string | null;
+                portfolioUrl: string | null;
+                websiteUrl: string | null;
+                isOpenToWork: boolean;
+                profileCompletion: number;
+            };
+            job: {
+                company: {
+                    companyName: string;
+                    phoneNumber: string | null;
+                    website: string | null;
+                    logo: string | null;
+                    coverImage: string | null;
+                    description: string | null;
+                    industry: string | null;
+                    companySize: string | null;
+                    foundedYear: number | null;
+                    headquarters: string | null;
+                    linkedinUrl: string | null;
+                    twitterUrl: string | null;
+                    slug: string;
+                    id: string;
+                    status: import("@prisma/client").$Enums.CompanyStatus;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    deletedAt: Date | null;
+                    suspendedAt: Date | null;
+                    suspendedReason: string | null;
+                    restoredAt: Date | null;
+                    deletedBy: string | null;
+                    suspendedBy: string | null;
+                    restoredBy: string | null;
+                    profileCompletion: number;
+                    companyEmail: string | null;
+                    isVerified: boolean;
+                    verifiedAt: Date | null;
+                    verifiedBy: string | null;
+                    visibility: import("@prisma/client").$Enums.CompanyVisibility;
+                };
+            } & {
+                companyId: string;
+                description: string;
+                slug: string;
+                id: string;
+                status: import("@prisma/client").$Enums.JobStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                visibility: import("@prisma/client").$Enums.JobVisibility;
+                location: string | null;
+                title: string;
+                employmentType: import("@prisma/client").$Enums.EmploymentType;
+                workplaceType: import("@prisma/client").$Enums.WorkplaceType;
+                vacancies: number;
+                minExperience: number;
+                maxExperience: number;
+                minimumSalary: number | null;
+                maximumSalary: number | null;
+                salaryPeriod: import("@prisma/client").$Enums.SalaryPeriod | null;
+                hideSalary: boolean;
+                applicationDeadline: Date | null;
+                workflowId: string | null;
+                summary: string | null;
+                publishedAt: Date | null;
+                closedAt: Date | null;
+                archivedAt: Date | null;
+                createdById: string;
+                updatedById: string | null;
+            };
+        } & {
+            id: string;
+            status: import("@prisma/client").$Enums.ApplicationStatus;
+            updatedAt: Date;
+            jobId: string;
+            candidateId: string;
+            resumeId: string;
+            coverLetter: string | null;
+            appliedAt: Date;
+            lastStatusUpdatedAt: Date | null;
+            withdrawnAt: Date | null;
+            withdrawReason: string | null;
+            rejectedAt: Date | null;
+            rejectionReason: string | null;
+            hiredAt: Date | null;
+        };
+        assessment: {
+            companyId: string;
+            description: string | null;
+            id: string;
+            status: import("@prisma/client").$Enums.AssessmentStatus;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            deletedById: string | null;
+            title: string;
+            publishedAt: Date | null;
+            archivedAt: Date | null;
+            createdById: string;
+            updatedById: string | null;
+            instructions: string | null;
+            durationMinutes: number | null;
+            passingScore: number | null;
+            totalMarks: number | null;
+            isTemplate: boolean;
+            archivedById: string | null;
+        };
+    } & {
+        id: string;
+        status: import("@prisma/client").$Enums.AttemptStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        assessmentId: string;
+        candidateId: string;
+        applicationId: string;
+        currentSectionId: string | null;
+        startedAt: Date | null;
+        submittedAt: Date | null;
+        lastActivityAt: Date | null;
+        attemptNumber: number;
+        timeTakenInSeconds: number | null;
+        completedDurationSeconds: number | null;
+        overallScore: number | null;
+        percentage: number | null;
+        passed: boolean | null;
+        evaluationStatus: import("@prisma/client").$Enums.EvaluationStatus;
+        reviewStatus: import("@prisma/client").$Enums.ReviewStatus;
+    }) | null>;
+    static findWorkflowStagesOrdered(workflowId: string): Promise<({
+        stageLibrary: {
+            type: import("@prisma/client").$Enums.StageType;
+            companyId: string | null;
+            description: string | null;
+            name: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            isActive: boolean;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        workflowId: string;
+        stageLibraryId: string;
+        order: number;
+        isEnabled: boolean;
+        isFinal: boolean;
+        assessmentId: string | null;
+        interviewId: string | null;
+    })[]>;
+    static findApplicationWorkflow(applicationId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        applicationId: string;
+        workflowStageId: string;
+        assignedEmployerId: string | null;
+        remarks: string | null;
+        movedAt: Date;
+    } | null>;
+    static findActiveCompanyMember(userId: string, companyId: string): Promise<{
+        companyId: string;
+        id: string;
+        role: import("@prisma/client").$Enums.CompanyMemberRole;
+        status: import("@prisma/client").$Enums.CompanyMemberStatus;
+        userId: string;
+        expiresAt: Date | null;
+        joinedAt: Date;
+        invitationToken: string | null;
+        invitedAt: Date | null;
+        invitedBy: string | null;
+    } | null>;
+}
+//# sourceMappingURL=atsIntegration.repository.d.ts.map

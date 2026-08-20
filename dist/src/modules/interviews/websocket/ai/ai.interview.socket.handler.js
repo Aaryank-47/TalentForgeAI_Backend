@@ -1,0 +1,131 @@
+import { AIInterviewSessionService } from "../../AI-interview/services/ai.interview.service.js";
+export function registerAIIinterviewSocketHandlers(socket) {
+    const emitSocketError = (code, message) => {
+        socket.emit("ai-interview-error", { code, message });
+    };
+    const handleStartOrResume = async (sessionId) => {
+        try {
+            const user = socket.data.user;
+            if (!user) {
+                emitSocketError("UNAUTHORIZED", "Unauthorized");
+                return;
+            }
+            if (!sessionId) {
+                emitSocketError("INVALID_QUESTION", "Session ID is required");
+                return;
+            }
+            const state = await AIInterviewSessionService.validateAndGetCurrentQuestion(sessionId, user.id);
+            socket.join(sessionId);
+            if (state.status === "COMPLETED") {
+                socket.emit("ai-interview-completed", {
+                    sessionId,
+                    completed: true,
+                    message: state.message || "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation."
+                });
+                return;
+            }
+            if (state.status === "EXPIRED" || state.status === "CANCELLED") {
+                socket.emit("ai-interview-timeout", {
+                    sessionId,
+                    completed: true,
+                    reason: state.reason || "TIME_LIMIT_REACHED"
+                });
+                return;
+            }
+            if (state.status === "IN_PROGRESS" && state.question) {
+                socket.emit("ai-question", state.question);
+            }
+        }
+        catch (error) {
+            console.error("ai-interview start/resume error:", error);
+            const code = error.code || (error.name === "NotFoundError" ? "INVALID_QUESTION" : "SESSION_INACTIVE");
+            emitSocketError(code, error.message || "Internal server error");
+        }
+    };
+    const handleEndSession = async (sessionId) => {
+        try {
+            const user = socket.data.user;
+            if (!user) {
+                emitSocketError("UNAUTHORIZED", "Unauthorized");
+                return;
+            }
+            if (!sessionId) {
+                emitSocketError("INVALID_QUESTION", "Session ID is required");
+                return;
+            }
+            const result = await AIInterviewSessionService.endSession({
+                userId: user.id,
+                sessionId
+            });
+            socket.emit("ai-interview-completed", {
+                sessionId,
+                completed: true,
+                message: result.message
+            });
+        }
+        catch (error) {
+            console.error("ai-interview end session error:", error);
+            emitSocketError("INTERNAL_ERROR", error.message || "Could not end interview session.");
+        }
+    };
+    socket.on("ai-interview-start", async (data) => {
+        await handleStartOrResume(data?.sessionId);
+    });
+    socket.on("ai-interview-resume", async (data) => {
+        await handleStartOrResume(data?.sessionId);
+    });
+    socket.on("ai-interview-end", async (data) => {
+        await handleEndSession(data?.sessionId);
+    });
+    socket.on("ai-interview-complete", async (data) => {
+        await handleEndSession(data?.sessionId);
+    });
+    socket.on("ai-answer-submit", async (data) => {
+        try {
+            const user = socket.data.user;
+            if (!user) {
+                emitSocketError("UNAUTHORIZED", "Unauthorized");
+                return;
+            }
+            console.log("user : " + user);
+            const result = await AIInterviewSessionService.submitAnswer({
+                userId: user.id,
+                sessionId: data.sessionId,
+                questionId: data.questionId,
+                answerText: data.answerText,
+                recordingUrl: data.recordingUrl ?? null
+            });
+            socket.emit("ai-answer-received", {
+                submittedQuestionId: result.submittedQuestionId,
+                answerSubmitted: result.answerSubmitted,
+                answerId: result.answerId,
+                submittedAt: result.submittedAt
+            });
+            if (result.completed) {
+                socket.emit("ai-interview-completed", {
+                    sessionId: data.sessionId,
+                    completed: true,
+                    message: result.sendOffMessage || "Thank you for completing your AI technical interview! Your responses have been successfully recorded and submitted to the hiring team for evaluation."
+                });
+            }
+            else if (result.nextQuestion) {
+                socket.emit("ai-question", result.nextQuestion);
+            }
+        }
+        catch (error) {
+            console.error("ai-answer-submit error:", error);
+            let code = "INTERNAL_ERROR";
+            if (error.code) {
+                code = error.code;
+            }
+            else if (error.name === "NotFoundError") {
+                code = "INVALID_QUESTION";
+            }
+            else if (error.name === "BadRequestError") {
+                code = error.message && error.message.includes("in progress") ? "SESSION_INACTIVE" : "INVALID_QUESTION";
+            }
+            emitSocketError(code, error.message || "We could not process your answer right now. Please try again.");
+        }
+    });
+}
+//# sourceMappingURL=ai.interview.socket.handler.js.map

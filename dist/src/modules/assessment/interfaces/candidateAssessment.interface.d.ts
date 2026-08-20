@@ -43,11 +43,28 @@ export interface AssessmentSubmissionResponse {
     attemptId: string;
     status: AttemptStatus;
     submittedAt: Date;
+    evaluationStatus: string;
 }
 export interface AssessmentAnswerResponse {
     answerId: string;
     attemptId: string;
     questionId: string;
     updatedAt: Date;
+}
+export interface DetailedAssessmentAnswerResponse {
+    answerId: string;
+    attemptId: string;
+    questionId: string;
+    selectedOptionIds: string[];
+    codeResponse: string | null;
+    submissionUrl: string | null;
+    attachmentUrls: string[];
+    meta: any;
+    startedAt: Date | null;
+    updatedAt: Date;
+}
+export interface ClearAssessmentAnswerResponse {
+    attemptId: string;
+    questionId: string;
 }
 //# sourceMappingURL=candidateAssessment.interface.d.ts.map

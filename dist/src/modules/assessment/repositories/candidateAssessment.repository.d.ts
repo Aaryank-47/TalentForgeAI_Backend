@@ -387,5 +387,37 @@ export declare class AssessmentAttemptRepository {
         submissionUrl: string | null;
         meta: import("@prisma/client/runtime/client").JsonValue | null;
     }>;
+    static findAnswersByAttempt(attemptId: string): Promise<{
+        id: string;
+        updatedAt: Date;
+        startedAt: Date | null;
+        submittedAt: Date | null;
+        questionId: string;
+        attemptId: string;
+        score: number | null;
+        isCorrect: boolean | null;
+        feedback: string | null;
+        selectedOptionIds: string[];
+        attachmentUrls: string[];
+        codeResponse: string | null;
+        submissionUrl: string | null;
+        meta: import("@prisma/client/runtime/client").JsonValue | null;
+    }[]>;
+    static deleteAnswer(attemptId: string, questionId: string): Promise<{
+        id: string;
+        updatedAt: Date;
+        startedAt: Date | null;
+        submittedAt: Date | null;
+        questionId: string;
+        attemptId: string;
+        score: number | null;
+        isCorrect: boolean | null;
+        feedback: string | null;
+        selectedOptionIds: string[];
+        attachmentUrls: string[];
+        codeResponse: string | null;
+        submissionUrl: string | null;
+        meta: import("@prisma/client/runtime/client").JsonValue | null;
+    }>;
 }
 //# sourceMappingURL=candidateAssessment.repository.d.ts.map

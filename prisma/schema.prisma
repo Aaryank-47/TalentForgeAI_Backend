@@ -217,6 +217,8 @@ model Candidate {
   skills             CandidateSkill[]
   educations         CandidateEducation[]
   experiences        CandidateExperience[]
+  projects           CandidateProject[]
+  certifications     CandidateCertification[]
   resumes            Resume[]
   applications       Application[]
   assessmentAttempts AssessmentAttempt[]
@@ -505,6 +507,8 @@ model CandidateSkill {
   id                String    @id @default(cuid())
   candidateId       String
   candidate         Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  skillId           String?
+  skill             Skill?    @relation(fields: [skillId], references: [id], onDelete: SetNull)
   name              String
   yearsOfExperience Float?
   createdAt         DateTime  @default(now())
@@ -512,6 +516,7 @@ model CandidateSkill {
 
   @@unique([candidateId, name])
   @@index([candidateId])
+  @@index([skillId])
 }
 
 model CandidateEducation {
@@ -550,6 +555,33 @@ model CandidateExperience {
 
   @@index([candidateId])
   @@index([companyName])
+}
+
+model CandidateProject {
+  id          String    @id @default(cuid())
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  fingerprint String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([candidateId, fingerprint])
+  @@index([candidateId])
+}
+
+model CandidateCertification {
+  id          String    @id @default(cuid())
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name        String
+  fingerprint String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([candidateId, fingerprint])
+  @@index([candidateId])
 }
 
 enum WorkflowStatus {
@@ -1400,6 +1432,7 @@ model Skill {
   updatedAt   DateTime      @updatedAt
 
   aliases SkillAlias[]
+  candidateSkills CandidateSkill[]
 
   @@index([category])
   @@index([isActive])
