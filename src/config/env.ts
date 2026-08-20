@@ -31,6 +31,7 @@ const envSchema = z.object({
     OPENROUTER_API_KEY: z.string().min(1),
     OPENROUTER_BASE_URL: z.string().min(1).default("https://openrouter.ai/api/v1"),
     OPENROUTER_MODEL: z.string().min(1),
+    OPENROUTER_TIMEOUT_MS: z.coerce.number().default(30000),
     REDIS_HOST: z.string().default("localhost"),
     REDIS_PORT: z.coerce.number().default(6379),
 });
@@ -83,6 +84,7 @@ export const env = {
         apiKey: parsedEnv.data.OPENROUTER_API_KEY,
         baseUrl: parsedEnv.data.OPENROUTER_BASE_URL,
         model: parsedEnv.data.OPENROUTER_MODEL,
+        timeoutMs: parsedEnv.data.OPENROUTER_TIMEOUT_MS,
     },
     redis: {
         host: parsedEnv.data.REDIS_HOST,

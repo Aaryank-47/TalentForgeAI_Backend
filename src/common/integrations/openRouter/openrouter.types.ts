@@ -1,6 +1,10 @@
+export type OpenRouterContentPart =
+    | { type: "text"; text: string }
+    | { type: "image_url"; image_url: { url: string } };
+
 export interface OpenRouterMessage {
     role: "system" | "user" | "assistant";
-    content: string;
+    content: string | OpenRouterContentPart[];
 }
 
 export interface OpenRouterChatRequest {
@@ -33,6 +37,15 @@ export interface OpenRouterError {
 export interface GenerateTextRequest {
     systemPrompt?: string;
     userPrompt: string;
+    temperature?: number;
+    maxTokens?: number;
+}
+
+export interface GenerateDocumentRequest {
+    systemPrompt?: string;
+    userPrompt: string;
+    documentBuffer: Buffer;
+    mimeType: string;
     temperature?: number;
     maxTokens?: number;
 }

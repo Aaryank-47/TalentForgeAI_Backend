@@ -1,8 +1,8 @@
-import {
-    openRouterConfig
-} from "./openrouter.config.js";
-
+import { logger } from "../../logger/logger.js";
+import { OpenRouterError } from "./errors/openrouter.error.js";
+import { openRouterConfig } from "./openrouter.config.js";
 import type {
+    GenerateDocumentRequest,
     GenerateTextRequest,
     OpenRouterChatRequest,
     OpenRouterChatResponse,
@@ -27,9 +27,54 @@ export class OpenRouterClient {
             content: prompt.userPrompt
         });
 
-        let lastError: any = null;
+        return this.sendChatCompletion(messages, prompt.temperature, prompt.maxTokens, maxRetries);
+    }
+
+    static async generateFromDocument(
+        prompt: GenerateDocumentRequest,
+        maxRetries = 3
+    ): Promise<string> {
+        if (!prompt.documentBuffer || prompt.documentBuffer.length === 0) {
+            throw new OpenRouterError("Document buffer cannot be empty", 400);
+        }
+
+        const base64Data = prompt.documentBuffer.toString("base64");
+        const dataUrl = `data:${prompt.mimeType};base64,${base64Data}`;
+
+        const messages: OpenRouterChatRequest["messages"] = [];
+
+        if (prompt.systemPrompt) {
+            messages.push({
+                role: "system",
+                content: prompt.systemPrompt
+            });
+        }
+
+        messages.push({
+            role: "user",
+            content: [
+                { type: "text", text: prompt.userPrompt },
+                { type: "image_url", image_url: { url: dataUrl } }
+            ]
+        });
+
+        return this.sendChatCompletion(messages, prompt.temperature, prompt.maxTokens, maxRetries);
+    }
+
+    private static async sendChatCompletion(
+        messages: OpenRouterChatRequest["messages"],
+        temperature?: number,
+        maxTokens?: number,
+        maxRetries = 3
+    ): Promise<string> {
+        let lastError: unknown = null;
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => {
+                controller.abort();
+            }, openRouterConfig.timeoutMs);
+
             try {
                 const response = await fetch(
                     `${openRouterConfig.baseUrl}/chat/completions`,
@@ -42,9 +87,10 @@ export class OpenRouterClient {
                         body: JSON.stringify({
                             model: openRouterConfig.model,
                             messages,
-                            temperature: prompt.temperature,
-                            max_tokens: prompt.maxTokens
-                        })
+                            temperature,
+                            max_tokens: maxTokens
+                        }),
+                        signal: controller.signal
                     }
                 );
 
@@ -53,42 +99,63 @@ export class OpenRouterClient {
                     const status = response.status;
                     const errorMsg = `OpenRouter Error: ${status} - ${errorBody}`;
 
-                    // Non-transient errors (400, 401, 403, 404) should fail fast without retrying
-                    if (status >= 400 && status < 500 && status !== 429) {
-                        throw new Error(errorMsg);
+                    const retryAfterHeader = response.headers.get("retry-after");
+                    let delayMs = Math.pow(2, attempt - 1) * 1000;
+                    if (status === 429 && retryAfterHeader) {
+                        const parsedSeconds = parseInt(retryAfterHeader, 10);
+                        if (!isNaN(parsedSeconds) && parsedSeconds > 0) {
+                            delayMs = parsedSeconds * 1000;
+                        }
                     }
 
-                    throw new Error(errorMsg);
+                    const openRouterError = new OpenRouterError(errorMsg, status);
+
+                    // Non-transient errors (400, 401, 403, 404) fail fast without retrying
+                    if ([400, 401, 403, 404].includes(status) || attempt === maxRetries) {
+                        throw openRouterError;
+                    }
+
+                    logger.warn(
+                        `[OpenRouterClient] Transient API failure (attempt ${attempt}/${maxRetries}): ${errorMsg}. Retrying in ${delayMs}ms...`
+                    );
+                    await new Promise((res) => setTimeout(res, delayMs));
+                    continue;
                 }
 
-                const result = await response.json() as OpenRouterChatResponse;
+                const result = (await response.json()) as OpenRouterChatResponse;
                 const content = result.choices?.[0]?.message?.content;
 
                 if (!content) {
-                    throw new Error("OpenRouter returned an empty response");
+                    throw new OpenRouterError("OpenRouter returned an empty response", 500);
                 }
 
                 return content;
-            } catch (error: any) {
+            } catch (error: unknown) {
                 lastError = error;
 
-                // Stop retrying if error is non-transient or maxRetries reached
-                const isNonTransient = error.message && (
-                    error.message.includes("400") || 
-                    error.message.includes("401") || 
-                    error.message.includes("403")
-                );
+                if (error instanceof OpenRouterError && [400, 401, 403, 404].includes(error.statusCode ?? 0)) {
+                    throw error;
+                }
 
-                if (attempt === maxRetries || isNonTransient) {
+                if (attempt === maxRetries) {
                     break;
                 }
 
+                const errorMessage = error instanceof Error ? error.message : "Unknown OpenRouter error";
                 const delayMs = Math.pow(2, attempt - 1) * 1000;
-                console.warn(`[OpenRouterClient] Transient API failure (attempt ${attempt}/${maxRetries}): ${error.message}. Retrying in ${delayMs}ms...`);
-                await new Promise(res => setTimeout(res, delayMs));
+                logger.warn(
+                    `[OpenRouterClient] Transient failure (attempt ${attempt}/${maxRetries}): ${errorMessage}. Retrying in ${delayMs}ms...`
+                );
+                await new Promise((res) => setTimeout(res, delayMs));
+            } finally {
+                clearTimeout(timeout);
             }
         }
 
-        throw lastError;
+        if (lastError instanceof Error) {
+            throw lastError;
+        }
+
+        throw new OpenRouterError("OpenRouter request failed unexpectedly", 500);
     }
 }

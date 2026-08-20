@@ -61,7 +61,7 @@ export const resumeExperienceSchema = z.object({
   description: experienceDescriptionValidator.nullable(),
   location: experienceLocationValidator.nullable(),
   startDate: z.string().trim().min(1, "Start date cannot be empty").nullable(),
-  endDate: z.string().trim().min(1, "Start date cannot be empty").nullable(),
+  endDate: z.string().trim().min(1, "End date cannot be empty").nullable(),
   currentlyWorking: currentlyWorkingValidator
 });
 
@@ -71,7 +71,7 @@ export const resumeEducationSchema = z.object({
   fieldOfStudy: fieldOfStudyValidator,
   currentlyStudying: currentlyStudyingValidator,
   startDate: z.string().trim().min(1, "Start date cannot be empty").nullable(),
-  endDate: z.string().trim().min(1, "Start date cannot be empty").nullable(),
+  endDate: z.string().trim().min(1, "End date cannot be empty").nullable(),
   gradingSystem: gradingSystemValidator.nullable(),
   gradeText: gradeTextValidator.nullable(),
   grade: gradeValidator.nullable()
