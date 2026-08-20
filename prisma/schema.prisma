@@ -1367,3 +1367,67 @@ model AIInterviewResult {
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 }
+
+enum SkillCategory {
+  PROGRAMMING_LANGUAGE
+  FRONTEND
+  BACKEND
+  DATABASE
+  DEVOPS
+  CLOUD
+  MOBILE
+  AI_ML
+  TESTING
+  TOOLS
+  SOFT_SKILL
+  OTHER
+}
+
+enum SkillCandidateStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Skill {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  slug        String        @unique
+  category    SkillCategory @default(OTHER)
+  description String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  aliases SkillAlias[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model SkillAlias {
+  id              String   @id @default(cuid())
+  skillId         String
+  skill           Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  alias           String
+  normalizedAlias String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([skillId])
+  @@index([normalizedAlias])
+}
+
+model SkillCandidate {
+  id              String               @id @default(cuid())
+  rawName         String
+  normalizedName  String               @unique
+  occurrenceCount Int                  @default(1)
+  status          SkillCandidateStatus @default(PENDING)
+  firstSeenAt     DateTime             @default(now())
+  lastSeenAt      DateTime             @updatedAt
+
+  @@index([status])
+  @@index([normalizedName])
+}
+

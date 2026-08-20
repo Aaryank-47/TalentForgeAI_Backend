@@ -9,7 +9,11 @@
     "test:save-answer:real": "cross-env NODE_OPTIONS=--experimental-vm-modules jest src/modules/assessment/tests/candidateAssessmentRealDb.test.ts --testMatch=\"<rootDir>/src/**/tests/**/*RealDb.test.ts\"",
     "dev": "cross-env NODE_ENV=development tsx watch src/server.ts",
     "build": "rimraf dist && tsc",
-    "start": "cross-env NODE_ENV=production node dist/server.js"
+    "start": "cross-env NODE_ENV=production node dist/server.js",
+    "seed": "tsx prisma/seeds/seed.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seeds/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -32,10 +36,12 @@
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
     "jwthelper": "^0.0.4",
+    "mammoth": "^1.12.1",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^9.0.3",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.22.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
@@ -60,6 +66,7 @@
     "@types/multer": "^2.1.0",
     "@types/node": "^26.0.1",
     "@types/nodemailer": "^8.0.1",
+    "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.20.0",
     "@types/uuid": "^10.0.0",
     "cross-env": "^10.1.0",

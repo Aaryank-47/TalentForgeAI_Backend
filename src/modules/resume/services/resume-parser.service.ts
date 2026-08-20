@@ -1,10 +1,16 @@
+import { OpenRouterError } from "../../../common/integrations/openRouter/errors/openrouter.error.js";
 import { OpenRouterClient } from "../../../common/integrations/openRouter/openrouter.client.js";
-import { DIRECT_AI_SUPPORTED_MIME_TYPES } from "../constants/resume.constants.js";
+import { logger } from "../../../common/logger/logger.js";
+import { DIRECT_AI_SUPPORTED_MIME_TYPES, RESUME_MIME_TYPES } from "../constants/resume.constants.js";
 import { resumeParsingSchema } from "../dto/resume-parser.dto.js";
 import type { ResumeParsingResult } from "../interfaces/resume-parser.interface.js";
 import { RESUME_PARSER_SYSTEM_PROMPT } from "../utils/resume-parser.prompt.js";
+import { DocumentExtractorService } from "./document-extractor.service.js";
+import { ResumeNormalizationService } from "./resume-normalization.service.js";
 
 export class ResumeParserService {
+    private readonly documentExtractorService = new DocumentExtractorService();
+    private readonly resumeNormalizationService = new ResumeNormalizationService();
 
     public async parseResumeText(
         resumeText: string
@@ -21,7 +27,7 @@ export class ResumeParserService {
             temperature: 0.1
         });
 
-        return this.processParsingResponse(aiResponseContent);
+        return await this.processParsingResponse(aiResponseContent);
     }
 
     public async parseResumeDocument(
@@ -54,12 +60,51 @@ export class ResumeParserService {
             temperature: 0.1
         });
 
-        return this.processParsingResponse(aiResponseContent);
+        return await this.processParsingResponse(aiResponseContent);
     }
 
-    private processParsingResponse(
+    public async parseResumeDocumentWithFallback(
+        documentBuffer: Buffer,
+        mimeType: string
+    ): Promise<ResumeParsingResult> {
+        if (!documentBuffer || documentBuffer.length === 0) {
+            throw new Error("Resume document buffer cannot be empty");
+        }
+        if (!mimeType || mimeType.trim().length === 0) {
+            throw new Error("MIME type is required for document parsing");
+        }
+
+        const normalizedMimeType = mimeType.trim().toLowerCase();
+
+        // 1. DOCX path: DOCX cannot be sent as direct Data URL API input to OpenRouter, so it routes directly to local fallback text extraction first.
+        if (normalizedMimeType === RESUME_MIME_TYPES.DOCX) {
+            logger.info("[ResumeParserService] Processing DOCX via local text extraction fallback path...");
+            const extractionResult = await this.documentExtractorService.extractDocument(documentBuffer, normalizedMimeType);
+            return this.parseResumeText(extractionResult.text);
+        }
+
+        // 2. PDF / Image path: Attempt direct OpenRouter document parsing first.
+        try {
+            return await this.parseResumeDocument(documentBuffer, normalizedMimeType);
+        } catch (error: unknown) {
+            // Do NOT hide OpenRouter authentication, forbidden, or missing configuration errors (401, 403, 404).
+            if (error instanceof OpenRouterError && [401, 403, 404].includes(error.statusCode ?? 0)) {
+                throw error;
+            }
+
+            logger.warn(
+                `[ResumeParserService] Direct OpenRouter document parsing failed (${error instanceof Error ? error.message : "Unknown error"}). Triggering local PDF text extraction fallback...`
+            );
+
+            // 3. Fallback: extract text locally and pass extracted text to parseResumeText()
+            const extractionResult = await this.documentExtractorService.extractDocument(documentBuffer, normalizedMimeType);
+            return this.parseResumeText(extractionResult.text);
+        }
+    }
+
+    private async processParsingResponse(
         aiResponseContent: string
-    ): ResumeParsingResult {
+    ): Promise<ResumeParsingResult> {
         if (!aiResponseContent || aiResponseContent.trim().length === 0) {
             throw new Error("OpenRouter returned an empty AI response for resume parsing");
         }
@@ -86,7 +131,7 @@ export class ResumeParserService {
             throw new Error(`AI resume parsing response failed validation: ${formattedErrors}`);
         }
 
-        return validationResult.data;
+        return await this.resumeNormalizationService.normalizeResumeData(validationResult.data);
     }
 
     private extractJsonString(rawContent: string): string {
