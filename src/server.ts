@@ -5,6 +5,12 @@ import { connectDatabase } from './config/database.js';
 import env from './config/env.js';
 import { ElasticsearchService } from './modules/company/services/elasticsearch.service.js';
 import { initializeInterviewSocket } from './modules/interviews/websocket/interview.socket.js';
+import {
+  initResumeProcessingWorker,
+  shutdownResumeProcessing
+} from './modules/resume/queues/resume-queue.manager.js';
+import { logger } from './common/logger/logger.js';
+import prisma from './config/database.js';
 
 const port = env.port;
 
@@ -15,6 +21,9 @@ async function startServer() {
   await connectDatabase();
 
   await ElasticsearchService.ensureIndex();
+
+  // Initialize Resume Processing Background Worker
+  initResumeProcessingWorker();
 
   // Start the HTTP + Socket.IO server
   httpServer.listen(port, () => { 
@@ -28,6 +37,34 @@ const io = new Server(httpServer, {
   }
 })
 initializeInterviewSocket(io);
+
+// Graceful shutdown handling
+async function handleGracefulShutdown(signal: string) {
+  logger.info(`[Server] Received ${signal}. Starting graceful shutdown...`);
+
+  httpServer.close(async () => {
+    logger.info("[Server] HTTP server closed.");
+
+    try {
+      await shutdownResumeProcessing();
+      await prisma.$disconnect();
+      logger.info("[Server] Graceful shutdown completed.");
+      process.exit(0);
+    } catch (error) {
+      logger.error({ err: error }, "[Server] Error during graceful shutdown");
+      process.exit(1);
+    }
+  });
+
+  // Force shutdown if cleanup takes longer than 15s
+  setTimeout(() => {
+    logger.error("[Server] Forced shutdown due to timeout.");
+    process.exit(1);
+  }, 15000).unref();
+}
+
+process.on("SIGTERM", () => handleGracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => handleGracefulShutdown("SIGINT"));
 
 startServer().catch((error) => {
   console.error('Failed to start server');

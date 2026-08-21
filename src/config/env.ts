@@ -34,6 +34,9 @@ const envSchema = z.object({
     OPENROUTER_TIMEOUT_MS: z.coerce.number().default(30000),
     REDIS_HOST: z.string().default("localhost"),
     REDIS_PORT: z.coerce.number().default(6379),
+    RESUME_WORKER_CONCURRENCY: z.coerce.number().default(2),
+    RESUME_JOB_ATTEMPTS: z.coerce.number().default(3),
+    RESUME_JOB_BACKOFF_DELAY_MS: z.coerce.number().default(5000),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -89,6 +92,11 @@ export const env = {
     redis: {
         host: parsedEnv.data.REDIS_HOST,
         port: parsedEnv.data.REDIS_PORT,
+    },
+    queue: {
+        resumeWorkerConcurrency: parsedEnv.data.RESUME_WORKER_CONCURRENCY,
+        resumeJobAttempts: parsedEnv.data.RESUME_JOB_ATTEMPTS,
+        resumeJobBackoffDelayMs: parsedEnv.data.RESUME_JOB_BACKOFF_DELAY_MS,
     },
 } as const;
 

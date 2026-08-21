@@ -56,7 +56,8 @@ export class CandidateRepository {
                 candidateId: candidate.id,
                 resumeUrl: resumeData.resumeUrl,
                 resumeName: resumeData.resumeName,
-                fileSize: resumeData.fileSize
+                fileSize: resumeData.fileSize,
+                parsingStatus: "QUEUED"
             }
         });
     }

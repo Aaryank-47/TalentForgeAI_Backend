@@ -6,11 +6,9 @@ import { resumeParsingSchema } from "../dto/resume-parser.dto.js";
 import type { ResumeParsingResult } from "../interfaces/resume-parser.interface.js";
 import { RESUME_PARSER_SYSTEM_PROMPT } from "../utils/resume-parser.prompt.js";
 import { DocumentExtractorService } from "./document-extractor.service.js";
-import { ResumeNormalizationService } from "./resume-normalization.service.js";
 
 export class ResumeParserService {
     private readonly documentExtractorService = new DocumentExtractorService();
-    private readonly resumeNormalizationService = new ResumeNormalizationService();
 
     public async parseResumeText(
         resumeText: string
@@ -102,7 +100,7 @@ export class ResumeParserService {
         }
     }
 
-    private async processParsingResponse(
+    public async processParsingResponse(
         aiResponseContent: string
     ): Promise<ResumeParsingResult> {
         if (!aiResponseContent || aiResponseContent.trim().length === 0) {
@@ -131,7 +129,7 @@ export class ResumeParserService {
             throw new Error(`AI resume parsing response failed validation: ${formattedErrors}`);
         }
 
-        return await this.resumeNormalizationService.normalizeResumeData(validationResult.data);
+        return validationResult.data as ResumeParsingResult;
     }
 
     private extractJsonString(rawContent: string): string {
