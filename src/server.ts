@@ -5,6 +5,7 @@ import { connectDatabase } from './config/database.js';
 import env from './config/env.js';
 import { ElasticsearchService } from './modules/company/services/elasticsearch.service.js';
 import { initializeInterviewSocket } from './modules/interviews/websocket/interview.socket.js';
+import { initializeResumeSocket } from './modules/resume/websocket/resume.socket.js';
 import {
   initResumeProcessingWorker,
   shutdownResumeProcessing
@@ -37,6 +38,7 @@ const io = new Server(httpServer, {
   }
 })
 initializeInterviewSocket(io);
+initializeResumeSocket(io);
 
 // Graceful shutdown handling
 async function handleGracefulShutdown(signal: string) {
@@ -46,6 +48,7 @@ async function handleGracefulShutdown(signal: string) {
     logger.info("[Server] HTTP server closed.");
 
     try {
+      io.close();
       await shutdownResumeProcessing();
       await prisma.$disconnect();
       logger.info("[Server] Graceful shutdown completed.");

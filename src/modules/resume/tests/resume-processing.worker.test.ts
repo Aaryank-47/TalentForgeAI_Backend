@@ -9,12 +9,15 @@ import {
 } from "../errors/document-extraction.errors.js";
 import { ResumeProcessingPipeline } from "../pipelines/resume-processing.pipeline.js";
 import { ResumeProcessingWorker } from "../queues/resume-processing.worker.js";
+import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
 import type { ResumeParsingResult } from "../interfaces/resume-parser.interface.js";
 import type { ResumePersistenceResult } from "../interfaces/resume-persistence.interface.js";
 
 describe("ResumeProcessingWorker", () => {
     let mockPipeline: jest.Mocked<ResumeProcessingPipeline>;
     let worker: ResumeProcessingWorker;
+    let publishCompletedSpy: any;
+    let publishFinalFailureSpy: any;
 
     const mockParsedResult: ResumeParsingResult = {
         personal: {
@@ -65,6 +68,9 @@ describe("ResumeProcessingWorker", () => {
 
         worker = new ResumeProcessingWorker(mockPipeline);
 
+        publishCompletedSpy = jest.spyOn(ResumeProgressPublisher, "publishCompleted").mockResolvedValue(undefined);
+        publishFinalFailureSpy = jest.spyOn(ResumeProgressPublisher, "publishFinalFailure").mockResolvedValue(undefined);
+
         jest.spyOn(prisma.resume, "findUnique").mockResolvedValue({
             id: "resume-123",
             parsingStatus: "QUEUED"
@@ -77,7 +83,7 @@ describe("ResumeProcessingWorker", () => {
         jest.restoreAllMocks();
     });
 
-    it("successfully delegates processing to pipeline and updates status: QUEUED -> PROCESSING -> COMPLETED", async () => {
+    it("successfully delegates processing to pipeline and updates status: QUEUED -> PROCESSING -> DB COMPLETED -> Socket COMPLETED", async () => {
         mockPipeline.execute.mockResolvedValue({
             parsedData: mockParsedResult,
             normalizedData: mockParsedResult,
@@ -114,9 +120,11 @@ describe("ResumeProcessingWorker", () => {
 
         expect(mockPipeline.execute).toHaveBeenCalledWith(
             mockJob.data,
-            "job-1"
+            "job-1",
+            expect.any(Function)
         );
 
+        // Verify DB updated to COMPLETED before socket completed event
         expect(prisma.resume.update).toHaveBeenCalledWith({
             where: { id: "resume-123" },
             data: expect.objectContaining({
@@ -124,6 +132,44 @@ describe("ResumeProcessingWorker", () => {
                 rawParsedData: mockParsedResult
             })
         });
+
+        // Verify Socket.IO COMPLETED event published with correct metadata
+        expect(publishCompletedSpy).toHaveBeenCalledWith({
+            jobId: "job-1",
+            resumeId: "resume-123",
+            candidateId: "candidate-123"
+        });
+    });
+
+    it("does NOT emit Socket.IO COMPLETED if final database status update fails, and propagates error to BullMQ", async () => {
+        mockPipeline.execute.mockResolvedValue({
+            parsedData: mockParsedResult,
+            normalizedData: mockParsedResult,
+            persistenceResult: mockPersistenceResult,
+            durationMs: 450
+        });
+
+        // Initial PROCESSING update succeeds, but COMPLETED update fails
+        jest.spyOn(prisma.resume, "update")
+            .mockResolvedValueOnce({} as any) // PROCESSING succeeds
+            .mockRejectedValueOnce(new Error("Database deadlock during COMPLETED update")); // COMPLETED fails
+
+        const mockJob: any = {
+            id: "job-db-completed-fail",
+            data: {
+                candidateId: "candidate-123",
+                resumeId: "resume-123",
+                fileReference: "https://res.cloudinary.com/test/resume.pdf",
+                mimeType: "application/pdf"
+            },
+            attemptsMade: 0,
+            opts: { attempts: 3 }
+        };
+
+        await expect(worker.processJob(mockJob)).rejects.toThrow("Database deadlock during COMPLETED update");
+
+        // CRITICAL INVARIANT: publishCompleted must NOT have been called
+        expect(publishCompletedSpy).not.toHaveBeenCalled();
     });
 
     it("skips processing if resume is already COMPLETED (idempotency)", async () => {
@@ -148,6 +194,7 @@ describe("ResumeProcessingWorker", () => {
 
         expect(result.success).toBe(true);
         expect(mockPipeline.execute).not.toHaveBeenCalled();
+        expect(publishCompletedSpy).not.toHaveBeenCalled();
     });
 
     it("propagates critical Prisma status update error to BullMQ", async () => {
@@ -170,7 +217,7 @@ describe("ResumeProcessingWorker", () => {
         await expect(worker.processJob(mockJob)).rejects.toThrow("Database connection lost");
     });
 
-    it("handles transient error: rethrows regular error for BullMQ retry", async () => {
+    it("handles transient error: rethrows regular error for BullMQ retry without publishing final failure", async () => {
         const transientError = new Error("Network connection reset by peer");
         mockPipeline.execute.mockRejectedValue(transientError);
 
@@ -193,9 +240,11 @@ describe("ResumeProcessingWorker", () => {
                 data: expect.objectContaining({ parsingStatus: "FAILED" })
             })
         );
+        // Does NOT emit final failure on transient attempt 1
+        expect(publishFinalFailureSpy).not.toHaveBeenCalled();
     });
 
-    it("marks FAILED on final attempt for transient errors", async () => {
+    it("marks FAILED and emits final failure on final attempt for transient errors", async () => {
         const transientError = new Error("Persistent timeout after multiple retries");
         mockPipeline.execute.mockRejectedValue(transientError);
 
@@ -220,9 +269,18 @@ describe("ResumeProcessingWorker", () => {
                 parsingError: "Persistent timeout after multiple retries"
             })
         });
+
+        expect(publishFinalFailureSpy).toHaveBeenCalledWith(
+            {
+                jobId: "job-transient-final",
+                resumeId: "resume-123",
+                candidateId: "candidate-123"
+            },
+            "Persistent timeout after multiple retries"
+        );
     });
 
-    it("handles permanent error (unsupported file): throws UnrecoverableError and marks FAILED immediately", async () => {
+    it("handles permanent error (unsupported file): throws UnrecoverableError and marks FAILED immediately with Socket event", async () => {
         const permanentError = new UnsupportedFileTypeError("text/plain");
         mockPipeline.execute.mockRejectedValue(permanentError);
 
@@ -246,9 +304,11 @@ describe("ResumeProcessingWorker", () => {
                 parsingStatus: "FAILED"
             })
         });
+
+        expect(publishFinalFailureSpy).toHaveBeenCalled();
     });
 
-    it("handles permanent error (scanned PDF): throws UnrecoverableError and marks FAILED immediately", async () => {
+    it("handles permanent error (scanned PDF): throws UnrecoverableError and marks FAILED immediately with Socket event", async () => {
         const scannedPdfError = new ScannedPdfDetectedError();
         mockPipeline.execute.mockRejectedValue(scannedPdfError);
 
@@ -272,9 +332,11 @@ describe("ResumeProcessingWorker", () => {
                 parsingStatus: "FAILED"
             })
         });
+
+        expect(publishFinalFailureSpy).toHaveBeenCalled();
     });
 
-    it("handles OpenRouter 401/403/404 authentication error as permanent error", async () => {
+    it("handles OpenRouter 401/403/404 authentication error as permanent error with Socket event", async () => {
         const authError = new OpenRouterError("Unauthorized: invalid API key", 401);
         mockPipeline.execute.mockRejectedValue(authError);
 
@@ -299,5 +361,7 @@ describe("ResumeProcessingWorker", () => {
                 parsingError: "Unauthorized: invalid API key"
             })
         });
+
+        expect(publishFinalFailureSpy).toHaveBeenCalled();
     });
 });

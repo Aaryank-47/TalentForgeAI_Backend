@@ -19,15 +19,21 @@ import {
 } from "./resume-processing.types.js";
 import type { Prisma } from "@prisma/client";
 
+import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
+import type { StageChangeHandler } from "../interfaces/resume-pipeline.interface.js";
+
 export class ResumeProcessingWorker {
     
     private worker: Worker<ResumeProcessingJobData, ResumeProcessingJobResult> | null = null;
     private readonly pipeline: ResumeProcessingPipeline;
+    private readonly stageChangeHandler: StageChangeHandler;
 
     constructor(
-        pipeline: ResumeProcessingPipeline = new ResumeProcessingPipeline()
+        pipeline: ResumeProcessingPipeline = new ResumeProcessingPipeline(),
+        stageChangeHandler: StageChangeHandler = (stage, meta) => ResumeProgressPublisher.publishStageChange(stage, meta)
     ) {
         this.pipeline = pipeline;
+        this.stageChangeHandler = stageChangeHandler;
     }
 
     // Initializes and starts the BullMQ worker for resume processing.    
@@ -120,13 +126,20 @@ export class ResumeProcessingWorker {
 
             // Execute the explicit multi-stage processing pipeline
             const { normalizedData, persistenceResult, durationMs } =
-                await this.pipeline.execute(job.data, jobId);
+                await this.pipeline.execute(job.data, jobId, this.stageChangeHandler);
 
             // Update database record to COMPLETED (Critical: errors propagate to BullMQ)
             await this.updateResumeStatus(resumeId, "COMPLETED", {
                 parsingCompletedAt: new Date(),
                 parsingError: null,
                 rawParsedData: normalizedData as unknown as Prisma.InputJsonValue
+            });
+
+            // CRITICAL INVARIANT: Client receives COMPLETED only AFTER PostgreSQL record is verified COMPLETED
+            await ResumeProgressPublisher.publishCompleted({
+                jobId,
+                resumeId,
+                candidateId
             });
 
             const result: ResumeProcessingJobResult = {
@@ -179,20 +192,34 @@ export class ResumeProcessingWorker {
                 `[ResumeProcessingWorker] Processing failed for resume "${resumeId}": ${errorMessage}`
             );
 
-            // If permanent error OR all retry attempts exhausted, update DB status to FAILED
+            // If permanent error OR all retry attempts exhausted, update DB status to FAILED and emit final failure
             const isFinalAttempt = (job.attemptsMade + 1) >= (job.opts.attempts || env.queue.resumeJobAttempts);
             if (isPermanent || isFinalAttempt) {
+                let dbFailedUpdateSuccess = false;
                 try {
                     await this.updateResumeStatus(resumeId, "FAILED", {
                         parsingCompletedAt: new Date(),
                         parsingError: errorMessage
                     });
+                    dbFailedUpdateSuccess = true;
                 } catch (dbErr: unknown) {
-                    logger.error(
-                        { err: dbErr, resumeId },
-                        "[ResumeProcessingWorker] Failed to update resume status to FAILED"
+                    logger.fatal(
+                        {
+                            event: "RESUME_FAILED_DB_UPDATE_FAILED",
+                            err: dbErr,
+                            resumeId,
+                            candidateId,
+                            originalError: errorMessage
+                        },
+                        `[ResumeProcessingWorker] CRITICAL: Resume processing failed for "${resumeId}", but updating database status to FAILED also failed! Database state requires manual reconciliation.`
                     );
                 }
+
+                // Notify candidate over Socket.IO that resume processing permanently failed (even if DB update failed)
+                await ResumeProgressPublisher.publishFinalFailure(
+                    { jobId, resumeId, candidateId },
+                    errorMessage
+                );
             }
 
             if (isPermanent) {

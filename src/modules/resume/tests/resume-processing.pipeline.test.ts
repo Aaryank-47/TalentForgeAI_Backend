@@ -2,10 +2,8 @@ import { describe, expect, it, jest, beforeEach } from "@jest/globals";
 import { OpenRouterError } from "../../../common/integrations/openRouter/errors/openrouter.error.js";
 import { RESUME_MIME_TYPES } from "../constants/resume.constants.js";
 import type { ResumeParsingResult } from "../interfaces/resume-parser.interface.js";
-import type {
-    ResumePersistenceResult,
-    StageChangeMeta
-} from "../interfaces/resume-persistence.interface.js";
+import type { ResumePersistenceResult } from "../interfaces/resume-persistence.interface.js";
+import type { StageChangeMeta } from "../interfaces/resume-pipeline.interface.js";
 import { ResumeProcessingPipeline } from "../pipelines/resume-processing.pipeline.js";
 import type { ResumeProcessingStage } from "../queues/resume-processing.types.js";
 import type { DocumentExtractorService } from "../services/document-extractor.service.js";
@@ -134,8 +132,7 @@ describe("ResumeProcessingPipeline", () => {
             "EXTRACTION",
             "AI_PARSING",
             "NORMALIZATION",
-            "PERSISTENCE",
-            "COMPLETED"
+            "PERSISTENCE"
         ]);
 
         const extractionEvent = recordedEvents.find((e) => e.stage === "EXTRACTION");
@@ -184,8 +181,7 @@ describe("ResumeProcessingPipeline", () => {
             "FETCHING_FILE",
             "AI_PARSING",
             "NORMALIZATION",
-            "PERSISTENCE",
-            "COMPLETED"
+            "PERSISTENCE"
         ]);
 
         const aiParsingEvent = recordedEvents.find((e) => e.stage === "AI_PARSING");
@@ -233,8 +229,7 @@ describe("ResumeProcessingPipeline", () => {
             "EXTRACTION",
             "AI_PARSING",
             "NORMALIZATION",
-            "PERSISTENCE",
-            "COMPLETED"
+            "PERSISTENCE"
         ]);
 
         const extractionFallback = recordedEvents.find((e) => e.stage === "EXTRACTION");

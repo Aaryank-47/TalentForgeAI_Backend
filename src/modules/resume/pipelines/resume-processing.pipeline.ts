@@ -6,7 +6,7 @@ import type {
     StageChangeHandler,
     StageChangeMeta,
     PipelineExecutionResult
-} from "../interfaces/resume-persistence.interface.js";
+} from "../interfaces/resume-pipeline.interface.js";
 import type {
     ResumeProcessingJobData,
     ResumeProcessingStage
@@ -33,7 +33,9 @@ export class ResumeProcessingPipeline {
      * 3. AI_PARSING (calling OpenRouter for structured JSON)
      * 4. NORMALIZATION (deterministic schema, field & skill taxonomy normalization)
      * 5. PERSISTENCE (atomic database transactions)
-     * 6. COMPLETED
+     * 
+     * Note: The final COMPLETED event and database status transition are orchestrated by the Worker
+     * only after persistence succeeds and the database record is updated to COMPLETED.
      */
     public async execute(
         jobData: ResumeProcessingJobData,
@@ -139,13 +141,6 @@ export class ResumeProcessingPipeline {
         const persistenceResult = await this.resumePersistenceService.persistResumeData(
             candidateId,
             normalizedData
-        );
-
-        // Stage 6: COMPLETED
-        await this.notifyStage(
-            "COMPLETED", 
-            baseMeta, 
-            onStageChange
         );
 
         const durationMs = Math.round(performance.now() - startTime);
