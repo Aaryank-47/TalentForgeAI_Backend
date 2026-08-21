@@ -31,9 +31,8 @@ export const DEFAULT_RESUME_JOB_OPTIONS: JobsOptions = {
 
 let resumeProcessingQueueInstance: Queue<ResumeProcessingJobData> | null = null;
 
-/**
- * Retrieves or initializes the singleton Resume Processing BullMQ Queue.
- */
+
+// Retrieves or initializes the singleton Resume Processing BullMQ Queue.
 export function getResumeProcessingQueue(): Queue<ResumeProcessingJobData> {
     if (!resumeProcessingQueueInstance) {
         resumeProcessingQueueInstance = new Queue<ResumeProcessingJobData>(RESUME_PROCESSING_QUEUE_NAME, {
@@ -69,7 +68,7 @@ export async function addResumeProcessingJob(data: ResumeProcessingJobData) {
         },
         `[ResumeProcessingQueue] Enqueuing resume processing job for resume "${data.resumeId}"`
     );
-
+    
     const job = await queue.add("process-resume", data, {
         ...DEFAULT_RESUME_JOB_OPTIONS,
         jobId
@@ -78,9 +77,7 @@ export async function addResumeProcessingJob(data: ResumeProcessingJobData) {
     return job;
 }
 
-/**
- * Closes the Resume Processing Queue connection cleanly.
- */
+// Closes the Resume Processing Queue connection cleanly.
 export async function closeResumeProcessingQueue(): Promise<void> {
     if (resumeProcessingQueueInstance) {
         logger.info("[ResumeProcessingQueue] Closing queue connection...");
