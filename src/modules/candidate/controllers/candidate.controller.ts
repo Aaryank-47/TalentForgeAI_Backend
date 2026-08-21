@@ -119,6 +119,20 @@ export class CandidateController {
         });
     }
 
+    static async retryResumeProcessing(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const candidateId = req.user.id;
+        const { resumeId } = req.params;
+        const result = await CandidateService.retryResumeProcessing(resumeId as string, candidateId);
+        res.status(HTTP_STATUS.ACCEPTED).json({
+            success: true,
+            message: "Resume re-queued for processing successfully",
+            data: result
+        });
+    }
+
     static async deleteResumes(
         req: Request,
         res: Response

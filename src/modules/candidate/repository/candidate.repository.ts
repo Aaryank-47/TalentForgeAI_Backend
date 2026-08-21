@@ -62,6 +62,18 @@ export class CandidateRepository {
         });
     }
 
+    static async resetResumeForRetry(resumeId: string): Promise<Resume> {
+        return prisma.resume.update({
+            where: { id: resumeId },
+            data: {
+                parsingStatus: "QUEUED",
+                parsingError: null,
+                parsingStartedAt: null,
+                parsingCompletedAt: null
+            }
+        });
+    }
+
     static async findResumesByCandidateId(
         candidateId: string
     ): Promise<ResumeView[]> {

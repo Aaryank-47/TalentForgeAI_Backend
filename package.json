@@ -7,6 +7,7 @@
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --testMatch=\"<rootDir>/src/**/tests/**/!(*RealDb).test.ts\"",
     "test:save-answer:real": "cross-env NODE_OPTIONS=--experimental-vm-modules jest src/modules/assessment/tests/candidateAssessmentRealDb.test.ts --testMatch=\"<rootDir>/src/**/tests/**/*RealDb.test.ts\"",
+    "typecheck": "tsc --noEmit",
     "dev": "cross-env NODE_ENV=development tsx watch src/server.ts",
     "build": "rimraf dist && tsc",
     "start": "cross-env NODE_ENV=production node dist/server.js",

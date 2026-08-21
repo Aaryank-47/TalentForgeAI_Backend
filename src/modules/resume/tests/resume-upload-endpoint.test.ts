@@ -2,8 +2,8 @@ import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { CandidateController } from "../../candidate/controllers/candidate.controller.js";
 import { CandidateService } from "../../candidate/services/candidate.service.js";
-import * as cloudinaryUploadModule from "../../../common/uploads/index.js";
-import * as queueModule from "../queues/resume-processing.queue.js";
+import cloudinary from "../../../common/uploads/cloudinary.js";
+import { getResumeProcessingQueue } from "../queues/resume-processing.queue.js";
 import type { Request, Response } from "express";
 
 describe("CandidateController.uploadResume", () => {
@@ -31,15 +31,21 @@ describe("CandidateController.uploadResume", () => {
             json: jsonMock as any
         };
 
-        jest.spyOn(cloudinaryUploadModule, "uploadFileToCloudinary").mockResolvedValue({
-            url: "http://res.cloudinary.com/test/resume.pdf",
-            secureUrl: "https://res.cloudinary.com/test/resume.pdf",
-            publicId: "resumes/resume-123",
-            format: "pdf",
-            resourceType: "raw",
-            bytes: 102400,
-            originalName: "Jane_Doe_Resume.pdf",
-            createdAt: new Date().toISOString()
+        (jest.spyOn(cloudinary.uploader, "upload_stream") as any).mockImplementation((options: any, callback: any) => {
+            const fakeStream: any = {
+                end: (buf: Buffer) => {
+                    callback(null, {
+                        url: "http://res.cloudinary.com/test/resume.pdf",
+                        secure_url: "https://res.cloudinary.com/test/resume.pdf",
+                        public_id: "resumes/resume-123",
+                        format: "pdf",
+                        resource_type: "raw",
+                        bytes: 102400,
+                        created_at: new Date().toISOString()
+                    });
+                }
+            };
+            return fakeStream;
         });
 
         jest.spyOn(CandidateService, "uploadResume").mockResolvedValue({
@@ -57,8 +63,9 @@ describe("CandidateController.uploadResume", () => {
             rawParsedData: null
         } as any);
 
-        jest.spyOn(queueModule, "addResumeProcessingJob").mockResolvedValue({
-            id: "resume-processing:resume-123"
+        const queue = getResumeProcessingQueue();
+        jest.spyOn(queue, "add").mockResolvedValue({
+            id: "resume-processing-resume-123"
         } as any);
     });
 
@@ -83,9 +90,9 @@ describe("CandidateController.uploadResume", () => {
     it("stores file, creates DB record, enqueues job and returns HTTP 202 Accepted immediately", async () => {
         await CandidateController.uploadResume(mockReq as Request, mockRes as Response);
 
-        expect(cloudinaryUploadModule.uploadFileToCloudinary).toHaveBeenCalledWith(
-            mockReq.file!,
-            { folder: "resumes", resourceType: "raw" }
+        expect(cloudinary.uploader.upload_stream).toHaveBeenCalledWith(
+            expect.objectContaining({ folder: "resumes", resource_type: "raw" }),
+            expect.any(Function)
         );
 
         expect(CandidateService.uploadResume).toHaveBeenCalledWith("user-123", {
@@ -94,13 +101,20 @@ describe("CandidateController.uploadResume", () => {
             fileSize: 102400
         });
 
-        expect(queueModule.addResumeProcessingJob).toHaveBeenCalledWith({
-            candidateId: "candidate-456",
-            resumeId: "resume-123",
-            fileReference: "https://res.cloudinary.com/test/resume.pdf",
-            mimeType: "application/pdf",
-            originalName: "Jane_Doe_Resume.pdf"
-        });
+        const queue = getResumeProcessingQueue();
+        expect(queue.add).toHaveBeenCalledWith(
+            "process-resume",
+            expect.objectContaining({
+                candidateId: "candidate-456",
+                resumeId: "resume-123",
+                fileReference: "https://res.cloudinary.com/test/resume.pdf",
+                mimeType: "application/pdf",
+                originalName: "Jane_Doe_Resume.pdf"
+            }),
+            expect.objectContaining({
+                jobId: "resume-processing-resume-123"
+            })
+        );
 
         expect(statusMock).toHaveBeenCalledWith(HTTP_STATUS.ACCEPTED);
         expect(jsonMock).toHaveBeenCalledWith({
@@ -108,7 +122,7 @@ describe("CandidateController.uploadResume", () => {
             message: "Resume uploaded successfully and queued for processing",
             data: {
                 resumeId: "resume-123",
-                jobId: "resume-processing:resume-123",
+                jobId: "resume-processing-resume-123",
                 status: "QUEUED"
             }
         });

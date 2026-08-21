@@ -19,7 +19,7 @@ describe("ResumeProcessingQueue", () => {
 
     it("enqueues job with deduplicated jobId and minimal payload", async () => {
         const queue = getResumeProcessingQueue();
-        const mockJob = { id: "resume-processing:resume-123" };
+        const mockJob = { id: "resume-processing-resume-123" };
         const addSpy = jest.spyOn(queue, "add").mockResolvedValue(mockJob as any);
 
         const jobData: ResumeProcessingJobData = {
@@ -37,7 +37,7 @@ describe("ResumeProcessingQueue", () => {
             "process-resume",
             jobData,
             expect.objectContaining({
-                jobId: "resume-processing:resume-123",
+                jobId: "resume-processing-resume-123",
                 attempts: DEFAULT_RESUME_JOB_OPTIONS.attempts
             })
         );

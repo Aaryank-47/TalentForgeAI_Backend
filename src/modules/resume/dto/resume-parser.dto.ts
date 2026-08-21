@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   candidateFullNameValidator,
   emailValidator,
-  phoneNumberValidator,
   currentLocationValidator,
   linkedInUrlValidator,
   githubUrlValidator,
@@ -30,10 +29,18 @@ import {
   gradeValidator
 } from "../../../common/validators/validators.js";
 
+// Flexible phone validator for AI-extracted resume phone numbers (allowing spaces, hyphens, parentheses, country code)
+export const resumePhoneNumberValidator = z
+  .string()
+  .trim()
+  .regex(/^(\+?\d{1,4}[\s-]?)?(\(?\d{2,5}\)?[\s-]?)?[\d\s-]{4,15}$/, "Please enter a valid phone number")
+  .min(7, "Phone number must be at least 7 digits long")
+  .max(25, "Phone number must be at most 25 characters long");
+
 export const personalInfoSchema = z.object({
   fullName: candidateFullNameValidator.nullable(),
   email: emailValidator.nullable(),
-  phoneNumber: phoneNumberValidator.nullable(),
+  phoneNumber: resumePhoneNumberValidator.nullable(),
   currentLocation: currentLocationValidator.nullable(),
   linkedinUrl: linkedInUrlValidator.nullable(),
   githubUrl: githubUrlValidator.nullable(),
@@ -95,3 +102,6 @@ export const resumeParsingSchema = z.object({
   projects: z.array(resumeProjectSchema),
   certifications: z.array(resumeCertificationSchema)
 });
+
+export type ParsedResumeDto = z.infer<typeof resumeParsingSchema>;
+

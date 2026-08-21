@@ -49,9 +49,9 @@ export class ResumePersistenceRepository {
         if (professional.totalExperience != null) candidateUpdate.totalExperience = professional.totalExperience;
         await tx.candidate.update({ where: { id: candidateId }, data: candidateUpdate });
 
-        if (personal.email != null) {
-            await tx.user.update({ where: { id: candidate.userId }, data: { email: personal.email } });
-        }
+        // if (personal.email != null) {
+        //     await tx.user.update({ where: { id: candidate.userId }, data: { email: personal.email } });
+        // }
 
         const skills = await this.persistSkills(tx, candidateId, data.skills);
         const experiences = await this.persistExperiences(tx, candidateId, data.experience);

@@ -24,6 +24,10 @@ export interface CandidateProfileView {
     websiteUrl: string | null;
     isOpenToWork: boolean;
     profileCompletion: number;
+    skills?: SkillsView[];
+    resumes?: ResumeView[];
+    educations?: CandidateEducationView[];
+    experiences?: CandidateExperienceView[];
     createdAt: Date;
     updatedAt: Date;
 }

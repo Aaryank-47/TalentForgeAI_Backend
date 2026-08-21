@@ -35,7 +35,7 @@ candidateRoutes.post(
     CandidateController.uploadResume
 )
 
-candidateRoutes.get(
+candidateRoutes.get(    
     "/me/resumes",
     authMiddleware,
     authorize("CANDIDATE"),
@@ -47,6 +47,13 @@ candidateRoutes.get(
     authMiddleware,
     authorize("CANDIDATE"),
     CandidateController.getResumeById
+)
+
+candidateRoutes.post(
+    "/resumes/:resumeId/retry",
+    authMiddleware,
+    authorize("CANDIDATE"),
+    CandidateController.retryResumeProcessing
 )
 
 candidateRoutes.delete(

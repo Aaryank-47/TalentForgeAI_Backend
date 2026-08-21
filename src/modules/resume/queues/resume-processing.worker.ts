@@ -186,14 +186,14 @@ export class ResumeProcessingWorker {
                     durationMs,
                     isPermanent,
                     attempt: job.attemptsMade + 1,
-                    maxAttempts: job.opts.attempts || env.queue.resumeJobAttempts,
+                    maxAttempts: job.opts?.attempts || env.queue.resumeJobAttempts,
                     err: errorMessage
                 },
                 `[ResumeProcessingWorker] Processing failed for resume "${resumeId}": ${errorMessage}`
             );
 
             // If permanent error OR all retry attempts exhausted, update DB status to FAILED and emit final failure
-            const isFinalAttempt = (job.attemptsMade + 1) >= (job.opts.attempts || env.queue.resumeJobAttempts);
+            const isFinalAttempt = (job.attemptsMade + 1) >= (job.opts?.attempts || env.queue.resumeJobAttempts);
             if (isPermanent || isFinalAttempt) {
                 let dbFailedUpdateSuccess = false;
                 try {

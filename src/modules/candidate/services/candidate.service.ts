@@ -11,6 +11,11 @@ import { extractPublicId } from "../../company/utils/company.utils.js";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { removeUndefined } from "../../../common/helper/object.helper.js";
+import { addResumeProcessingJob, getResumeProcessingQueue } from "../../resume/queues/resume-processing.queue.js";
+import { ResumeProgressPublisher } from "../../resume/websocket/resume-progress.publisher.js";
+import { inferResumeMimeType } from "../../resume/utils/resume-mime.helper.js";
+import { logger } from "../../../common/logger/logger.js";
+import prisma from "../../../config/database.js";
 
 
 export class CandidateService {
@@ -105,6 +110,99 @@ export class CandidateService {
         }
 
         return resume;
+    }
+
+    static async retryResumeProcessing(
+        resumeId: string,
+        candidateId: string
+    ): Promise<{ resumeId: string; jobId: string; status: string }> {
+        const candidate = await AuthRepository.findProfileByUserId(candidateId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const allowedUser = await CandidateRepository.findResumeBelongToUser(candidateId, resumeId);
+        if (!allowedUser || allowedUser.length === 0) {
+            throw new ConflictError("Resume doesn't belong to this user");
+        }
+
+        const resume = allowedUser[0];
+        if (!resume) {
+            throw new NotFoundError("Resume not found");
+        }
+        if (resume.parsingStatus === "COMPLETED") {
+            throw new ConflictError("Resume has already been successfully processed");
+        }
+        if (resume.parsingStatus === "PROCESSING") {
+            throw new ConflictError("Resume is currently being processed");
+        }
+
+        // Calculate next manual retry attempt counter to prevent jobId collision in BullMQ
+        const queue = getResumeProcessingQueue();
+        let retryAttempt = 1;
+        while (await queue.getJob(`resume-processing-${resumeId}-retry-${retryAttempt}`)) {
+            retryAttempt++;
+        }
+        const retryJobId = `resume-processing-${resumeId}-retry-${retryAttempt}`;
+
+        const mimeType = inferResumeMimeType(resume.resumeName);
+
+        // Step 1: Reset database status to QUEUED
+        const updatedResume = await CandidateRepository.resetResumeForRetry(resumeId);
+
+        // Step 2: Enqueue new BullMQ retry job with recovery rollback on failure
+        let job;
+        try {
+            job = await addResumeProcessingJob({
+                candidateId: updatedResume.candidateId,
+                resumeId: updatedResume.id,
+                fileReference: updatedResume.resumeUrl,
+                mimeType,
+                originalName: updatedResume.resumeName
+            }, { jobId: retryJobId });
+
+            // Step 3: Verify and log job creation in BullMQ
+            const jobState = await job.getState();
+            logger.info(
+                {
+                    event: "RETRY_JOB_VERIFIED",
+                    jobId: job.id,
+                    state: jobState,
+                    attemptsMade: job.attemptsMade,
+                    resumeId: updatedResume.id,
+                    candidateId: updatedResume.candidateId,
+                    retryAttempt
+                },
+                `[CandidateService] Retry job "${job.id}" successfully enqueued in state "${jobState}" (Attempt ${retryAttempt})`
+            );
+        } catch (queueError) {
+            // Failure recovery strategy: Revert DB status back to FAILED
+            logger.error(
+                { err: queueError, resumeId: updatedResume.id },
+                `[CandidateService] Failed to enqueue BullMQ retry job for resume "${updatedResume.id}". Reverting DB status to FAILED.`
+            );
+            await prisma.resume.update({
+                where: { id: resumeId },
+                data: {
+                    parsingStatus: "FAILED",
+                    parsingError: "Failed to queue resume for background processing. Please try again."
+                }
+            });
+            throw queueError;
+        }
+
+        // Step 4: Publish QUEUED stage over Socket.IO
+        await ResumeProgressPublisher.publishStageChange("QUEUED", {
+            resumeId: updatedResume.id,
+            jobId: job.id ?? retryJobId,
+            candidateId: updatedResume.candidateId
+        });
+
+        return {
+            resumeId: updatedResume.id,
+            jobId: job.id ?? retryJobId,
+            status: updatedResume.parsingStatus
+        };
     }
 
     static async deleteResumes(
