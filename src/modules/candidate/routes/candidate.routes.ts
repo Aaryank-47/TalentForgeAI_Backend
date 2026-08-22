@@ -74,40 +74,40 @@ candidateRoutes.delete(
 )
 
 candidateRoutes.post(
-    "/me/skills",
+    "/skills",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.addSkills, 'body'),
     CandidateController.addSkills
-)
+);
 
 candidateRoutes.get(
-    "/me/skills",
+    "/skills",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getSkills
-)
+);
 
 candidateRoutes.patch(
-    "/me/skills/:skillId",
+    "/skills/:skillId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.updateSkill, 'body'),
     CandidateController.updateSkill
-)
+);
 
 candidateRoutes.delete(
-    "/me/skills/delete",
+    "/skills/delete",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.skillsIds, 'body'),
     CandidateController.deleteSkills
-)
+);
 
 candidateRoutes.post(
     "/educations",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.addEducation, 'body'),
     CandidateController.addEducation
 )
@@ -115,21 +115,21 @@ candidateRoutes.post(
 candidateRoutes.get(
     "/educations",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getEducations
 )
 
 candidateRoutes.get(
     "/educations/:educationId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getEducationById
 )
 
 candidateRoutes.patch(
     "/educations/:educationId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.updateEducation, 'body'),
     CandidateController.updateEducation
 )
@@ -137,14 +137,14 @@ candidateRoutes.patch(
 candidateRoutes.delete(
     "/educations/:educationId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.deleteEducation
 )
 
 candidateRoutes.post(
     "/experiences",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.addExperience, 'body'),
     CandidateController.addExperience
 )
@@ -152,21 +152,21 @@ candidateRoutes.post(
 candidateRoutes.get(
     "/experiences",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getExperiences
 )
 
 candidateRoutes.get(
     "/experiences/:experienceId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getExperienceById
 )
 
 candidateRoutes.patch(
     "/experiences/:experienceId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.updateExperience, 'body'),
     CandidateController.updateExperience
 )
@@ -174,14 +174,14 @@ candidateRoutes.patch(
 candidateRoutes.delete(
     "/experiences/:experienceId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.deleteExperience
 )
 
 candidateRoutes.patch(
     "/open-to-work",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.toggleOpenToWork, 'body'),
     CandidateController.toggleOpenToWork
 )
@@ -189,7 +189,7 @@ candidateRoutes.patch(
 candidateRoutes.patch(
     "/salary-preferences",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.updateSalaryPreferences, 'body'),
     CandidateController.updateSalaryPreferences
 )
@@ -197,7 +197,7 @@ candidateRoutes.patch(
 candidateRoutes.patch(
     "/location-preferences",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.updateLocationPreferences, 'body'),
     CandidateController.updateLocationPreferences
 )
