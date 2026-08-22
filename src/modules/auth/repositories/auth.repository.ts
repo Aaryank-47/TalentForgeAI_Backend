@@ -65,6 +65,28 @@ export class AuthRepository {
                 },
                 employer: {
                     select: employerSelect
+                },
+                companyMemberships: {
+                    where: {
+                        status: "ACTIVE"
+                    },
+                    select: {
+                        id: true,
+                        companyId: true,
+                        role: true,
+                        status: true,
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                slug: true,
+                                logo: true,
+                                industry: true,
+                                companySize: true,
+                                headquarters: true,
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -73,8 +95,22 @@ export class AuthRepository {
             throw new NotFoundError("User not found.");
         }
 
+        const candidate = profile.candidate ? {
+            enabled: true,
+            id: profile.candidate.id,
+            fullName: profile.candidate.fullName
+        } : null;
+
+        const capabilities = {
+            candidate: !!profile.candidate,
+            employer: (profile.companyMemberships?.length ?? 0) > 0 || !!profile.employer
+        };
+
         return {
-            profile: profile.candidate ?? profile.employer ?? null
+            profile: profile.candidate ?? profile.employer ?? null,
+            capabilities,
+            candidate,
+            companies: profile.companyMemberships ?? []
         };
     }
 
@@ -238,6 +274,20 @@ export class AuthRepository {
         });
     }
 
+    static async createUserRegistration(
+        data: { email: string; password: string; fullName?: string }
+    ): Promise<AuthUserView> {
+        return prisma.user.create({
+            data: {
+                email: data.email,
+                password: data.password,
+                role: UserRole.CANDIDATE, // default base platform role for backward-compatibility
+                status: AccountStatus.ACTIVE,
+                isEmailVerified: false,
+            },
+            select: userSelect,
+        });
+    }
 
     static async createCandidateRegistration(
         data: RegisterCandidateInput

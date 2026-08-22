@@ -17,6 +17,13 @@ import {
 const router = Router();
 
 router.post(
+    "/register",
+    registerRateLimiter,
+    validate(CandidateDto.registerUser, "body"),
+    AuthController.registerUser
+);
+
+router.post(
     "/register/candidate",
     registerRateLimiter,
     validate(CandidateDto.registerCandidate, "body"),

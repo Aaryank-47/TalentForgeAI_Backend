@@ -32,7 +32,7 @@ import { ElasticsearchService } from "./elasticsearch.service.js";
 import { uploadFileToCloudinary } from "../../../common/helper/upload.helper.js";
 import { deleteFileFromCloudinary } from "../../../common/helper/delete.helper.js";
 import { logger } from "../../../common/logger/logger.js";
-import { COMPANY_IMAGE_MIME_TYPES, COMPANY_IMAGE_MAX_BYTES } from "../constants/company.contants.js"
+import { COMPANY_IMAGE_MIME_TYPES, COMPANY_IMAGE_MAX_BYTES, COMPANY_INDUSTRIES, COMPANY_SIZES } from "../constants/company.contants.js"
 import { extractPublicId, toCompanySearchView } from "../utils/company.utils.js"
 
 export class CompanyService {
@@ -43,6 +43,10 @@ export class CompanyService {
         const user = await AuthRepository.findUserById(userId);
         if (!user) {
             throw new NotFoundError("Authenticated user not found.");
+        }
+
+        if (!user.isEmailVerified) {
+            throw new ForbiddenError("Please verify your email address before creating a company.");
         }
 
         const slug = slugifyText(dto.companyName);
@@ -59,8 +63,16 @@ export class CompanyService {
             companyName: dto.companyName,
             slug,
             companyEmail: dto.companyEmail,
-            website: dto.website,
             phoneNumber: dto.phoneNumber,
+            website: dto.website,
+            industry: dto.industry,
+            companySize: dto.companySize,
+            headquarters: dto.headquarters,
+            description: dto.description,
+            logo: dto.logo,
+            foundedYear: dto.foundedYear,
+            linkedinUrl: dto.linkedinUrl,
+            twitterUrl: dto.twitterUrl,
         });
 
         ElasticsearchService.indexCompany(toCompanySearchView(newCompany)).catch((err) => {
@@ -68,6 +80,13 @@ export class CompanyService {
         });
 
         return newCompany;
+    }
+
+    static async getCompanyMetadata() {
+        return {
+            industries: COMPANY_INDUSTRIES,
+            companySizes: COMPANY_SIZES,
+        };
     }
 
     static async getMyCompanies(

@@ -95,6 +95,17 @@ export interface RegisterEmployerInput {
     companyId: string;
 }
 
+export interface RegisterUserInput {
+    email: string;
+    password: string;
+    fullName?: string | undefined;
+}
+
+export interface RegisterUserResult {
+    user: AuthUserView;
+    tokens: AuthTokens;
+}
+
 export interface RegisterCandidateResult {
     user: AuthUserView;
     candidate: CandidateRegistrationView;
@@ -121,13 +132,49 @@ export interface RegisterCompanyOwnerResult {
     tokens: AuthTokens;
 }
 
+export interface WorkspaceCompanyView {
+    id: string;
+    companyId: string;
+    role: string;
+    status: string;
+    company: {
+        id: string;
+        companyName: string;
+        slug: string;
+        logo: string | null;
+        industry: string | null;
+        companySize: string | null;
+        headquarters: string | null;
+    };
+}
+
 export interface ProfileResult {
     user: AuthUserView;
     profile: CandidateProfileView | EmployerProfileView | null;
+    capabilities?: {
+        candidate: boolean;
+        employer: boolean;
+    } | undefined;
+    candidate?: {
+        enabled: boolean;
+        id: string;
+        fullName: string;
+    } | null | undefined;
+    companies?: WorkspaceCompanyView[] | undefined;
 }
 
 export interface ProfileViewResult {
     profile: CandidateProfileView | EmployerProfileView | null;
+    capabilities?: {
+        candidate: boolean;
+        employer: boolean;
+    } | undefined;
+    candidate?: {
+        enabled: boolean;
+        id: string;
+        fullName: string;
+    } | null | undefined;
+    companies?: WorkspaceCompanyView[] | undefined;
 }
 
 export interface EmployerCompanyInput {

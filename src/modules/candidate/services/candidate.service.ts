@@ -19,6 +19,20 @@ import prisma from "../../../config/database.js";
 
 
 export class CandidateService {
+    static async createCandidateProfile(
+        userId: string,
+        data: { fullName: string; phoneNumber?: string; headline?: string }
+    ): Promise<CandidateProfileView> {
+        const existing = await prisma.candidate.findUnique({
+            where: { userId }
+        });
+        if (existing) {
+            throw new ConflictError("Candidate profile already exists for this user.");
+        }
+
+        return CandidateRepository.createCandidateProfile(userId, data);
+    }
+
     static async getCandidateProfile(
         candidateId: string
     ): Promise<CandidateProfileView> {

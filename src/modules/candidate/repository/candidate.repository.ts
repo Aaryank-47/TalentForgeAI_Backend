@@ -423,6 +423,21 @@ export class CandidateRepository {
         });
     }
 
+    static async createCandidateProfile(
+        userId: string,
+        data: { fullName: string; phoneNumber?: string; headline?: string }
+    ): Promise<CandidateProfileView> {
+        return prisma.candidate.create({
+            data: {
+                userId,
+                fullName: data.fullName,
+                phoneNumber: data.phoneNumber ?? null,
+                headline: data.headline ?? null,
+            },
+            select: candidateProfileSelect,
+        });
+    }
+
     static async updateCandidateSettings(
         userId: string,
         data: Prisma.CandidateUpdateInput

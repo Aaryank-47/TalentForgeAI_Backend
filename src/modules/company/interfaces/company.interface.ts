@@ -10,6 +10,14 @@ export interface CreateCompanyInput {
     companyEmail?: string | undefined;
     website?: string | undefined;
     phoneNumber?: string | undefined;
+    industry?: string | undefined;
+    companySize?: string | undefined;
+    headquarters?: string | undefined;
+    description?: string | undefined;
+    logo?: string | undefined;
+    foundedYear?: number | undefined;
+    linkedinUrl?: string | undefined;
+    twitterUrl?: string | undefined;
 }
 
 export interface UpdateCompanyInput {

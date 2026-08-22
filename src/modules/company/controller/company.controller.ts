@@ -49,6 +49,18 @@ export class CompanyController {
         }
     )
 
+    static getCompanyMetadata = asyncHandler(
+        async (_req: Request, res: Response) => {
+            const metadata = await CompanyService.getCompanyMetadata();
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: MESSAGE.SUCCESS,
+                data: metadata,
+            });
+        }
+    )
+
     static getCompanyDetails = asyncHandler(
         async (
             req: Request<CompanyIdParamDto>,

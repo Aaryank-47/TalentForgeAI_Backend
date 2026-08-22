@@ -15,15 +15,18 @@ const router = Router();
 router.post(
     "/register",
     authMiddleware,
-    authorize("EMPLOYER"),
     validate(CompanyDto.createCompany, "body"),
     CompanyController.createCompany
 );
 
 router.get(
+    "/metadata",
+    CompanyController.getCompanyMetadata
+);
+
+router.get(
     "/my",
     authMiddleware,
-    authorize("EMPLOYER"),
     CompanyController.getMyCompanies
 )
 

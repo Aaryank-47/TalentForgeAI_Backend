@@ -6,6 +6,19 @@ import { uploadFileToCloudinary } from "../../../common/uploads/index.js";
 import { addResumeProcessingJob } from "../../resume/queues/resume-processing.queue.js";
 
 export class CandidateController {
+    static async createCandidateProfile(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const candidate = await CandidateService.createCandidateProfile(userId, req.body);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Candidate profile created successfully",
+            data: candidate
+        });
+    }
+
     static async getCandidateProfile(
         req: Request,
         res: Response

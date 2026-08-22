@@ -6,6 +6,29 @@ import { ApiResponse } from "../../../common/utils/ApiResponse.js";
 import { AuthService } from "../services/auth.service.js";
 
 export class AuthController {
+    static registerUser = asyncHandler(
+        async (req: Request, res: Response) => {
+            const registration = await AuthService.registerUser(req.body);
+
+            res.cookie("refreshToken", registration.tokens.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+            res.cookie("accessToken", registration.tokens.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+
+            res.status(HTTP_STATUS.CREATED).json(
+                new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration)
+            );
+        }
+    );
+
     static registerCandidate = asyncHandler(
         async (req: Request, res: Response) => {
             const registration = await AuthService.registerCandidate(req.body);

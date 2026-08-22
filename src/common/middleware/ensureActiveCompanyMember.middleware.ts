@@ -21,6 +21,8 @@ export const ensureActiveCompanyMember = async (
 
         if (typeof req.params.companyId === "string") {
             companyId = req.params.companyId;
+        } else if (req.headers["x-company-id"] && typeof req.headers["x-company-id"] === "string") {
+            companyId = req.headers["x-company-id"];
         } else if (req.body && typeof req.body.companyId === "string") {
             companyId = req.body.companyId;
         } else if (req.query && typeof req.query.companyId === "string") {

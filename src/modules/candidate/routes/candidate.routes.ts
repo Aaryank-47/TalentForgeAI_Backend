@@ -1,22 +1,31 @@
 import { Router } from "express"
 import { CandidateController } from "../controllers/candidate.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
+import { ensureCandidateProfile } from "../../../common/middleware/ensureCandidateProfile.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js"
 import { CandidateDto } from "../dto/candidate.dto.js";
 import { upload } from "../../../common/uploads/index.js";
 
 const candidateRoutes = Router();
+
+// Create candidate profile (for existing users wanting to become a candidate)
+candidateRoutes.post(
+    "/me",
+    authMiddleware,
+    CandidateController.createCandidateProfile
+);
+
 candidateRoutes.get(
     "/me",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getCandidateProfile
 );
 candidateRoutes.patch(
     "/me",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.updateCandidateProfile, 'body'),
     CandidateController.updateCandidateProfile
 );

@@ -2,12 +2,12 @@ import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
-import type { RegisterCandidateDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
+import type { RegisterCandidateDto, RegisterUserDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
 import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
 import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
-import type { RegisterCandidateResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult, CandidateLoginProfileView, EmployerLoginProfileView } from "../interfaces/auth.interface.js";
+import type { RegisterCandidateResult, RegisterUserResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult, CandidateLoginProfileView, EmployerLoginProfileView } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js"
 import { AccountStatus } from "../../../common/enums/all_enums.js"
 import type { AuthTokens } from "../interfaces/auth.interface.js"
@@ -28,6 +28,68 @@ const isUniqueConstraintError = (error: unknown): boolean => {
 };
 
 export class AuthService {
+    static async registerUser(
+        payload: RegisterUserDto
+    ): Promise<RegisterUserResult> {
+        const existingUser = await AuthRepository.findUserByEmail(payload.email);
+
+        if (existingUser) {
+            throw new ConflictError("An account with this email already exists.");
+        }
+
+        const hashedPassword = await bcrypt.hash(
+            payload.password,
+            AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS
+        );
+
+        try {
+            const user = await AuthRepository.createUserRegistration({
+                email: payload.email,
+                password: hashedPassword,
+                ...(payload.fullName ? { fullName: payload.fullName } : {}),
+            });
+
+            const tokens = buildAuthTokens({
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            });
+
+            await AuthRepository.saveRefreshToken({
+                token: tokens.refreshToken,
+                userId: user.id,
+                expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+            });
+
+            const otp = genrateOTP();
+            const hashedOtp = await bcrypt.hash(
+                otp,
+                AUTH_CONSTANTS.OTP_HASH_SALT_ROUNDS
+            );
+            const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+            await AuthRepository.saveOTP(user.id, hashedOtp, otpExpiresAt);
+
+            const emailData = emailTemplates.verifyEmailOtpTemplate(otp, payload.fullName || user.email);
+            await EmailService.sendEmail({
+                to: user.email,
+                subject: emailData.subject,
+                html: emailData.html,
+                ...(emailData.text ? { text: emailData.text } : {}),
+            });
+
+            return {
+                user,
+                tokens,
+            };
+        } catch (error) {
+            if (isUniqueConstraintError(error)) {
+                throw new ConflictError("An account with this email already exists.");
+            }
+            throw error;
+        }
+    }
+
     static async registerCandidate(
         payload: RegisterCandidateDto
     ): Promise<RegisterCandidateResult> {
@@ -172,6 +234,12 @@ export class AuthService {
             role: user.role
         });
 
+        await AuthRepository.saveRefreshToken({
+            token: tokens.refreshToken,
+            userId: user.id,
+            expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+        });
+
         return tokens;
     }
 
@@ -229,7 +297,10 @@ export class AuthService {
 
         return {
             user,
-            profile: profile.profile
+            profile: profile.profile,
+            capabilities: profile.capabilities,
+            candidate: profile.candidate,
+            companies: profile.companies,
         };
     }
 
