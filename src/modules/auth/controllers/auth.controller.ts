@@ -10,6 +10,19 @@ export class AuthController {
         async (req: Request, res: Response) => {
             const registration = await AuthService.registerCandidate(req.body);
 
+            res.cookie("refreshToken", registration.tokens.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+            res.cookie("accessToken", registration.tokens.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+
             res.status(HTTP_STATUS.CREATED).json(
                 new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration)
             );
@@ -19,6 +32,19 @@ export class AuthController {
     static registerEmployer = asyncHandler(
         async (req: Request, res: Response) => {
             const registration = await AuthService.registerEmployer(req.body);
+
+            res.cookie("refreshToken", registration.tokens.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+            res.cookie("accessToken", registration.tokens.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
 
             res.status(HTTP_STATUS.CREATED).json(
                 new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration)
@@ -45,7 +71,10 @@ export class AuthController {
             const { tokens, ...loginWithoutTokens } = login;
 
             res.status(HTTP_STATUS.OK).json(
-                new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, loginWithoutTokens)
+                new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, {
+                    ...loginWithoutTokens,
+                    tokens,
+                })
             );
         }
     );
@@ -105,6 +134,19 @@ export class AuthController {
     static refreshToken = asyncHandler(
         async(req: Request, res: Response) =>{
             const refreshToken = await AuthService.newRefreshToken(req.cookies.refreshToken);
+
+            res.cookie("refreshToken", refreshToken.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+            res.cookie("accessToken", refreshToken.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, MESSAGE.SUCCESS, refreshToken)
@@ -177,6 +219,19 @@ export class AuthController {
     static registerCompanyOwner = asyncHandler(
         async (req: Request, res: Response) => {
             const registration = await AuthService.registerCompanyOwner(req.body);
+
+            res.cookie("refreshToken", registration.tokens.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+            res.cookie("accessToken", registration.tokens.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
 
             res.status(HTTP_STATUS.CREATED).json(
                 new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration)

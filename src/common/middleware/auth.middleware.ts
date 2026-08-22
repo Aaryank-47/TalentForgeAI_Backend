@@ -15,7 +15,13 @@ export const authMiddleware = asyncHandler(
         res:Response,
         next: NextFunction
     ): Promise<void> =>{
-        const accessToken = req.cookies.accessToken;
+        let accessToken = req.cookies?.accessToken;
+        
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            accessToken = authHeader.substring(7);
+        }
+
         if(!accessToken) {
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED, MESSAGE.UNAUTHORIZED);
         }
