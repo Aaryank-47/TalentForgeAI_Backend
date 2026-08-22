@@ -145,6 +145,10 @@ export interface WorkspaceCompanyView {
         industry: string | null;
         companySize: string | null;
         headquarters: string | null;
+        website?: string | null | undefined;
+        description?: string | null | undefined;
+        companyEmail?: string | null | undefined;
+        phoneNumber?: string | null | undefined;
     };
 }
 

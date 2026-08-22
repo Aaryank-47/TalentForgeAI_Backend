@@ -21,6 +21,7 @@ export interface CreateCompanyInput {
 }
 
 export interface UpdateCompanyInput {
+    companyName?: string;
     companyEmail?: string;
     website?: string;
     phoneNumber?: string;

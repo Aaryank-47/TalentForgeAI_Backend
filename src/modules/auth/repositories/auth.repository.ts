@@ -84,6 +84,10 @@ export class AuthRepository {
                                 industry: true,
                                 companySize: true,
                                 headquarters: true,
+                                website: true,
+                                description: true,
+                                companyEmail: true,
+                                phoneNumber: true,
                             }
                         }
                     }

@@ -40,6 +40,7 @@ export class CompanyDto {
     });
 
     static updateCompany = z.object({
+        companyName: companyNameValidator.optional(),
         companyEmail: companyEmailValidator.optional(),
         website: companyWebsiteValidator.optional(),
         phoneNumber: companyPhoneNumberValidator.optional(),

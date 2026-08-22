@@ -9,6 +9,7 @@ import { authorizedCompanyMember } from "../../../common/middleware/allowCompany
 import { uploadSingleFile } from "../../../common/uploads/index.js";
 import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany .Middleware.js";
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
+import { ensureActiveCompanyMember } from "../../../common/middleware/ensureActiveCompanyMember.middleware.js";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.get(
 router.get(
     "/:companyId",
     authMiddleware,
-    authorize("EMPLOYER"),
+    ensureActiveCompanyMember,
     validate(CompanyDto.companyIdParam, "params"),
     CompanyController.getCompanyDetails
 )
@@ -47,7 +48,7 @@ router.get(
 router.patch(
     "/update/:companyId",
     authMiddleware,
-    authorize("EMPLOYER"),
+    ensureActiveCompanyMember,
     validate(CompanyDto.companyIdParam, "params"),
     ensureActiveCompany,
     validate(CompanyDto.updateCompany, "body"),
@@ -57,7 +58,7 @@ router.patch(
 router.delete(
     "/delete/:companyId",
     authMiddleware,
-    authorize("EMPLOYER"),
+    ensureActiveCompanyMember,
     validate(CompanyDto.companyIdParam, "params"),
     ensureActiveCompany,
     CompanyController.deleteCompanyProfile
