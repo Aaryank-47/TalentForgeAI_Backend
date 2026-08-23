@@ -16,6 +16,7 @@ import { ResumeProgressPublisher } from "../../resume/websocket/resume-progress.
 import { inferResumeMimeType } from "../../resume/utils/resume-mime.helper.js";
 import { logger } from "../../../common/logger/logger.js";
 import prisma from "../../../config/database.js";
+import { ResumeProcessingStateService } from "../../resume/services/resume-processing-state.service.js";
 
 
 export class CandidateService {
@@ -95,18 +96,32 @@ export class CandidateService {
             throw new NotFoundError('Candidate not found');
         }
 
-        const resume = await CandidateRepository.findResumesByCandidateId(candidate.profile.id);
-        if (!resume) {
+        const resumes = await CandidateRepository.findResumesByCandidateId(candidate.profile.id);
+        if (!resumes) {
             throw new NotFoundError("Resume not found");
         }
 
-        return resume;
+        // Attach ephemeral Redis micro-stage state for recovery
+        const enriched = await Promise.all(
+            resumes.map(async (r) => {
+                let processing = null;
+                if (r.parsingStatus === "PROCESSING" || r.parsingStatus === "QUEUED" || r.parsingStatus === "FAILED") {
+                    processing = await ResumeProcessingStateService.getCurrentStage(r.id);
+                }
+                return {
+                    ...r,
+                    processing
+                };
+            })
+        );
+
+        return enriched;
     }
 
     static async getResumeById(
         resumeId: string,
         candidateId: string
-    ): Promise<Resume> {
+    ): Promise<Resume & { processing?: any }> {
         const candidate = await AuthRepository.findProfileByUserId(candidateId);
         if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
             throw new NotFoundError('Candidate not found');
@@ -123,7 +138,15 @@ export class CandidateService {
             throw new NotFoundError("Resume not found");
         }
 
-        return resume;
+        let processing = null;
+        if (resume.parsingStatus === "PROCESSING" || resume.parsingStatus === "QUEUED" || resume.parsingStatus === "FAILED") {
+            processing = await ResumeProcessingStateService.getCurrentStage(resume.id);
+        }
+
+        return {
+            ...resume,
+            processing
+        };
     }
 
     static async retryResumeProcessing(

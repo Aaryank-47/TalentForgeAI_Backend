@@ -171,10 +171,11 @@ export class ResumePersistenceRepository {
             const startDate = parseDate(item.startDate);
             const endDate = parseDate(item.endDate);
             if (!startDate || !item.gradingSystem || (!item.currentlyStudying && !endDate)) continue;
-            incoming.set(fingerprint(item.collegeName, item.degree, item.fieldOfStudy, startDate.toISOString()), {
+            const fieldOfStudy = item.fieldOfStudy ?? "General";
+            incoming.set(fingerprint(item.collegeName, item.degree, fieldOfStudy, startDate.toISOString()), {
                 collegeName: item.collegeName,
                 degree: item.degree,
-                fieldOfStudy: item.fieldOfStudy,
+                fieldOfStudy,
                 currentlyStudying: item.currentlyStudying,
                 startDate,
                 endDate: item.currentlyStudying ? null : endDate,

@@ -26,10 +26,10 @@ export const ensureCandidateProfile = async (
         });
 
         if (!candidate) {
-            throw new ForbiddenError("Candidate profile does not exist for this user.");
+            throw new ForbiddenError("Candidate profile not found. Please complete the \"Find a Job\" setup first.");
         }
 
-        // Attach candidate to req for controllers
+        // Attach candidate to req for downstream controllers
         (req as any).candidate = candidate;
         next();
     } catch (error) {

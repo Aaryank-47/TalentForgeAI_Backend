@@ -227,14 +227,142 @@ describe("ResumeParserService Tests", () => {
     ).rejects.toThrow("Resume document buffer cannot be empty");
   });
 
-  it("should throw error if parseResumeDocument receives an unsupported document mimeType like DOCX", async () => {
-    const dummyBuffer = Buffer.from("DOCX dummy text");
+  it("should safely sanitize placeholders ('N/A', 'Not specified', '') into null", async () => {
+    const jsonWithPlaceholders = JSON.stringify({
+      personal: {
+        fullName: "Jordan Lee",
+        email: "jordan@example.com",
+        phoneNumber: "N/A",
+        currentLocation: "Not specified",
+        linkedinUrl: "",
+        githubUrl: "none",
+        portfolioUrl: "null",
+        websiteUrl: "undefined"
+      },
+      professional: {
+        headline: "Software Engineer",
+        bio: "N/A",
+        currentCompany: "Unknown",
+        currentDesignation: "",
+        totalExperience: "3"
+      },
+      skills: [
+        { name: "C", yearsOfExperience: "2" },
+        { name: "R", yearsOfExperience: "N/A" }
+      ],
+      experience: [],
+      education: [
+        {
+          collegeName: "City High School",
+          degree: "Secondary School",
+          fieldOfStudy: "N/A",
+          currentlyStudying: false,
+          startDate: "2018",
+          endDate: "2020",
+          gradingSystem: "N/A",
+          gradeText: "N/A",
+          grade: "N/A"
+        }
+      ],
+      projects: [],
+      certifications: []
+    });
 
-    await expect(
-      resumeParserService.parseResumeDocument(
-        dummyBuffer,
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      )
-    ).rejects.toThrow("Direct AI document parsing is not supported for mime type");
+    const generateTextSpy = jest
+      .spyOn(OpenRouterClient, "generateText")
+      .mockResolvedValue(jsonWithPlaceholders);
+
+    const result = await resumeParserService.parseResumeText("Jordan Lee Resume");
+
+    expect(result.personal.phoneNumber).toBeNull();
+    expect(result.personal.currentLocation).toBeNull();
+    expect(result.personal.linkedinUrl).toBeNull();
+    expect(result.personal.githubUrl).toBeNull();
+    expect(result.professional.totalExperience).toBe(3);
+    expect(result.skills[0]!.name).toBe("C");
+    expect(result.skills[0]!.yearsOfExperience).toBe(2);
+    expect(result.skills[1]!.name).toBe("R");
+    expect(result.skills[1]!.yearsOfExperience).toBeNull();
+    expect(result.education[0]!.fieldOfStudy).toBeNull();
+
+    generateTextSpy.mockRestore();
+  });
+
+  it("should safely recover and filter out an isolated unusable array item without failing the entire resume", async () => {
+    const jsonWithMalformedItem = JSON.stringify({
+      personal: {
+        fullName: "Taylor Reed",
+        email: "taylor@example.com",
+        phoneNumber: null,
+        currentLocation: null,
+        linkedinUrl: null,
+        githubUrl: null,
+        portfolioUrl: null,
+        websiteUrl: null
+      },
+      professional: {
+        headline: null,
+        bio: null,
+        currentCompany: null,
+        currentDesignation: null,
+        totalExperience: null
+      },
+      skills: [
+        { name: "TypeScript", yearsOfExperience: 4 },
+        null, // Malformed null item
+        { name: "", yearsOfExperience: null }, // Empty skill name
+        { name: "Python", yearsOfExperience: 3 }
+      ],
+      experience: [
+        {
+          companyName: "Valid Corp",
+          designation: "Developer",
+          employmentType: null,
+          description: null,
+          location: null,
+          startDate: null,
+          endDate: null,
+          currentlyWorking: true
+        },
+        {
+          // Missing required companyName & designation
+          description: "Malformed experience entry"
+        }
+      ],
+      education: [],
+      projects: [],
+      certifications: []
+    });
+
+    const generateTextSpy = jest
+      .spyOn(OpenRouterClient, "generateText")
+      .mockResolvedValue(jsonWithMalformedItem);
+
+    const result = await resumeParserService.parseResumeText("Taylor Reed Resume");
+
+    // Valid skills preserved, malformed ones skipped
+    expect(result.skills).toHaveLength(2);
+    expect(result.skills[0]!.name).toBe("TypeScript");
+    expect(result.skills[1]!.name).toBe("Python");
+
+    // Valid experience preserved, malformed skipped
+    expect(result.experience).toHaveLength(1);
+    expect(result.experience[0]!.companyName).toBe("Valid Corp");
+
+    generateTextSpy.mockRestore();
+  });
+
+  it("should fail when root response is not a JSON object", async () => {
+    const invalidRootJson = JSON.stringify(["Array at root instead of object"]);
+
+    const generateTextSpy = jest
+      .spyOn(OpenRouterClient, "generateText")
+      .mockResolvedValue(invalidRootJson);
+
+    await expect(resumeParserService.parseResumeText("Some text")).rejects.toThrow(
+      "Root response must be a JSON object"
+    );
+
+    generateTextSpy.mockRestore();
   });
 });

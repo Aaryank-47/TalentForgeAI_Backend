@@ -570,7 +570,7 @@ export const resumeDeletedAtValidator = z.coerce.date().optional();
 export const skillNameValidator = z
   .string()
   .trim()
-  .min(2, "Skill name must be at least 2 characters long")
+  .min(1, "Skill name must be at least 1 characters long")
   .max(50, "Skill name must be at most 50 characters long");
 
 export const skillExperienceValidator = z

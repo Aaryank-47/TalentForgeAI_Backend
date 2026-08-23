@@ -21,6 +21,7 @@ import type { Prisma } from "@prisma/client";
 
 import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
 import type { StageChangeHandler } from "../interfaces/resume-pipeline.interface.js";
+import { ResumeProcessingStateService } from "../services/resume-processing-state.service.js";
 
 export class ResumeProcessingWorker {
     
@@ -30,7 +31,10 @@ export class ResumeProcessingWorker {
 
     constructor(
         pipeline: ResumeProcessingPipeline = new ResumeProcessingPipeline(),
-        stageChangeHandler: StageChangeHandler = (stage, meta) => ResumeProgressPublisher.publishStageChange(stage, meta)
+        stageChangeHandler: StageChangeHandler = async (stage, meta) => {
+            await ResumeProcessingStateService.setCurrentStage(meta.resumeId, stage, meta.reason);
+            await ResumeProgressPublisher.publishStageChange(stage, meta);
+        }
     ) {
         this.pipeline = pipeline;
         this.stageChangeHandler = stageChangeHandler;
@@ -105,6 +109,7 @@ export class ResumeProcessingWorker {
                     { jobId, resumeId, candidateId },
                     `[ResumeProcessingWorker] Resume "${resumeId}" is already COMPLETED. Skipping redundant processing.`
                 );
+                await ResumeProcessingStateService.clearCurrentStage(resumeId);
                 return {
                     success: true,
                     resumeId,
@@ -123,6 +128,7 @@ export class ResumeProcessingWorker {
                 parsingStartedAt: new Date(),
                 parsingError: null
             });
+            await ResumeProcessingStateService.setCurrentStage(resumeId, "FETCHING_FILE");
 
             // Execute the explicit multi-stage processing pipeline
             const { normalizedData, persistenceResult, durationMs } =
@@ -141,6 +147,9 @@ export class ResumeProcessingWorker {
                 resumeId,
                 candidateId
             });
+
+            // Clean up ephemeral Redis processing micro-stage on successful completion
+            await ResumeProcessingStateService.clearCurrentStage(resumeId);
 
             const result: ResumeProcessingJobResult = {
                 success: true,
@@ -215,11 +224,17 @@ export class ResumeProcessingWorker {
                     );
                 }
 
+                // Update Redis failure state
+                await ResumeProcessingStateService.markFailed(resumeId, errorMessage);
+
                 // Notify candidate over Socket.IO that resume processing permanently failed (even if DB update failed)
                 await ResumeProgressPublisher.publishFinalFailure(
                     { jobId, resumeId, candidateId },
                     errorMessage
                 );
+            } else {
+                // Temporary retry attempt: Record failure/retry in Redis
+                await ResumeProcessingStateService.setCurrentStage(resumeId, "FAILED", `Retry scheduled: ${errorMessage}`);
             }
 
             if (isPermanent) {

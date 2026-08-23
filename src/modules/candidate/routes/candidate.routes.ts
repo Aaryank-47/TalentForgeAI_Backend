@@ -32,14 +32,14 @@ candidateRoutes.patch(
 candidateRoutes.get(
     "/me/profile-completion",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getProfileCompletion
 );
 
 candidateRoutes.post(
     "/me/resume",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     upload.single("resume"),
     CandidateController.uploadResume
 )
@@ -47,28 +47,28 @@ candidateRoutes.post(
 candidateRoutes.get(    
     "/me/resumes",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getResumes
 )
 
 candidateRoutes.get(
     "/resumes/:resumeId",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.getResumeById
 )
 
 candidateRoutes.post(
     "/resumes/:resumeId/retry",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     CandidateController.retryResumeProcessing
 )
 
 candidateRoutes.delete(
     "/resumes",
     authMiddleware,
-    authorize("CANDIDATE"),
+    ensureCandidateProfile,
     validate(CandidateDto.deleteResumes, 'body'),
     CandidateController.deleteResumes
 )

@@ -17,6 +17,7 @@ import assessmentAttemptRoutes from '../modules/assessment/routes/candidateAsses
 import assessmentEvaluationRoutes from '../modules/assessment/routes/assessmentEvaluation.routes.js';
 import atsIntegrationRoutes from '../modules/assessment/routes/atsIntegration.routes.js';
 import interviewsRoutes from '../modules/interviews/routes/interviews.routes.js';
+import resumeRoutes from '../modules/resume/routes/resume.routes.js';
 
 const router = Router();
 
@@ -30,6 +31,8 @@ router.use("/assessment/evaluation", assessmentEvaluationRoutes);
 router.use("/assessment/applications", atsIntegrationRoutes);
 router.use("/candidate", candidateRoutes);
 router.use("/candidates", candidatesRoutes);
+router.use("/resume", resumeRoutes);
+router.use("/resumes", resumeRoutes);
 router.use("/candidate/applications", applicationRoutes);
 router.use("/employer/applications", recruiterApplicationRoutes);
 router.use("/hiring-workflow/stage-library", hiringWorkflowRoutes);

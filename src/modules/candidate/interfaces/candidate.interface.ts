@@ -47,12 +47,19 @@ export interface CandidateWithRelationsCount {
     };
 }
 
+import type { ResumeProcessingProgressState } from "../../resume/interfaces/resume-pipeline.interface.js";
+
 export interface ResumeView {
-    id: string,
-    resumeName: string,
-    resumeUrl: string,
-    fileSize: number,
-    uploadedAt: Date
+    id: string;
+    resumeName: string;
+    resumeUrl: string;
+    fileSize: number;
+    uploadedAt: Date;
+    parsingStatus: string;
+    parsingError?: string | null;
+    parsingStartedAt?: Date | null;
+    parsingCompletedAt?: Date | null;
+    processing?: ResumeProcessingProgressState | null;
 }
 
 export interface SkillsView {

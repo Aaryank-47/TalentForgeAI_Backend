@@ -28,3 +28,19 @@ export const DOCUMENT_TYPE = {
 } as const;
 
 export type DocumentType = typeof DOCUMENT_TYPE[keyof typeof DOCUMENT_TYPE];
+
+import type { ResumeProcessingStage } from "../queues/resume-processing.types.js";
+
+export const STAGE_PROGRESS_PERCENTAGES: Record<ResumeProcessingStage, number> = {
+    QUEUED: 5,
+    FETCHING_FILE: 15,
+    EXTRACTION: 30,
+    AI_PARSING: 60,
+    NORMALIZATION: 80,
+    PERSISTENCE: 95,
+    COMPLETED: 100,
+    FAILED: 100
+};
+
+// 1 Hour TTL for active processing micro-stage records
+export const PROCESSING_STATE_TTL_SECONDS = 3600;

@@ -93,7 +93,11 @@ export const resume = {
     resumeUrl: true,
     fileSize: true,
     uploadedAt: true,
-} as const
+    parsingStatus: true,
+    parsingError: true,
+    parsingStartedAt: true,
+    parsingCompletedAt: true
+} as const;
 
 export const skill ={
     id: true,

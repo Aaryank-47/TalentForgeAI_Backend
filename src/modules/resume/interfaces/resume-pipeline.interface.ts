@@ -21,3 +21,12 @@ export interface PipelineExecutionResult {
     persistenceResult: ResumePersistenceResult;
     durationMs: number;
 }
+
+export interface ResumeProcessingProgressState {
+    resumeId: string;
+    status: "PROCESSING" | "COMPLETED" | "FAILED" | "QUEUED";
+    stage: ResumeProcessingStage;
+    progress: number;
+    message: string;
+    updatedAt: string;
+}
