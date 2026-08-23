@@ -157,6 +157,18 @@ export class CompanyRepository {
             : null;
     }
 
+    static async findMemberWithDetails(
+        companyId: string,
+        userId: string
+    ): Promise<CompanyMemberDetails | null> {
+        return prisma.companyMember.findUnique({
+            where: {
+                userId_companyId: { userId, companyId }
+            },
+            select: companyMemberSelect
+        });
+    }
+
     static async deleteCompany(
         companyId: string,
         userId: string
@@ -179,6 +191,9 @@ export class CompanyRepository {
         companyId: string;
         role: CompanyMemberRole;
         invitedBy: string;
+        invitationToken?: string | null;
+        invitedAt?: Date | null;
+        expiresAt?: Date | null;
     }): Promise<CompanyMemberList> {
         return prisma.companyMember.create({
             data: {
@@ -187,6 +202,9 @@ export class CompanyRepository {
                 role: data.role,
                 status: CompanyMemberStatus.INVITED,
                 invitedBy: data.invitedBy,
+                invitationToken: data.invitationToken ?? null,
+                invitedAt: data.invitedAt ?? null,
+                expiresAt: data.expiresAt ?? null,
             },
         });
     }
@@ -386,12 +404,31 @@ export class CompanyRepository {
         });
     }
 
+    static async findMemberByInvitationToken(
+        invitationToken: string
+    ): Promise<CompanyMemberList | null> {
+        const member = await prisma.companyMember.findUnique({
+            where: { invitationToken },
+        });
+
+        return member
+            ? {
+                ...member,
+                invitedBy: member.invitedBy ?? "",
+            }
+            : null;
+    }
+
     static async cancelInvitation(
         invitationId: string
     ): Promise<CancelInvitationResult> {
         return prisma.companyMember.update({
             where: { id: invitationId },
-            data: { status: CompanyMemberStatus.CANCELLED },
+            data: {
+                status: CompanyMemberStatus.CANCELLED,
+                invitationToken: null,
+                expiresAt: new Date(),
+            },
             select: { id: true, status: true },
         });
     }
@@ -404,6 +441,7 @@ export class CompanyRepository {
         return prisma.companyMember.update({
             where: { id: invitationId },
             data: {
+                status: CompanyMemberStatus.INVITED,
                 invitationToken: token,
                 invitedAt: new Date(),
                 expiresAt,

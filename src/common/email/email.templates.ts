@@ -208,5 +208,69 @@ export class emailTemplates {
             text: `Dear ${candidateName},\n\nYou have been invited to take the assessment: ${assessmentTitle}.\n\nPlease complete it before: ${expiresAt}.\n\nClick the link to start the assessment:\n${invitationLink}\n\nBest regards,\nTalentForge Team${this.getFooterText(unsubscribeLink)}`,
             unsubscribeLink
         };
-    }
+    };
+
+    static memberRoleUpdatedTemplate = (
+        companyName: string,
+        memberName: string,
+        newRole: string,
+        oldRole?: string
+    ): EmailTemplate => {
+        const unsubscribeLink = `${this.baseUnsubscribeLink}?type=updates`;
+        const dashboardLink = `${env.app.frontendUrl}/dashboard`;
+        const roleChangeText = oldRole
+            ? `Your role at <strong>${companyName}</strong> has been updated from <strong>${oldRole}</strong> to <strong>${newRole}</strong>.`
+            : `Your role at <strong>${companyName}</strong> has been updated to <strong>${newRole}</strong>.`;
+
+        return {
+            subject: `Your role at ${companyName} has been updated`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #0056b3; padding: 20px; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 24px;">TalentForge</h2>
+                    </div>
+                    <div style="padding: 30px;">
+                        <h1 style="font-size: 22px; color: #333; margin-top: 0;">Role Updated</h1>
+                        <p style="font-size: 16px;">Hello ${memberName},</p>
+                        <p style="font-size: 16px;">${roleChangeText}</p>
+                        <p style="font-size: 16px; margin-bottom: 25px;">You can log in to your dashboard to view your updated permissions and access.</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="${dashboardLink}" style="display: inline-block; background-color: #0056b3; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; padding: 12px 30px; border-radius: 6px;">Go to Dashboard</a>
+                        </div>
+                        <p style="font-size: 14px; color: #666;">If you have any questions regarding this change, please contact your organization administrator.</p>
+                    </div>
+                    ${this.getFooterHtml(unsubscribeLink)}
+                </div>
+            `,
+            text: `Hello ${memberName},\n\nYour role at ${companyName} has been updated to ${newRole}.\n\nYou can log in to your dashboard at ${dashboardLink} to view your updated permissions.\n\nIf you have any questions, please contact your organization administrator.${this.getFooterText(unsubscribeLink)}`,
+            unsubscribeLink
+        };
+    };
+
+    static invitationCancelledTemplate = (
+        companyName: string,
+        recipientName: string,
+        role: string
+    ): EmailTemplate => {
+        const unsubscribeLink = `${this.baseUnsubscribeLink}?type=invitations`;
+        return {
+            subject: `Invitation to join ${companyName} has been cancelled`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #0056b3; padding: 20px; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 24px;">TalentForge</h2>
+                    </div>
+                    <div style="padding: 30px;">
+                        <h1 style="font-size: 22px; color: #333; margin-top: 0;">Invitation Cancelled</h1>
+                        <p style="font-size: 16px;">Hello ${recipientName},</p>
+                        <p style="font-size: 16px;">Your invitation to join <strong>${companyName}</strong> as a <strong>${role}</strong> has been cancelled by the organization administrator.</p>
+                        <p style="font-size: 14px; color: #666; margin-top: 25px;">If you believe this was done in error, please contact the organization administrator.</p>
+                    </div>
+                    ${this.getFooterHtml(unsubscribeLink)}
+                </div>
+            `,
+            text: `Hello ${recipientName},\n\nYour invitation to join ${companyName} as a ${role} has been cancelled by the organization administrator.\n\nIf you believe this was done in error, please contact the organization administrator.${this.getFooterText(unsubscribeLink)}`,
+            unsubscribeLink
+        };
+    };
 }

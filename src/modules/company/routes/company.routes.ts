@@ -76,7 +76,6 @@ router.post(
 )
 
 router.get("/invitation/:token",
-    authMiddleware,
     validate(CompanyDto.getCompanyInvitationToken, "params"),
     CompanyController.getInvitation
 )

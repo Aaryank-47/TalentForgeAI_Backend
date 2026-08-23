@@ -81,6 +81,9 @@ export interface CompanyMemberList {
     companyId: string
     joinedAt: Date
     invitedBy: string | null
+    invitationToken?: string | null
+    invitedAt?: Date | null
+    expiresAt?: Date | null
 }
 
 export interface CompanyMemberDetails extends CompanyMemberList {
