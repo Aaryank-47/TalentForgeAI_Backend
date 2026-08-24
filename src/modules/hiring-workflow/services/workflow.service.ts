@@ -46,7 +46,7 @@ export class WorkflowServices {
 
     static async getAllCompanyWorkflows(
         companyId: string,
-        status: WorkflowStatus
+        status?: WorkflowStatus
     ): Promise<CompanyWorkflowView[]> {
         const company = await CompanyRepository.findCompanyById(companyId);
         if (!company) {
@@ -55,7 +55,7 @@ export class WorkflowServices {
 
         const workflows = await WorkflowRepository.getWorkflowsByCompanyId(companyId, status);
 
-        return workflows
+        return workflows;
     }
 
     static async getWorkflowDetails(

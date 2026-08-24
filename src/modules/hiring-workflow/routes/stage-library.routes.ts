@@ -20,46 +20,42 @@ StageLibRoutes.post(
 StageLibRoutes.post(
     "/company/:companyId/custom-stage",
     authMiddleware,
-    authorize("EMPLOYER", "ADMIN"),
     validate(CompanyDto.companyIdParam, "params"),
     validate(WorkflowDto.createCustomStage, "body"),
     loadCompanyMembership,
-    authorizedCompanyMember("OWNER"),
+    authorizedCompanyMember("OWNER", "ADMIN"),
     StageLibController.createCustomStage
 );
 
 StageLibRoutes.get(
     "/company/:companyId/stages",
     authMiddleware,
-    authorize("EMPLOYER", "ADMIN"),
     validate(CompanyDto.companyIdParam, "params"),
     loadCompanyMembership,
-    authorizedCompanyMember("OWNER"),
+    authorizedCompanyMember("OWNER", "ADMIN", "HIRING_MANAGER", "RECRUITER"),
     StageLibController.getAllsystemAndCustomStages
-)
+);
 
 StageLibRoutes.patch(
     "/company/:companyId/stage/:stageId",
     authMiddleware,
-    authorize("EMPLOYER", "ADMIN"),
     validate(CompanyDto.companyIdParam, "params"),
     validate(WorkflowDto.stageIdParam, "params"),
     validate(WorkflowDto.updateStageLibrary, "body"),
     loadCompanyMembership,
-    authorizedCompanyMember("OWNER"),
+    authorizedCompanyMember("OWNER", "ADMIN"),
     StageLibController.updateCustomStage
-)
+);
 
 StageLibRoutes.delete(
     "/company/:companyId/stage/:stageId",
     authMiddleware,
-    authorize("EMPLOYER", "ADMIN"),
     validate(CompanyDto.companyIdParam, "params"),
     validate(WorkflowDto.stageIdParam, "params"),
     loadCompanyMembership,
-    authorizedCompanyMember("OWNER"),
+    authorizedCompanyMember("OWNER", "ADMIN"),
     StageLibController.deleteCustomStage
-)
+);
 
 StageLibRoutes.delete(
     "/system-stage/:stageId",

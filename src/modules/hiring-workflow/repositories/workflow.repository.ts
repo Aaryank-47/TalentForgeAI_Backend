@@ -165,18 +165,27 @@ export class WorkflowRepository {
 
     static async getWorkflowsByCompanyId(
         companyId: string,
-        status: WorkflowStatus
+        status?: WorkflowStatus
     ): Promise<CompanyWorkflowView[]> {
         return await prisma.workflow.findMany({
             where: {
                 companyId: companyId,
-                status: status
+                ...(status ? { status } : {})
             },
             select: {
                 id: true,
+                companyId: true,
                 name: true,
                 description: true,
                 status: true,
+                isDefault: true,
+                createdAt: true,
+                updatedAt: true,
+                _count: {
+                    select: {
+                        jobs: true
+                    }
+                },
                 stages: {
                     select: {
                         id: true,
@@ -228,6 +237,7 @@ export class WorkflowRepository {
                 name: true,
                 description: true,
                 status: true,
+                isDefault: true,
                 createdAt: true,
                 updatedAt: true,
                 stages: {
@@ -306,6 +316,7 @@ export class WorkflowRepository {
                     name: true,
                     description: true,
                     status: true,
+                    isDefault: true,
                     createdAt: true,
                     updatedAt: true,
                     stages: {
@@ -375,6 +386,7 @@ export class WorkflowRepository {
                     name: true,
                     description: true,
                     status: true,
+                    isDefault: true,
                     createdAt: true,
                     updatedAt: true,
                     stages: {

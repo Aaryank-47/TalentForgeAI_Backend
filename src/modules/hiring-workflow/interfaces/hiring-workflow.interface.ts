@@ -39,6 +39,7 @@ export interface GetWorkflowDetailsByIdView {
     name: string;
     description: string | null;
     status: WorkflowStatus;
+    isDefault: boolean;
     createdAt: Date;
     updatedAt: Date;
     stages: StageView[];
@@ -66,9 +67,16 @@ export interface StageLibraryView {
 
 export interface CompanyWorkflowView {
     id: string;
+    companyId?: string;
     name: string;
     description: string | null;
     status: WorkflowStatus;
+    isDefault: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+    _count?: {
+        jobs: number;
+    };
     stages: StageView[];
 }
 

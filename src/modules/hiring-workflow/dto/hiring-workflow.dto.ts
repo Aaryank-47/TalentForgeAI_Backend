@@ -56,8 +56,8 @@ export class WorkflowDto{
     });
 
     static getWorkflowsByStatus = z.object({
-        status: workflowStatusValidator
-    })
+        status: workflowStatusValidator.optional()
+    });
 
     static deleteWorkflow = z.object({
         id: workflowIdValidator,
