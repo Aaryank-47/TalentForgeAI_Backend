@@ -48,6 +48,8 @@ export class JobAssessmentService {
             const assessment = (item as any).assessment;
             return {
                 id: `${item.jobId}_${item.assessmentId}`,
+                displayOrder: item.displayOrder,
+                isMandatory: item.isMandatory,
                 assessment: {
                     id: assessment?.id || item.assessmentId,
                     title: assessment?.title || "",
