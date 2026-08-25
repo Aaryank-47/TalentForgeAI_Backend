@@ -53,6 +53,11 @@ export const JobSelect = {
         },
     },
 
+    _count: {
+        select: {
+            applications: true,
+        },
+    },
     workflowId: true,
     workflow: {
         select: {
