@@ -19,4 +19,16 @@ export const DOCUMENT_TYPE = {
     PDF: "PDF",
     DOCX: "DOCX"
 };
+export const STAGE_PROGRESS_PERCENTAGES = {
+    QUEUED: 5,
+    FETCHING_FILE: 15,
+    EXTRACTION: 30,
+    AI_PARSING: 60,
+    NORMALIZATION: 80,
+    PERSISTENCE: 95,
+    COMPLETED: 100,
+    FAILED: 100
+};
+// 1 Hour TTL for active processing micro-stage records
+export const PROCESSING_STATE_TTL_SECONDS = 3600;
 //# sourceMappingURL=resume.constants.js.map

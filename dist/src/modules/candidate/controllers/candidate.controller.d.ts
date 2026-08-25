@@ -1,11 +1,13 @@
 import type { Request, Response } from "express";
 export declare class CandidateController {
+    static createCandidateProfile(req: Request, res: Response): Promise<void>;
     static getCandidateProfile(req: Request, res: Response): Promise<void>;
     static updateCandidateProfile(req: Request, res: Response): Promise<void>;
     static getProfileCompletion(req: Request, res: Response): Promise<void>;
     static uploadResume(req: Request, res: Response): Promise<void>;
     static getResumes(req: Request, res: Response): Promise<void>;
     static getResumeById(req: Request, res: Response): Promise<void>;
+    static retryResumeProcessing(req: Request, res: Response): Promise<void>;
     static deleteResumes(req: Request, res: Response): Promise<void>;
     static addSkills(req: Request, res: Response): Promise<void>;
     static getSkills(req: Request, res: Response): Promise<void>;

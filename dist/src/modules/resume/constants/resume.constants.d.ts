@@ -14,4 +14,7 @@ export declare const DOCUMENT_TYPE: {
     readonly DOCX: "DOCX";
 };
 export type DocumentType = typeof DOCUMENT_TYPE[keyof typeof DOCUMENT_TYPE];
+import type { ResumeProcessingStage } from "../queues/resume-processing.types.js";
+export declare const STAGE_PROGRESS_PERCENTAGES: Record<ResumeProcessingStage, number>;
+export declare const PROCESSING_STATE_TTL_SECONDS = 3600;
 //# sourceMappingURL=resume.constants.d.ts.map

@@ -8,7 +8,7 @@ export declare class WorkflowRepository {
         name: string;
         assessmentId?: string | null;
     })[], companyId: string, status: WorkflowStatus): Promise<CreateWorkflowView>;
-    static getWorkflowsByCompanyId(companyId: string, status: WorkflowStatus): Promise<CompanyWorkflowView[]>;
+    static getWorkflowsByCompanyId(companyId: string, status?: WorkflowStatus): Promise<CompanyWorkflowView[]>;
     static getWorkflowById(workflowId: string): Promise<any>;
     static getWorkflowDetails(workflowId: string): Promise<GetWorkflowDetailsByIdView | null>;
     static updateWorkflow(workflowId: string, name: string, description: string | undefined, isDefault: boolean, stages: {

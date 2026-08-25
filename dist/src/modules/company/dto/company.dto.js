@@ -7,11 +7,20 @@ export class CompanyDto {
         companyEmail: companyEmailValidator.optional(),
         website: companyWebsiteValidator.optional(),
         phoneNumber: companyPhoneNumberValidator.optional(),
+        industry: companyIndustryValidator.optional(),
+        companySize: companySizeValidator.optional(),
+        headquarters: headquartersValidator.optional(),
+        description: companyDescriptionValidator.optional(),
+        logo: companyLogoValidator.optional(),
+        foundedYear: foundedYearValidator.optional(),
+        linkedinUrl: companyLinkedInUrlValidator.optional(),
+        twitterUrl: twitterUrlValidator.optional(),
     });
     static companyIdParam = z.object({
         companyId: companyIdValidator,
     });
     static updateCompany = z.object({
+        companyName: companyNameValidator.optional(),
         companyEmail: companyEmailValidator.optional(),
         website: companyWebsiteValidator.optional(),
         phoneNumber: companyPhoneNumberValidator.optional(),

@@ -33,6 +33,15 @@ export declare class JobsDto {
         skills: z.ZodArray<z.ZodString>;
         benefits: z.ZodOptional<z.ZodArray<z.ZodString>>;
         workflowId: z.ZodString;
+        status: z.ZodOptional<z.ZodEnum<{
+            DRAFT: "DRAFT";
+            PUBLISHED: "PUBLISHED";
+            PAUSED: "PAUSED";
+            CLOSED: "CLOSED";
+            FILLED: "FILLED";
+            EXPIRED: "EXPIRED";
+            ARCHIVED: "ARCHIVED";
+        }>>;
     }, z.core.$strip>;
     static updateJob: z.ZodObject<{
         title: z.ZodOptional<z.ZodString>;

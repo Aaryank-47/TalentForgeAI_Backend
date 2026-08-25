@@ -1,5 +1,10 @@
 import { z } from "zod";
 export declare class CandidateDto {
+    static registerUser: z.ZodObject<{
+        email: z.ZodEmail;
+        password: z.ZodString;
+        fullName: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>;
     static registerCandidate: z.ZodObject<{
         email: z.ZodEmail;
         password: z.ZodString;
@@ -36,6 +41,7 @@ export declare class CandidateDto {
         email: z.ZodEmail;
     }, z.core.$strip>;
 }
+export type RegisterUserDto = z.infer<typeof CandidateDto.registerUser>;
 export type RegisterCandidateDto = z.infer<typeof CandidateDto.registerCandidate>;
 export type LoginDto = z.infer<typeof CandidateDto.login>;
 export type LogoutAllDevicesDto = z.infer<typeof CandidateDto.logoutAllDevices>;

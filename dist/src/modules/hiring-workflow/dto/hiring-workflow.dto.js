@@ -23,7 +23,7 @@ export class WorkflowDto {
         })).min(1, "At least one stage is required"),
     });
     static getWorkflowsByStatus = z.object({
-        status: workflowStatusValidator
+        status: workflowStatusValidator.optional()
     });
     static deleteWorkflow = z.object({
         id: workflowIdValidator,

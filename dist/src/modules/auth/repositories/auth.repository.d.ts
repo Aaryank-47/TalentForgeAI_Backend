@@ -27,12 +27,12 @@ export declare class AuthRepository {
             fullName: string;
             phoneNumber: string | null;
             linkedinUrl: string | null;
+            designation: string | null;
             id: string;
             createdAt: Date;
             updatedAt: Date;
             userId: string;
             profilePicture: string | null;
-            designation: string | null;
             department: string | null;
             isActive: boolean;
         } | null;
@@ -221,6 +221,11 @@ export declare class AuthRepository {
         restoredById: string | null;
     }>;
     static updateNewPasswordForUser(userId: string, newPassword: string): Promise<void>;
+    static createUserRegistration(data: {
+        email: string;
+        password: string;
+        fullName?: string;
+    }): Promise<AuthUserView>;
     static createCandidateRegistration(data: RegisterCandidateInput): Promise<{
         user: AuthUserView;
         candidate: CandidateRegistrationView;
@@ -285,12 +290,12 @@ export declare class AuthRepository {
         fullName: string;
         phoneNumber: string | null;
         linkedinUrl: string | null;
+        designation: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
         profilePicture: string | null;
-        designation: string | null;
         department: string | null;
         isActive: boolean;
     }) | null>;

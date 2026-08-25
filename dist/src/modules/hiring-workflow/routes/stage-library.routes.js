@@ -9,10 +9,10 @@ import { authorizedCompanyMember } from "../../../common/middleware/allowCompany
 import { CompanyDto } from "../../company/dto/company.dto.js";
 const StageLibRoutes = Router();
 StageLibRoutes.post("/system-stage", authMiddleware, authorize("ADMIN", "SUPER_ADMIN"), validate(WorkflowDto.createCustomStage, "body"), StageLibController.createSystemStages);
-StageLibRoutes.post("/company/:companyId/custom-stage", authMiddleware, authorize("EMPLOYER", "ADMIN"), validate(CompanyDto.companyIdParam, "params"), validate(WorkflowDto.createCustomStage, "body"), loadCompanyMembership, authorizedCompanyMember("OWNER"), StageLibController.createCustomStage);
-StageLibRoutes.get("/company/:companyId/stages", authMiddleware, authorize("EMPLOYER", "ADMIN"), validate(CompanyDto.companyIdParam, "params"), loadCompanyMembership, authorizedCompanyMember("OWNER"), StageLibController.getAllsystemAndCustomStages);
-StageLibRoutes.patch("/company/:companyId/stage/:stageId", authMiddleware, authorize("EMPLOYER", "ADMIN"), validate(CompanyDto.companyIdParam, "params"), validate(WorkflowDto.stageIdParam, "params"), validate(WorkflowDto.updateStageLibrary, "body"), loadCompanyMembership, authorizedCompanyMember("OWNER"), StageLibController.updateCustomStage);
-StageLibRoutes.delete("/company/:companyId/stage/:stageId", authMiddleware, authorize("EMPLOYER", "ADMIN"), validate(CompanyDto.companyIdParam, "params"), validate(WorkflowDto.stageIdParam, "params"), loadCompanyMembership, authorizedCompanyMember("OWNER"), StageLibController.deleteCustomStage);
+StageLibRoutes.post("/company/:companyId/custom-stage", authMiddleware, validate(CompanyDto.companyIdParam, "params"), validate(WorkflowDto.createCustomStage, "body"), loadCompanyMembership, authorizedCompanyMember("OWNER", "ADMIN"), StageLibController.createCustomStage);
+StageLibRoutes.get("/company/:companyId/stages", authMiddleware, validate(CompanyDto.companyIdParam, "params"), loadCompanyMembership, authorizedCompanyMember("OWNER", "ADMIN", "HIRING_MANAGER", "RECRUITER"), StageLibController.getAllsystemAndCustomStages);
+StageLibRoutes.patch("/company/:companyId/stage/:stageId", authMiddleware, validate(CompanyDto.companyIdParam, "params"), validate(WorkflowDto.stageIdParam, "params"), validate(WorkflowDto.updateStageLibrary, "body"), loadCompanyMembership, authorizedCompanyMember("OWNER", "ADMIN"), StageLibController.updateCustomStage);
+StageLibRoutes.delete("/company/:companyId/stage/:stageId", authMiddleware, validate(CompanyDto.companyIdParam, "params"), validate(WorkflowDto.stageIdParam, "params"), loadCompanyMembership, authorizedCompanyMember("OWNER", "ADMIN"), StageLibController.deleteCustomStage);
 StageLibRoutes.delete("/system-stage/:stageId", authMiddleware, authorize("ADMIN", "SUPER_ADMIN"), validate(WorkflowDto.stageIdParam, "params"), StageLibController.deleteSystemStage);
 export default StageLibRoutes;
 //# sourceMappingURL=stage-library.routes.js.map

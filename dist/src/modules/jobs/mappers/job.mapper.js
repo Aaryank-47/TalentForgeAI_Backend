@@ -1,6 +1,7 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, JobStatus } from "@prisma/client";
 import { removeUndefined } from "../../../common/helper/object.helper.js";
 export function toJobCreateInput(companyId, data, slug, createdById) {
+    const isPublish = data.status === JobStatus.PUBLISHED;
     const input = {
         company: {
             connect: {
@@ -12,6 +13,8 @@ export function toJobCreateInput(companyId, data, slug, createdById) {
         description: data.description,
         employmentType: data.employmentType,
         workplaceType: data.workplaceType,
+        status: isPublish ? JobStatus.PUBLISHED : JobStatus.DRAFT,
+        publishedAt: isPublish ? new Date() : null,
         vacancies: data.vacancies ?? 1,
         location: data.location ?? null,
         minExperience: data.minExperience ?? 0,

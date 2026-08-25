@@ -96,6 +96,75 @@ describe("Resume Parsing Schema Contract Tests", () => {
             const result = resumeParsingSchema.safeParse(payloadWithNulls);
             expect(result.success).toBe(true);
         });
+        it("should accept legitimate short skill names like 'C' and 'R'", () => {
+            const payload = {
+                ...validFullPayload,
+                skills: [
+                    { name: "C", yearsOfExperience: 3 },
+                    { name: "R", yearsOfExperience: null },
+                    { name: "Go", yearsOfExperience: 2 }
+                ]
+            };
+            const result = resumeParsingSchema.safeParse(payload);
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.skills[0].name).toBe("C");
+                expect(result.data.skills[1].name).toBe("R");
+            }
+        });
+        it("should accept fieldOfStudy: null for Secondary / 10th Grade Education", () => {
+            const payload = {
+                ...validFullPayload,
+                education: [
+                    {
+                        collegeName: "St. Joseph's Sr. Sec. School",
+                        degree: "Secondary Education (10th)",
+                        fieldOfStudy: null,
+                        currentlyStudying: false,
+                        startDate: "2020",
+                        endDate: "2021",
+                        gradingSystem: null,
+                        gradeText: null,
+                        grade: null
+                    }
+                ]
+            };
+            const result = resumeParsingSchema.safeParse(payload);
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.data.education[0].fieldOfStudy).toBeNull();
+            }
+        });
+        it("should accept optional fields as null without failing", () => {
+            const payload = {
+                ...validFullPayload,
+                personal: {
+                    fullName: "Tusha Singh",
+                    email: "tusha@example.com",
+                    phoneNumber: "+91 8109386266",
+                    currentLocation: null,
+                    linkedinUrl: null,
+                    githubUrl: null,
+                    portfolioUrl: null,
+                    websiteUrl: null
+                },
+                professional: {
+                    headline: null,
+                    bio: null,
+                    currentCompany: null,
+                    currentDesignation: null,
+                    totalExperience: null
+                },
+                projects: [
+                    { name: "AI Plagiarism Detection", description: null }
+                ],
+                certifications: [
+                    { name: "Cloud Computing Vocational" }
+                ]
+            };
+            const result = resumeParsingSchema.safeParse(payload);
+            expect(result.success).toBe(true);
+        });
         it("should accept empty arrays for skills, experience, education, projects, certifications", () => {
             const payloadWithEmptyArrays = {
                 ...validFullPayload,

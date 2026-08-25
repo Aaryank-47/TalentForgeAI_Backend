@@ -43,7 +43,19 @@ export class CandidateRepository {
                 candidateId: candidate.id,
                 resumeUrl: resumeData.resumeUrl,
                 resumeName: resumeData.resumeName,
-                fileSize: resumeData.fileSize
+                fileSize: resumeData.fileSize,
+                parsingStatus: "QUEUED"
+            }
+        });
+    }
+    static async resetResumeForRetry(resumeId) {
+        return prisma.resume.update({
+            where: { id: resumeId },
+            data: {
+                parsingStatus: "QUEUED",
+                parsingError: null,
+                parsingStartedAt: null,
+                parsingCompletedAt: null
             }
         });
     }
@@ -298,6 +310,17 @@ export class CandidateRepository {
                 educations: true,
                 experiences: true,
             }
+        });
+    }
+    static async createCandidateProfile(userId, data) {
+        return prisma.candidate.create({
+            data: {
+                userId,
+                fullName: data.fullName,
+                phoneNumber: data.phoneNumber ?? null,
+                headline: data.headline ?? null,
+            },
+            select: candidateProfileSelect,
         });
     }
     static async updateCandidateSettings(userId, data) {

@@ -15,12 +15,12 @@ export declare class ApplicationWorkflowRepository {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        assessmentId: string | null;
         workflowId: string;
         stageLibraryId: string;
         order: number;
         isEnabled: boolean;
         isFinal: boolean;
-        assessmentId: string | null;
         interviewId: string | null;
     }) | null>;
     static getApplicationWorkflowByApplicationId(applicationId: string): Promise<{
@@ -52,24 +52,24 @@ export declare class ApplicationWorkflowRepository {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        assessmentId: string | null;
         workflowId: string;
         stageLibraryId: string;
         order: number;
         isEnabled: boolean;
         isFinal: boolean;
-        assessmentId: string | null;
         interviewId: string | null;
     } | null>;
     static getDefaultWorkflowStageForCompany(companyId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        assessmentId: string | null;
         workflowId: string;
         stageLibraryId: string;
         order: number;
         isEnabled: boolean;
         isFinal: boolean;
-        assessmentId: string | null;
         interviewId: string | null;
     } | null>;
     static updateApplicationWorkflow(movedByEmployerId: string, applicationId: string, fromStageId: string, toStageId: string, comment?: string, assignedTo?: string): Promise<ApplicationWorkflow>;

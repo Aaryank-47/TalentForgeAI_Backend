@@ -4,12 +4,52 @@ import { MESSAGE } from "../../../common/constants/messages.js";
 import { ApiResponse } from "../../../common/utils/ApiResponse.js";
 import { AuthService } from "../services/auth.service.js";
 export class AuthController {
+    static registerUser = asyncHandler(async (req, res) => {
+        const registration = await AuthService.registerUser(req.body);
+        res.cookie("refreshToken", registration.tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.cookie("accessToken", registration.tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
+    });
     static registerCandidate = asyncHandler(async (req, res) => {
         const registration = await AuthService.registerCandidate(req.body);
+        res.cookie("refreshToken", registration.tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.cookie("accessToken", registration.tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
         res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
     });
     static registerEmployer = asyncHandler(async (req, res) => {
         const registration = await AuthService.registerEmployer(req.body);
+        res.cookie("refreshToken", registration.tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.cookie("accessToken", registration.tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
         res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
     });
     static login = asyncHandler(async (req, res) => {
@@ -27,7 +67,10 @@ export class AuthController {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         const { tokens, ...loginWithoutTokens } = login;
-        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, loginWithoutTokens));
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, {
+            ...loginWithoutTokens,
+            tokens,
+        }));
     });
     static logout = asyncHandler(async (req, res) => {
         const refreshToken = req.cookies.refreshToken;
@@ -56,6 +99,18 @@ export class AuthController {
     });
     static refreshToken = asyncHandler(async (req, res) => {
         const refreshToken = await AuthService.newRefreshToken(req.cookies.refreshToken);
+        res.cookie("refreshToken", refreshToken.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.cookie("accessToken", refreshToken.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, MESSAGE.SUCCESS, refreshToken));
     });
     static changePassword = asyncHandler(async (req, res) => {
@@ -85,6 +140,18 @@ export class AuthController {
     });
     static registerCompanyOwner = asyncHandler(async (req, res) => {
         const registration = await AuthService.registerCompanyOwner(req.body);
+        res.cookie("refreshToken", registration.tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.cookie("accessToken", registration.tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
         res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
     });
 }

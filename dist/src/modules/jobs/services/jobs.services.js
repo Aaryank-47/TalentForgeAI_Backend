@@ -5,6 +5,7 @@ import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import { CompanyMemberRole, JobStatus, CompanyMemberStatus, Prisma } from "@prisma/client";
 import { JobsRepository } from "../repository/jobs.repository.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { WorkflowRepository } from "../../hiring-workflow/repositories/workflow.repository.js";
 export class createJobService {
@@ -70,6 +71,9 @@ export class createJobService {
         }
         if (job.companyId !== params.companyId) {
             throw new NotFoundError("Job does not belong to this company");
+        }
+        if (job.status !== JobStatus.DRAFT) {
+            throw new BadRequestError("Only jobs in DRAFT status can be edited. Published jobs cannot be modified.");
         }
         const updateJobdetails = await JobsRepository.updateJobDetails(params.jobId, jobPayload);
         return updateJobdetails;

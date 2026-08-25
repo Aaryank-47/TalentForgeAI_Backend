@@ -1,8 +1,18 @@
 import { MESSAGE } from "../../../common/constants/messages.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
-import { CandidateService } from "../services/candidate.service .js";
+import { CandidateService } from "../services/candidate.service.js";
 import { uploadFileToCloudinary } from "../../../common/uploads/index.js";
+import { addResumeProcessingJob } from "../../resume/queues/resume-processing.queue.js";
 export class CandidateController {
+    static async createCandidateProfile(req, res) {
+        const userId = req.user.id;
+        const candidate = await CandidateService.createCandidateProfile(userId, req.body);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Candidate profile created successfully",
+            data: candidate
+        });
+    }
     static async getCandidateProfile(req, res) {
         const candidateId = req.user.id;
         const candidate = await CandidateService.getCandidateProfile(candidateId);
@@ -45,15 +55,27 @@ export class CandidateController {
             folder: "resumes",
             resourceType: "raw"
         });
-        const candidate = await CandidateService.uploadResume(candidateId, {
+        const resume = await CandidateService.uploadResume(candidateId, {
             resumeUrl: uploadResult.secureUrl,
             resumeName: file.originalname,
             fileSize: file.size
         });
-        res.status(HTTP_STATUS.OK).json({
+        // Enqueue background processing job via BullMQ
+        const job = await addResumeProcessingJob({
+            candidateId: resume.candidateId,
+            resumeId: resume.id,
+            fileReference: resume.resumeUrl,
+            mimeType: file.mimetype,
+            originalName: file.originalname
+        });
+        res.status(HTTP_STATUS.ACCEPTED).json({
             success: true,
-            message: "Resume uploaded successfully",
-            data: candidate
+            message: "Resume uploaded successfully and queued for processing",
+            data: {
+                resumeId: resume.id,
+                jobId: job.id,
+                status: resume.parsingStatus
+            }
         });
     }
     static async getResumes(req, res) {
@@ -73,6 +95,16 @@ export class CandidateController {
             success: true,
             message: "Resume details fetched successfully",
             data: resume
+        });
+    }
+    static async retryResumeProcessing(req, res) {
+        const candidateId = req.user.id;
+        const { resumeId } = req.params;
+        const result = await CandidateService.retryResumeProcessing(resumeId, candidateId);
+        res.status(HTTP_STATUS.ACCEPTED).json({
+            success: true,
+            message: "Resume re-queued for processing successfully",
+            data: result
         });
     }
     static async deleteResumes(req, res) {

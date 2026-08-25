@@ -2,6 +2,11 @@ import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationVi
 import type { UpdateCandidateProfileDto, SingleSkillDto, AddEducationDto, UpdateEducationDto, AddExperienceDto, UpdateExperienceDto, UpdateSalaryPreferencesDto, UpdateLocationPreferencesDto } from "../dto/candidate.dto.js";
 import type { Resume } from "@prisma/client";
 export declare class CandidateService {
+    static createCandidateProfile(userId: string, data: {
+        fullName: string;
+        phoneNumber?: string;
+        headline?: string;
+    }): Promise<CandidateProfileView>;
     static getCandidateProfile(candidateId: string): Promise<CandidateProfileView>;
     static updateProfile(candidateId: string, updateData: UpdateCandidateProfileDto): Promise<CandidateProfileView>;
     static calculateProfileCompletion(candidateId: string): Promise<number>;
@@ -11,7 +16,14 @@ export declare class CandidateService {
         fileSize: number;
     }): Promise<Resume>;
     static getResumes(candidateId: string): Promise<ResumeView[]>;
-    static getResumeById(resumeId: string, candidateId: string): Promise<Resume>;
+    static getResumeById(resumeId: string, candidateId: string): Promise<Resume & {
+        processing?: any;
+    }>;
+    static retryResumeProcessing(resumeId: string, candidateId: string): Promise<{
+        resumeId: string;
+        jobId: string;
+        status: string;
+    }>;
     static deleteResumes(resumeIds: string[], candidateId: string): Promise<void>;
     static addSkills(candidateId: string, skills: SingleSkillDto[]): Promise<SkillsView[]>;
     static getAllSkills(candidateId: string): Promise<SkillsView[]>;
@@ -30,67 +42,67 @@ export declare class CandidateService {
     static getPublicProfile(candidateId: string): Promise<{
         skills: {
             name: string;
+            yearsOfExperience: number | null;
             id: string;
             createdAt: Date;
             updatedAt: Date;
             candidateId: string;
             skillId: string | null;
-            yearsOfExperience: number | null;
         }[];
         educations: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
+            startDate: Date;
+            endDate: Date | null;
             collegeName: string;
             degree: string;
             fieldOfStudy: string;
-            startDate: Date;
-            endDate: Date | null;
             currentlyStudying: boolean;
             gradingSystem: import("@prisma/client").$Enums.GradingSystem;
             gradeText: string | null;
             grade: number | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
             candidateId: string;
         }[];
         experiences: {
             companyName: string;
             description: string | null;
+            designation: string;
+            currentlyWorking: boolean;
+            employmentType: import("@prisma/client").$Enums.EmploymentType;
+            location: string | null;
+            startDate: Date;
+            endDate: Date | null;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            designation: string;
-            location: string | null;
-            employmentType: import("@prisma/client").$Enums.EmploymentType;
-            startDate: Date;
-            endDate: Date | null;
-            currentlyWorking: boolean;
             candidateId: string;
         }[];
     } & {
         fullName: string;
         phoneNumber: string | null;
         linkedinUrl: string | null;
+        currentLocation: string | null;
+        githubUrl: string | null;
+        portfolioUrl: string | null;
+        websiteUrl: string | null;
+        headline: string | null;
+        bio: string | null;
+        currentCompany: string | null;
+        currentDesignation: string | null;
+        totalExperience: number | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
         profilePicture: string | null;
-        headline: string | null;
-        bio: string | null;
         dateOfBirth: Date | null;
         gender: import("@prisma/client").$Enums.Gender | null;
         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
-        currentLocation: string | null;
         preferredLocation: string | null;
-        currentCompany: string | null;
-        currentDesignation: string | null;
-        totalExperience: number | null;
         expectedSalary: number | null;
         currentSalary: number | null;
         noticePeriod: number | null;
-        githubUrl: string | null;
-        portfolioUrl: string | null;
-        websiteUrl: string | null;
         isOpenToWork: boolean;
         profileCompletion: number;
     }>;
@@ -102,4 +114,4 @@ export declare class CandidateService {
     static updateSalaryPreferences(userId: string, data: UpdateSalaryPreferencesDto): Promise<CandidateProfileView>;
     static updateLocationPreferences(userId: string, data: UpdateLocationPreferencesDto): Promise<CandidateProfileView>;
 }
-//# sourceMappingURL=candidate.service%20.d.ts.map
+//# sourceMappingURL=candidate.service.d.ts.map

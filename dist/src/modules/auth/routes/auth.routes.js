@@ -7,6 +7,7 @@ import { RegisterEmployerDto } from "../dto/registerEmployer.dto.js";
 import { RegisterCompanyOwnerDto } from "../dto/registerCompanyOwner.dto.js";
 import { loginRateLimiter, registerRateLimiter, forgotPasswordRateLimiter, verifyOtpRateLimiter, resendVerificationRateLimiter } from "../../../common/middleware/rateLimit.middleware.js";
 const router = Router();
+router.post("/register", registerRateLimiter, validate(CandidateDto.registerUser, "body"), AuthController.registerUser);
 router.post("/register/candidate", registerRateLimiter, validate(CandidateDto.registerCandidate, "body"), AuthController.registerCandidate);
 router.post("/register/employer", registerRateLimiter, validate(RegisterEmployerDto.registerEmployer, "body"), AuthController.registerEmployer);
 router.post("/register/company-owner", registerRateLimiter, validate(RegisterCompanyOwnerDto.registerCompanyOwner, "body"), AuthController.registerCompanyOwner);

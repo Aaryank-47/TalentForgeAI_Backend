@@ -6,15 +6,15 @@ export declare class CandidateRepository {
     static findProfileWithRelationsCount(userId: string): Promise<{
         fullName: string;
         phoneNumber: string | null;
+        currentLocation: string | null;
+        headline: string | null;
+        bio: string | null;
         _count: {
             skills: number;
             educations: number;
             experiences: number;
         };
         profilePicture: string | null;
-        headline: string | null;
-        bio: string | null;
-        currentLocation: string | null;
         isOpenToWork: boolean;
     } | null>;
     static uploadResume(userId: string, resumeData: {
@@ -22,6 +22,7 @@ export declare class CandidateRepository {
         resumeName: string;
         fileSize: number;
     }): Promise<Resume>;
+    static resetResumeForRetry(resumeId: string): Promise<Resume>;
     static findResumesByCandidateId(candidateId: string): Promise<ResumeView[]>;
     static findResumeById(resumeId: string): Promise<Resume[]>;
     static findResumeBelongToUser(userId: string, resumeId: string): Promise<Resume[]>;
@@ -53,70 +54,75 @@ export declare class CandidateRepository {
     static findProfileByCandidateId(candidateId: string): Promise<({
         skills: {
             name: string;
+            yearsOfExperience: number | null;
             id: string;
             createdAt: Date;
             updatedAt: Date;
             candidateId: string;
             skillId: string | null;
-            yearsOfExperience: number | null;
         }[];
         educations: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
+            startDate: Date;
+            endDate: Date | null;
             collegeName: string;
             degree: string;
             fieldOfStudy: string;
-            startDate: Date;
-            endDate: Date | null;
             currentlyStudying: boolean;
             gradingSystem: import("@prisma/client").$Enums.GradingSystem;
             gradeText: string | null;
             grade: number | null;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
             candidateId: string;
         }[];
         experiences: {
             companyName: string;
             description: string | null;
+            designation: string;
+            currentlyWorking: boolean;
+            employmentType: import("@prisma/client").$Enums.EmploymentType;
+            location: string | null;
+            startDate: Date;
+            endDate: Date | null;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            designation: string;
-            location: string | null;
-            employmentType: import("@prisma/client").$Enums.EmploymentType;
-            startDate: Date;
-            endDate: Date | null;
-            currentlyWorking: boolean;
             candidateId: string;
         }[];
     } & {
         fullName: string;
         phoneNumber: string | null;
         linkedinUrl: string | null;
+        currentLocation: string | null;
+        githubUrl: string | null;
+        portfolioUrl: string | null;
+        websiteUrl: string | null;
+        headline: string | null;
+        bio: string | null;
+        currentCompany: string | null;
+        currentDesignation: string | null;
+        totalExperience: number | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
         profilePicture: string | null;
-        headline: string | null;
-        bio: string | null;
         dateOfBirth: Date | null;
         gender: import("@prisma/client").$Enums.Gender | null;
         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
-        currentLocation: string | null;
         preferredLocation: string | null;
-        currentCompany: string | null;
-        currentDesignation: string | null;
-        totalExperience: number | null;
         expectedSalary: number | null;
         currentSalary: number | null;
         noticePeriod: number | null;
-        githubUrl: string | null;
-        portfolioUrl: string | null;
-        websiteUrl: string | null;
         isOpenToWork: boolean;
         profileCompletion: number;
     }) | null>;
+    static createCandidateProfile(userId: string, data: {
+        fullName: string;
+        phoneNumber?: string;
+        headline?: string;
+    }): Promise<CandidateProfileView>;
     static updateCandidateSettings(userId: string, data: Prisma.CandidateUpdateInput): Promise<CandidateProfileView>;
 }
 //# sourceMappingURL=candidate.repository.d.ts.map

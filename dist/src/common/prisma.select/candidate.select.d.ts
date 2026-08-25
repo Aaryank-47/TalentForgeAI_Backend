@@ -31,6 +31,57 @@ export declare const candidateProfileSelect: {
     profileCompletion: boolean;
     createdAt: boolean;
     updatedAt: boolean;
+    skills: {
+        select: {
+            id: boolean;
+            name: boolean;
+            yearsOfExperience: boolean;
+            candidateId: boolean;
+        };
+    };
+    resumes: {
+        select: {
+            id: boolean;
+            resumeName: boolean;
+            resumeUrl: boolean;
+            fileSize: boolean;
+            uploadedAt: boolean;
+            parsingStatus: boolean;
+        };
+    };
+    educations: {
+        select: {
+            id: boolean;
+            candidateId: boolean;
+            collegeName: boolean;
+            degree: boolean;
+            fieldOfStudy: boolean;
+            currentlyStudying: boolean;
+            startDate: boolean;
+            endDate: boolean;
+            gradingSystem: boolean;
+            gradeText: boolean;
+            grade: boolean;
+            createdAt: boolean;
+            updatedAt: boolean;
+        };
+    };
+    experiences: {
+        select: {
+            id: boolean;
+            candidateId: boolean;
+            companyName: boolean;
+            designation: boolean;
+            employmentType: boolean;
+            description: boolean;
+            location: boolean;
+            startDate: boolean;
+            endDate: boolean;
+            currentlyWorking: boolean;
+            createdAt: boolean;
+            updatedAt: boolean;
+        };
+    };
 };
 export declare const resume: {
     readonly id: true;
@@ -38,6 +89,10 @@ export declare const resume: {
     readonly resumeUrl: true;
     readonly fileSize: true;
     readonly uploadedAt: true;
+    readonly parsingStatus: true;
+    readonly parsingError: true;
+    readonly parsingStartedAt: true;
+    readonly parsingCompletedAt: true;
 };
 export declare const skill: {
     readonly id: true;

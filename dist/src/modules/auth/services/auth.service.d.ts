@@ -1,12 +1,13 @@
-import type { RegisterCandidateDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
+import type { RegisterCandidateDto, RegisterUserDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
 import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
 import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
-import type { RegisterCandidateResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult } from "../interfaces/auth.interface.js";
+import type { RegisterCandidateResult, RegisterUserResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js";
 import type { AuthTokens } from "../interfaces/auth.interface.js";
 import type { LogoutAllDevicesDto } from "../dto/Candidate.dto.js";
 import type { ProfileResult } from "../interfaces/auth.interface.js";
 export declare class AuthService {
+    static registerUser(payload: RegisterUserDto): Promise<RegisterUserResult>;
     static registerCandidate(payload: RegisterCandidateDto): Promise<RegisterCandidateResult>;
     static login(payload: LoginDto): Promise<LoginResult>;
     static newRefreshToken(refreshToken: string): Promise<AuthTokens>;

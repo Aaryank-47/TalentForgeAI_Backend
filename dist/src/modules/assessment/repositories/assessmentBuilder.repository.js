@@ -62,6 +62,15 @@ export class AssessmentBuilderRepository {
                 [pagination.sortBy]: pagination.sortOrder
             },
             include: {
+                sections: {
+                    select: {
+                        id: true,
+                        sectionType: true,
+                        title: true,
+                        displayOrder: true
+                    },
+                    orderBy: { displayOrder: "asc" }
+                },
                 _count: {
                     select: {
                         sections: true,
@@ -242,21 +251,26 @@ export class AssessmentBuilderRepository {
         });
     }
     static async reorderSections(assessmentId, updates) {
+        if (updates.length === 0)
+            return;
         await prisma.$transaction(async (tx) => {
-            // First set displayOrder to a large temporary value to avoid unique constraint violations
-            for (const item of updates) {
-                await tx.assessmentSection.update({
-                    where: { id: item.sectionId },
-                    data: { displayOrder: item.displayOrder + 10000 }
-                });
-            }
-            // Then set the final desired displayOrder
-            for (const item of updates) {
-                await tx.assessmentSection.update({
-                    where: { id: item.sectionId },
-                    data: { displayOrder: item.displayOrder }
-                });
-            }
+            const ids = updates.map((u) => u.sectionId);
+            const orders = updates.map((u) => u.displayOrder);
+            // Shift displayOrder by +10000 in 1 query to avoid unique constraint collisions
+            await tx.$executeRaw `
+                UPDATE "AssessmentSection"
+                SET "displayOrder" = "displayOrder" + 10000
+                WHERE "assessmentId" = ${assessmentId}
+            `;
+            // Batch update all sections to their new displayOrder in 1 query using UNNEST
+            await tx.$executeRaw `
+                UPDATE "AssessmentSection" AS sec
+                SET "displayOrder" = tmp.new_order
+                FROM (
+                    SELECT unnest(${ids}::text[]) AS id, unnest(${orders}::int[]) AS new_order
+                ) AS tmp
+                WHERE sec.id = tmp.id AND sec."assessmentId" = ${assessmentId}
+            `;
         });
     }
     static async findSectionsByAssessmentId(assessmentId) {
@@ -315,9 +329,9 @@ export class AssessmentBuilderRepository {
                 if (!question) {
                     throw new NotFoundError(`Question not found: ${questionInput.questionId}`);
                 }
-                if (question.status !== "PUBLISHED") {
-                    throw new ConflictError(`Question is not published: ${question.title}`);
-                }
+                // if (question.status !== "PUBLISHED") {
+                //     throw new ConflictError(`Question is not published: ${question.title}`);
+                // }
                 if (question.ownership === "COMPANY" && question.companyId !== companyId) {
                     console.log("question : " + question.id + " title " + question.title);
                     console.log(question.companyId + "----" + companyId);
@@ -403,6 +417,8 @@ export class AssessmentBuilderRepository {
         `, sectionId);
     }
     static async reorderSectionItems(sectionId, updates) {
+        if (updates.length === 0)
+            return;
         await prisma.$transaction(async (tx) => {
             const section = await tx.assessmentSection.findUnique({
                 where: { id: sectionId }
@@ -410,21 +426,38 @@ export class AssessmentBuilderRepository {
             if (!section) {
                 throw new NotFoundError("Section not found");
             }
-            // Shift current display orders by +10000 to free up unique constraint space in 1 query
-            await tx.$executeRawUnsafe(`
+            const ids = updates.map((u) => u.sectionItemId);
+            const orders = updates.map((u) => u.displayOrder);
+            // Shift displayOrder by +10000 in 1 query to avoid unique constraint collisions
+            await tx.$executeRaw `
                 UPDATE "AssessmentSectionItem"
                 SET "displayOrder" = "displayOrder" + 10000
-                WHERE "sectionId" = $1
-            `, sectionId);
-            // Set the actual final display orders in 1 query
-            const values = updates.map((u, i) => `($${i * 2 + 1}, $${i * 2 + 2}::integer)`).join(', ');
-            const params = updates.flatMap(u => [u.sectionItemId, u.displayOrder]);
-            await tx.$executeRawUnsafe(`
+                WHERE "sectionId" = ${sectionId}
+            `;
+            // Batch update all items to their new displayOrder in 1 query using UNNEST
+            await tx.$executeRaw `
                 UPDATE "AssessmentSectionItem" AS asi
                 SET "displayOrder" = tmp.new_order
-                FROM (VALUES ${values}) AS tmp(id, new_order)
-                WHERE asi.id = tmp.id
-            `, ...params);
+                FROM (
+                    SELECT unnest(${ids}::text[]) AS id, unnest(${orders}::int[]) AS new_order
+                ) AS tmp
+                WHERE asi.id = tmp.id AND asi."sectionId" = ${sectionId}
+            `;
+        });
+    }
+    static async publishDraftQuestionsByIds(questionIds) {
+        if (questionIds.length === 0) {
+            return { count: 0 };
+        }
+        return await prisma.question.updateMany({
+            where: {
+                id: { in: questionIds },
+                status: "DRAFT"
+            },
+            data: {
+                status: "PUBLISHED",
+                publishedAt: new Date()
+            }
         });
     }
 }

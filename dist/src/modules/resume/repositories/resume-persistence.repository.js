@@ -42,9 +42,9 @@ export class ResumePersistenceRepository {
         if (professional.totalExperience != null)
             candidateUpdate.totalExperience = professional.totalExperience;
         await tx.candidate.update({ where: { id: candidateId }, data: candidateUpdate });
-        if (personal.email != null) {
-            await tx.user.update({ where: { id: candidate.userId }, data: { email: personal.email } });
-        }
+        // if (personal.email != null) {
+        //     await tx.user.update({ where: { id: candidate.userId }, data: { email: personal.email } });
+        // }
         const skills = await this.persistSkills(tx, candidateId, data.skills);
         const experiences = await this.persistExperiences(tx, candidateId, data.experience);
         const education = await this.persistEducation(tx, candidateId, data.education);
@@ -146,10 +146,11 @@ export class ResumePersistenceRepository {
             const endDate = parseDate(item.endDate);
             if (!startDate || !item.gradingSystem || (!item.currentlyStudying && !endDate))
                 continue;
-            incoming.set(fingerprint(item.collegeName, item.degree, item.fieldOfStudy, startDate.toISOString()), {
+            const fieldOfStudy = item.fieldOfStudy ?? "General";
+            incoming.set(fingerprint(item.collegeName, item.degree, fieldOfStudy, startDate.toISOString()), {
                 collegeName: item.collegeName,
                 degree: item.degree,
-                fieldOfStudy: item.fieldOfStudy,
+                fieldOfStudy,
                 currentlyStudying: item.currentlyStudying,
                 startDate,
                 endDate: item.currentlyStudying ? null : endDate,

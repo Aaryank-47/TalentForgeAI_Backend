@@ -16,13 +16,16 @@ import { ElasticsearchService } from "./elasticsearch.service.js";
 import { uploadFileToCloudinary } from "../../../common/helper/upload.helper.js";
 import { deleteFileFromCloudinary } from "../../../common/helper/delete.helper.js";
 import { logger } from "../../../common/logger/logger.js";
-import { COMPANY_IMAGE_MIME_TYPES, COMPANY_IMAGE_MAX_BYTES } from "../constants/company.contants.js";
-import { extractPublicId, toCompanySearchView } from "../utils/company.utils.js";
+import { COMPANY_IMAGE_MIME_TYPES, COMPANY_IMAGE_MAX_BYTES, COMPANY_INDUSTRIES, COMPANY_SIZES } from "../constants/company.contants.js";
+import { extractPublicId, toCompanySearchView, setInvitationTokenExpiration } from "../utils/company.utils.js";
 export class CompanyService {
     static async createCompany(dto, userId) {
         const user = await AuthRepository.findUserById(userId);
         if (!user) {
             throw new NotFoundError("Authenticated user not found.");
+        }
+        if (!user.isEmailVerified) {
+            throw new ForbiddenError("Please verify your email address before creating a company.");
         }
         const slug = slugifyText(dto.companyName);
         const existing = await CompanyRepository.findCompanyBySlug(slug);
@@ -34,13 +37,27 @@ export class CompanyService {
             companyName: dto.companyName,
             slug,
             companyEmail: dto.companyEmail,
-            website: dto.website,
             phoneNumber: dto.phoneNumber,
+            website: dto.website,
+            industry: dto.industry,
+            companySize: dto.companySize,
+            headquarters: dto.headquarters,
+            description: dto.description,
+            logo: dto.logo,
+            foundedYear: dto.foundedYear,
+            linkedinUrl: dto.linkedinUrl,
+            twitterUrl: dto.twitterUrl,
         });
         ElasticsearchService.indexCompany(toCompanySearchView(newCompany)).catch((err) => {
             logger.error({ err, companyId: newCompany.id }, "[ES] Failed to index new company.");
         });
         return newCompany;
+    }
+    static async getCompanyMetadata() {
+        return {
+            industries: COMPANY_INDUSTRIES,
+            companySizes: COMPANY_SIZES,
+        };
     }
     static async getMyCompanies(userId) {
         const user = await AuthRepository.findUserById(userId);
@@ -111,6 +128,7 @@ export class CompanyService {
             throw new ForbiddenError("You do not have permission to send invitations for this company.");
         }
         const invitee = await AuthRepository.findUserByEmail(inviteeEmail);
+        const expiresAt = setInvitationTokenExpiration();
         const token = InvitationTokenHelper.generateToken({
             companyId,
             inviteeEmail,
@@ -127,15 +145,31 @@ export class CompanyService {
                 if (existingMembership.status === CompanyMemberStatus.INVITED) {
                     throw new ConflictError("An invitation has already been sent to this user.");
                 }
-                throw new ConflictError("The user is already a member of this company.");
+                if (existingMembership.status === CompanyMemberStatus.ACTIVE) {
+                    throw new ConflictError("The user is already a member of this company.");
+                }
+                const updatedMember = await CompanyRepository.updateMembership(existingMembership.id, {
+                    role,
+                    status: CompanyMemberStatus.INVITED,
+                    invitedBy: inviterId,
+                    invitationToken: token,
+                    invitedAt: new Date(),
+                    expiresAt,
+                });
+                invitationId = updatedMember.id;
             }
-            const createdMember = await CompanyRepository.createInvitedMember({
-                userId: invitee.id,
-                companyId,
-                role,
-                invitedBy: inviterId,
-            });
-            invitationId = createdMember.id;
+            else {
+                const createdMember = await CompanyRepository.createInvitedMember({
+                    userId: invitee.id,
+                    companyId,
+                    role,
+                    invitedBy: inviterId,
+                    invitationToken: token,
+                    invitedAt: new Date(),
+                    expiresAt,
+                });
+                invitationId = createdMember.id;
+            }
             const invitationLink = `${env.app.frontendUrl}/invitations/accept?token=${token}`;
             const emailTemplate = emailTemplates.existingUserInvitationTemplate(company.companyName, inviter.profile.fullName, role, invitationLink);
             await EmailService.sendEmail({
@@ -162,6 +196,25 @@ export class CompanyService {
         if (company.deletedAt) {
             throw new ConflictError("This company is no longer accepting invitations.");
         }
+        const member = await CompanyRepository.findMemberByInvitationToken(token);
+        if (!member) {
+            throw new UnauthorizedError("This invitation token is invalid, expired, or has already been used.");
+        }
+        if (member.status !== CompanyMemberStatus.INVITED) {
+            if (member.status === CompanyMemberStatus.ACTIVE) {
+                throw new ConflictError("This invitation has already been accepted.");
+            }
+            if (member.status === CompanyMemberStatus.REMOVED) {
+                throw new ConflictError("This invitation has already been rejected.");
+            }
+            if (member.status === CompanyMemberStatus.CANCELLED) {
+                throw new ConflictError("This invitation has been cancelled.");
+            }
+            throw new ConflictError("This invitation is no longer valid.");
+        }
+        if (member.expiresAt && member.expiresAt < new Date()) {
+            throw new UnauthorizedError("This invitation token has expired.");
+        }
         return {
             companyId: company.id,
             companyName: company.companyName,
@@ -169,9 +222,9 @@ export class CompanyService {
             companyEmail: company.companyEmail,
             role: payload.role,
             inviteeEmail: payload.inviteeEmail,
-            expiresAt: payload.expiration
+            expiresAt: member.expiresAt || (payload.expiration
                 ? new Date(payload.expiration * 1000)
-                : null
+                : null)
         };
     }
     static async acceptOrRejectInvitation(token, userId, action) {
@@ -187,12 +240,18 @@ export class CompanyService {
         if (!invitee) {
             throw new UnauthorizedError("Authenticated user not found.");
         }
-        if (invitee.email !== payload.inviteeEmail) {
+        if (invitee.email.toLowerCase() !== payload.inviteeEmail.toLowerCase()) {
             throw new ForbiddenError("This invitation does not belong to your account.");
         }
         const membership = await CompanyRepository.membership(payload.companyId, userId);
         if (!membership) {
             throw new NotFoundError("Invitation record not found.");
+        }
+        if (!membership.invitationToken || membership.invitationToken !== token) {
+            throw new UnauthorizedError("This invitation token is invalid, expired, or has already been used.");
+        }
+        if (membership.expiresAt && membership.expiresAt < new Date()) {
+            throw new UnauthorizedError("This invitation token has expired.");
         }
         switch (membership.status) {
             case CompanyMemberStatus.ACTIVE:
@@ -203,6 +262,8 @@ export class CompanyService {
                 throw new ConflictError("This invitation is no longer valid.");
             case CompanyMemberStatus.REMOVED:
                 throw new ConflictError("This invitation has already been rejected.");
+            case CompanyMemberStatus.CANCELLED:
+                throw new ConflictError("This invitation has already been cancelled.");
             case CompanyMemberStatus.INVITED:
                 break;
         }
@@ -210,11 +271,15 @@ export class CompanyService {
             await CompanyRepository.updateMembership(membership.id, {
                 status: CompanyMemberStatus.ACTIVE,
                 joinedAt: new Date(),
+                invitationToken: null,
+                expiresAt: new Date(),
             });
             return;
         }
         await CompanyRepository.updateMembership(membership.id, {
             status: CompanyMemberStatus.REMOVED,
+            invitationToken: null,
+            expiresAt: new Date(),
         });
     }
     static async getAllSentInvitation(companyId) {
@@ -225,11 +290,26 @@ export class CompanyService {
         return members;
     }
     static async updateCompanyMemberRole(companyId, userId, role) {
-        const member = await CompanyRepository.membership(companyId, userId);
+        const member = await CompanyRepository.findMemberWithDetails(companyId, userId);
         if (!member) {
             throw new NotFoundError("Member not found.");
         }
+        const oldRole = member.role;
         const updatedMember = await CompanyRepository.updateMembership(member.id, { role });
+        // Asynchronously send email notification about role update
+        const company = await CompanyRepository.findCompanyById(companyId);
+        if (company && member.user?.email) {
+            const memberName = member.user.employer?.fullName ||
+                member.user.candidate?.fullName ||
+                "Team Member";
+            const emailTemplate = emailTemplates.memberRoleUpdatedTemplate(company.companyName, memberName, role, oldRole);
+            EmailService.sendEmail({
+                to: member.user.email,
+                ...emailTemplate,
+            }).catch((err) => {
+                console.error(`Failed to send role update email to ${member.user.email}:`, err);
+            });
+        }
         return updatedMember;
     }
     static async removeCompanyMember(companyId, userIds) {
@@ -402,7 +482,27 @@ export class CompanyService {
         if (invitation.expiresAt && invitation.expiresAt < new Date()) {
             throw new ConflictError("This invitation has already expired.");
         }
-        return CompanyRepository.cancelInvitation(invitationId);
+        const cancelled = await CompanyRepository.cancelInvitation(invitationId);
+        // Notify the invitee about cancellation if user found
+        try {
+            const company = await CompanyRepository.findCompanyById(invitation.companyId);
+            const inviteeUser = await AuthRepository.findUserById(invitation.userId);
+            if (company && inviteeUser && inviteeUser.email) {
+                const inviteeProfile = await AuthRepository.findProfileByUserId(invitation.userId);
+                const recipientName = inviteeProfile?.profile?.fullName ?? (inviteeUser.email ? inviteeUser.email.split("@")[0] : "Candidate");
+                const emailTemplate = emailTemplates.invitationCancelledTemplate(company.companyName, recipientName, invitation.role);
+                EmailService.sendEmail({
+                    to: inviteeUser.email,
+                    ...emailTemplate,
+                }).catch((err) => {
+                    console.error(`Failed to send invitation cancellation email to ${inviteeUser.email}:`, err);
+                });
+            }
+        }
+        catch (err) {
+            console.error("Error sending cancellation email:", err);
+        }
+        return cancelled;
     }
     static async resendInvitation(invitationId, userId) {
         const invitation = await CompanyRepository.findInvitationById(invitationId);
@@ -441,8 +541,7 @@ export class CompanyService {
             invitedBy: userId,
             role: invitation.role,
         });
-        const expiryMs = 7 * 24 * 60 * 60 * 1000;
-        const expiresAt = new Date(Date.now() + expiryMs);
+        const expiresAt = setInvitationTokenExpiration();
         const updated = await CompanyRepository.updateInvitationToken(invitationId, token, expiresAt);
         if (inviteeUser) {
             const invitationLink = `${env.app.frontendUrl}/invitations/accept?token=${token}`;

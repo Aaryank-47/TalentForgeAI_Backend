@@ -1,0 +1,190 @@
+import { describe, test, expect, beforeAll, afterAll, afterEach, jest } from "@jest/globals";
+import { createServer, Server as HttpServer } from "node:http";
+import { Server as SocketIOServer } from "socket.io";
+import { io as ioc, Socket as ClientSocket } from "socket.io-client";
+import prisma from "../../../config/database.js";
+import { JwtHelper } from "../../../common/helper/jwt.helper.js";
+import { initializeResumeSocket } from "../websocket/resume.socket.js";
+import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
+import { ResumeProcessingWorker } from "../queues/resume-processing.worker.js";
+import { ResumeProcessingPipeline } from "../pipelines/resume-processing.pipeline.js";
+import { RESUME_SOCKET_EVENTS, RESUME_SOCKET_NAMESPACE } from "../websocket/resume-socket.constants.js";
+describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => {
+    let httpServer;
+    let ioServer;
+    let serverAddress;
+    const mockCandidate = {
+        id: "candidate-e2e-realtime-1",
+        email: "candidate.e2e@talentforge.ai",
+        role: "CANDIDATE"
+    };
+    let candidateToken;
+    beforeAll(async () => {
+        candidateToken = JwtHelper.generateAccessToken(mockCandidate);
+        httpServer = createServer();
+        ioServer = new SocketIOServer(httpServer, {
+            cors: { origin: "*" }
+        });
+        // Initialize Socket.IO namespace and register with publisher
+        initializeResumeSocket(ioServer);
+        await new Promise((resolve) => {
+            httpServer.listen(0, () => {
+                const addr = httpServer.address();
+                serverAddress = `http://localhost:${addr.port}`;
+                resolve();
+            });
+        });
+    });
+    afterAll(async () => {
+        if (ioServer) {
+            await ioServer.close();
+        }
+        if (httpServer) {
+            await new Promise((resolve) => httpServer.close(() => resolve()));
+        }
+    });
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+    test("End-to-End flow: Candidate connects -> Subscribes -> Worker processes job -> Pipeline executes stages -> Client receives all stage events -> Completion event -> REST state is authoritative", async () => {
+        const resumeId = "resume-e2e-101";
+        const jobId = "bullmq-job-202";
+        // 1. Mock DB state for the candidate's resume
+        const resumeDbRecord = {
+            id: resumeId,
+            candidateId: mockCandidate.id,
+            fileUrl: "https://mock-storage.talentforge.ai/resumes/john_doe.pdf",
+            mimeType: "application/pdf",
+            fileType: "application/pdf",
+            parsingStatus: "QUEUED",
+            parsingStartedAt: null,
+            parsingCompletedAt: null,
+            parsingError: null
+        };
+        jest.spyOn(prisma.resume, "findUnique").mockImplementation(async (args) => {
+            if (args.where.id === resumeId) {
+                return resumeDbRecord;
+            }
+            return null;
+        });
+        jest.spyOn(prisma.candidate, "findUnique").mockImplementation(async (args) => {
+            if (args.where.userId === mockCandidate.id) {
+                return { id: mockCandidate.id };
+            }
+            return null;
+        });
+        jest.spyOn(prisma.resume, "update").mockImplementation(async (args) => {
+            if (args.where.id === resumeId) {
+                Object.assign(resumeDbRecord, args.data);
+                return resumeDbRecord;
+            }
+            return null;
+        });
+        // 2. Mock Pipeline service dependencies so it exercises real multi-stage pipeline flow
+        const mockFileFetcher = jest.fn().mockResolvedValue(Buffer.from("%PDF-1.4 Mock PDF Content"));
+        const mockDocExtractor = {
+            extractDocument: jest.fn().mockResolvedValue({
+                text: "John Doe\nSoftware Engineer\nSkills: TypeScript, Node.js",
+                pageCount: 1,
+                wordCount: 10
+            })
+        };
+        const mockParserService = {
+            parseResumeDocument: jest.fn().mockResolvedValue({
+                personal: { fullName: "John Doe", email: "john@talentforge.ai" },
+                professional: { headline: "Senior Backend Engineer" },
+                skills: [{ name: "TypeScript" }, { name: "PostgreSQL" }],
+                experience: [],
+                education: [],
+                projects: [],
+                certifications: []
+            }),
+            parseResumeText: jest.fn()
+        };
+        const mockNormalizationService = {
+            normalizeResumeData: jest.fn().mockImplementation(async (data) => data)
+        };
+        const mockPersistenceService = {
+            persistResumeData: jest.fn().mockResolvedValue({
+                candidateId: mockCandidate.id,
+                skillsCreated: 2,
+                skillsUpdated: 0,
+                experiencesCreated: 0,
+                experiencesUpdated: 0,
+                educationCreated: 0,
+                educationUpdated: 0,
+                projectsCreated: 0,
+                projectsUpdated: 0,
+                certificationsCreated: 0,
+                certificationsUpdated: 0
+            })
+        };
+        const pipeline = new ResumeProcessingPipeline(mockDocExtractor, mockParserService, mockNormalizationService, mockPersistenceService, mockFileFetcher);
+        // Instantiates worker wired with real ResumeProgressPublisher
+        const worker = new ResumeProcessingWorker(pipeline);
+        // 3. Connect Candidate Client over Socket.IO
+        const candidateClient = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
+            auth: { token: candidateToken },
+            transports: ["websocket"]
+        });
+        await new Promise((res) => {
+            candidateClient.on("connect", () => res());
+        });
+        // 4. Candidate Subscribes to their resume
+        const subscribedPromise = new Promise((resolve) => {
+            candidateClient.on(RESUME_SOCKET_EVENTS.SUBSCRIBED, resolve);
+        });
+        candidateClient.emit(RESUME_SOCKET_EVENTS.SUBSCRIBE, { resumeId });
+        const subAck = await subscribedPromise;
+        expect(subAck.resumeId).toBe(resumeId);
+        // 5. Setup event listener for real-time progress stream
+        const receivedStages = [];
+        let completedEventPayload = null;
+        candidateClient.on(RESUME_SOCKET_EVENTS.STAGE_CHANGE, (payload) => {
+            receivedStages.push(payload);
+        });
+        const completionPromise = new Promise((resolve) => {
+            candidateClient.on(RESUME_SOCKET_EVENTS.COMPLETED, (payload) => {
+                completedEventPayload = payload;
+                resolve(payload);
+            });
+        });
+        // 6. BullMQ Worker processes the job
+        const mockBullJob = {
+            id: jobId,
+            data: {
+                candidateId: mockCandidate.id,
+                resumeId,
+                fileReference: resumeDbRecord.fileUrl,
+                mimeType: resumeDbRecord.mimeType
+            },
+            attemptsMade: 0,
+            opts: { attempts: 3 }
+        };
+        const jobResult = await worker.processJob(mockBullJob);
+        expect(jobResult.success).toBe(true);
+        // 7. Await and verify Socket.IO real-time delivery
+        const completionResult = await completionPromise;
+        expect(completionResult.stage).toBe("COMPLETED");
+        expect(completionResult.resumeId).toBe(resumeId);
+        // Verify the exact sequential stages delivered over Socket.IO (stages 1-5 emitted by pipeline via stageChange, completion emitted by worker)
+        const stageNames = receivedStages.map((e) => e.stage);
+        expect(stageNames).toEqual([
+            "FETCHING_FILE",
+            "AI_PARSING",
+            "NORMALIZATION",
+            "PERSISTENCE"
+        ]);
+        // Verify payload metadata
+        expect(receivedStages[0]?.resumeId).toBe(resumeId);
+        expect(receivedStages[0]?.candidateId).toBe(mockCandidate.id);
+        expect(receivedStages[0]?.message).toBe("Fetching resume document");
+        expect(receivedStages[1]?.mode).toBe("DIRECT");
+        // 8. Verify Authoritative State in Database
+        expect(resumeDbRecord.parsingStatus).toBe("COMPLETED");
+        expect(resumeDbRecord.parsingCompletedAt).toBeInstanceOf(Date);
+        expect(resumeDbRecord.parsingError).toBeNull();
+        candidateClient.disconnect();
+    });
+});
+//# sourceMappingURL=resume-realtime-processing.e2e.test.js.map

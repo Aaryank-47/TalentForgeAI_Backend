@@ -16,6 +16,51 @@ const isUniqueConstraintError = (error) => {
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 };
 export class AuthService {
+    static async registerUser(payload) {
+        const existingUser = await AuthRepository.findUserByEmail(payload.email);
+        if (existingUser) {
+            throw new ConflictError("An account with this email already exists.");
+        }
+        const hashedPassword = await bcrypt.hash(payload.password, AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS);
+        try {
+            const user = await AuthRepository.createUserRegistration({
+                email: payload.email,
+                password: hashedPassword,
+                ...(payload.fullName ? { fullName: payload.fullName } : {}),
+            });
+            const tokens = buildAuthTokens({
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            });
+            await AuthRepository.saveRefreshToken({
+                token: tokens.refreshToken,
+                userId: user.id,
+                expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+            });
+            const otp = genrateOTP();
+            const hashedOtp = await bcrypt.hash(otp, AUTH_CONSTANTS.OTP_HASH_SALT_ROUNDS);
+            const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+            await AuthRepository.saveOTP(user.id, hashedOtp, otpExpiresAt);
+            const emailData = emailTemplates.verifyEmailOtpTemplate(otp, payload.fullName || user.email);
+            await EmailService.sendEmail({
+                to: user.email,
+                subject: emailData.subject,
+                html: emailData.html,
+                ...(emailData.text ? { text: emailData.text } : {}),
+            });
+            return {
+                user,
+                tokens,
+            };
+        }
+        catch (error) {
+            if (isUniqueConstraintError(error)) {
+                throw new ConflictError("An account with this email already exists.");
+            }
+            throw error;
+        }
+    }
     static async registerCandidate(payload) {
         const existingUser = await AuthRepository.findUserByEmail(payload.email);
         if (existingUser) {
@@ -123,6 +168,11 @@ export class AuthService {
             email: user.email,
             role: user.role
         });
+        await AuthRepository.saveRefreshToken({
+            token: tokens.refreshToken,
+            userId: user.id,
+            expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+        });
         return tokens;
     }
     static async logout(refreshToken) {
@@ -161,7 +211,10 @@ export class AuthService {
         const profile = await AuthRepository.findProfileByUserId(userId);
         return {
             user,
-            profile: profile.profile
+            profile: profile.profile,
+            capabilities: profile.capabilities,
+            candidate: profile.candidate,
+            companies: profile.companies,
         };
     }
     static async changePassword(userId, oldPassword, newPassword) {

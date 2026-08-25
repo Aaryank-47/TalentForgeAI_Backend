@@ -9,7 +9,7 @@ export const loadCompanyMembership = async (req, res, next) => {
         if (!user) {
             throw new UnauthorizedError("Unauthorized access.");
         }
-        const companyId = req.params.companyId;
+        const companyId = req.params.companyId || (typeof req.headers["x-company-id"] === "string" ? req.headers["x-company-id"] : undefined);
         if (!companyId) {
             throw new NotFoundError("Company id is required.");
         }

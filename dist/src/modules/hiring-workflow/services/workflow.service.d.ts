@@ -5,7 +5,7 @@ export declare class WorkflowServices {
         name: string;
         assessmentId?: string | null;
     })[], companyId: string): Promise<CreateWorkflowView>;
-    static getAllCompanyWorkflows(companyId: string, status: WorkflowStatus): Promise<CompanyWorkflowView[]>;
+    static getAllCompanyWorkflows(companyId: string, status?: WorkflowStatus): Promise<CompanyWorkflowView[]>;
     static getWorkflowDetails(workflowId: string, companyId: string): Promise<GetWorkflowDetailsByIdView>;
     static updateWorkflow(workflowId: string, name: string, description: string | undefined, isDefault: boolean, stages: {
         stageLibraryId: string;

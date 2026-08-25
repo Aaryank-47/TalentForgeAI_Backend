@@ -17,7 +17,8 @@ export class JobsDto {
         applicationDeadline: applicationDeadlineValidator,
         skills: skillsValidator,
         benefits: benefitsValidator,
-        workflowId: workflowIdValidator
+        workflowId: workflowIdValidator,
+        status: jobStatusValidator.optional()
     })
         .refine((data) => {
         if (data.minExperience !== undefined && data.maxExperience !== undefined) {

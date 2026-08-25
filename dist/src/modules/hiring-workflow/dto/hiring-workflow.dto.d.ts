@@ -19,10 +19,10 @@ export declare class WorkflowDto {
         }, z.core.$strip>>;
     }, z.core.$strip>;
     static getWorkflowsByStatus: z.ZodObject<{
-        status: z.ZodEnum<{
+        status: z.ZodOptional<z.ZodEnum<{
             ACTIVE: "ACTIVE";
             INACTIVE: "INACTIVE";
-        }>;
+        }>>;
     }, z.core.$strip>;
     static deleteWorkflow: z.ZodObject<{
         id: z.ZodString;

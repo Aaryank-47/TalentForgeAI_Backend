@@ -118,12 +118,13 @@ export declare class QuestionRepository {
         role: import("@prisma/client").$Enums.CompanyMemberRole;
         status: import("@prisma/client").$Enums.CompanyMemberStatus;
         userId: string;
-        expiresAt: Date | null;
         joinedAt: Date;
         invitationToken: string | null;
         invitedAt: Date | null;
+        expiresAt: Date | null;
         invitedBy: string | null;
     } | null>;
+    static removeTagFromQuestion(questionId: string, tagId: string): Promise<void>;
     private static buildQuestionsWhereClause;
 }
 //# sourceMappingURL=question.repository.d.ts.map

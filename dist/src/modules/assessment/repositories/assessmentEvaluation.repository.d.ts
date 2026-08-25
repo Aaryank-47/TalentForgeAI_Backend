@@ -17,8 +17,8 @@ export declare class AssessmentEvaluationRepository {
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -89,11 +89,11 @@ export declare class AssessmentEvaluationRepository {
                         deletedById: string | null;
                         version: number;
                         title: string;
-                        publishedAt: Date | null;
-                        archivedAt: Date | null;
                         createdById: string | null;
                         updatedById: string | null;
                         archivedById: string | null;
+                        publishedAt: Date | null;
+                        archivedAt: Date | null;
                         difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
                         estimatedTime: number;
                         defaultMarks: number;
@@ -107,19 +107,19 @@ export declare class AssessmentEvaluationRepository {
                     };
                 } & {
                     id: string;
-                    isRequired: boolean;
                     sectionId: string;
-                    questionId: string;
                     displayOrder: number;
+                    questionId: string;
                     marksOverride: number | null;
                     negativeMarksOverride: number | null;
                     timeLimitOverride: number | null;
+                    isRequired: boolean;
                 })[];
             } & {
                 description: string | null;
                 id: string;
-                title: string;
                 assessmentId: string;
+                title: string;
                 instructions: string | null;
                 durationMinutes: number | null;
                 displayOrder: number;
@@ -135,23 +135,23 @@ export declare class AssessmentEvaluationRepository {
             deletedAt: Date | null;
             deletedById: string | null;
             title: string;
-            publishedAt: Date | null;
-            archivedAt: Date | null;
-            createdById: string;
-            updatedById: string | null;
             instructions: string | null;
             durationMinutes: number | null;
             passingScore: number | null;
             totalMarks: number | null;
             isTemplate: boolean;
+            createdById: string;
+            updatedById: string | null;
             archivedById: string | null;
+            publishedAt: Date | null;
+            archivedAt: Date | null;
         };
         answers: {
             id: string;
             updatedAt: Date;
+            questionId: string;
             startedAt: Date | null;
             submittedAt: Date | null;
-            questionId: string;
             attemptId: string;
             score: number | null;
             isCorrect: boolean | null;
@@ -167,8 +167,8 @@ export declare class AssessmentEvaluationRepository {
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -188,8 +188,8 @@ export declare class AssessmentEvaluationRepository {
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -209,8 +209,8 @@ export declare class AssessmentEvaluationRepository {
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -253,11 +253,11 @@ export declare class AssessmentEvaluationRepository {
             deletedById: string | null;
             version: number;
             title: string;
-            publishedAt: Date | null;
-            archivedAt: Date | null;
             createdById: string | null;
             updatedById: string | null;
             archivedById: string | null;
+            publishedAt: Date | null;
+            archivedAt: Date | null;
             difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
             estimatedTime: number;
             defaultMarks: number;
@@ -271,20 +271,20 @@ export declare class AssessmentEvaluationRepository {
         };
     } & {
         id: string;
-        isRequired: boolean;
         sectionId: string;
-        questionId: string;
         displayOrder: number;
+        questionId: string;
         marksOverride: number | null;
         negativeMarksOverride: number | null;
         timeLimitOverride: number | null;
+        isRequired: boolean;
     }) | null>;
     static findAnswerByAttemptAndQuestion(attemptId: string, questionId: string): Promise<{
         id: string;
         updatedAt: Date;
+        questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
-        questionId: string;
         attemptId: string;
         score: number | null;
         isCorrect: boolean | null;
@@ -298,9 +298,9 @@ export declare class AssessmentEvaluationRepository {
     static updateQuestionEvaluation(attemptId: string, questionId: string, score: number, feedback: string | null, isCorrect: boolean | null): Promise<{
         id: string;
         updatedAt: Date;
+        questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
-        questionId: string;
         attemptId: string;
         score: number | null;
         isCorrect: boolean | null;
@@ -317,10 +317,10 @@ export declare class AssessmentEvaluationRepository {
         role: import("@prisma/client").$Enums.CompanyMemberRole;
         status: import("@prisma/client").$Enums.CompanyMemberStatus;
         userId: string;
-        expiresAt: Date | null;
         joinedAt: Date;
         invitationToken: string | null;
         invitedAt: Date | null;
+        expiresAt: Date | null;
         invitedBy: string | null;
     } | null>;
 }

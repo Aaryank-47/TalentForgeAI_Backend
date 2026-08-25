@@ -4,8 +4,8 @@ export declare class AIInterviewQuestionsRepository {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        question: string;
         skill: string | null;
+        question: string;
         difficulty: import("@prisma/client").$Enums.QuestionDifficulty | null;
         sessionId: string;
         sequence: number;
@@ -51,8 +51,8 @@ export declare class AIInterviewQuestionsRepository {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        question: string;
         skill: string | null;
+        question: string;
         difficulty: import("@prisma/client").$Enums.QuestionDifficulty | null;
         sessionId: string;
         sequence: number;
@@ -89,8 +89,8 @@ export declare class AIInterviewQuestionsRepository {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        question: string;
         skill: string | null;
+        question: string;
         difficulty: import("@prisma/client").$Enums.QuestionDifficulty | null;
         sessionId: string;
         sequence: number;
@@ -102,8 +102,8 @@ export declare class AIInterviewQuestionsRepository {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        question: string;
         skill: string | null;
+        question: string;
         difficulty: import("@prisma/client").$Enums.QuestionDifficulty | null;
         sessionId: string;
         sequence: number;

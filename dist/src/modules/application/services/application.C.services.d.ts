@@ -15,10 +15,10 @@ export declare class ApplicationService {
                     logo: string | null;
                     id: string;
                 };
-                id: string;
-                location: string | null;
-                title: string;
                 employmentType: import("@prisma/client").$Enums.EmploymentType;
+                location: string | null;
+                id: string;
+                title: string;
                 workplaceType: import("@prisma/client").$Enums.WorkplaceType;
                 minimumSalary: number | null;
                 maximumSalary: number | null;
@@ -28,8 +28,8 @@ export declare class ApplicationService {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;
             updatedAt: Date;
-            jobId: string;
             candidateId: string;
+            jobId: string;
             resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
@@ -43,6 +43,11 @@ export declare class ApplicationService {
         total: number;
     }>;
     static getCandidateApplicationDetails(userId: string, applicationId: string): Promise<{
+        resume: {
+            id: string;
+            resumeName: string;
+            resumeUrl: string;
+        };
         job: {
             company: {
                 companyName: string;
@@ -55,14 +60,19 @@ export declare class ApplicationService {
             companyId: string;
             description: string;
             slug: string;
+            employmentType: import("@prisma/client").$Enums.EmploymentType;
+            location: string | null;
             id: string;
             status: import("@prisma/client").$Enums.JobStatus;
             createdAt: Date;
             updatedAt: Date;
             visibility: import("@prisma/client").$Enums.JobVisibility;
-            location: string | null;
             title: string;
-            employmentType: import("@prisma/client").$Enums.EmploymentType;
+            createdById: string;
+            updatedById: string | null;
+            publishedAt: Date | null;
+            archivedAt: Date | null;
+            summary: string | null;
             workplaceType: import("@prisma/client").$Enums.WorkplaceType;
             vacancies: number;
             minExperience: number;
@@ -72,25 +82,15 @@ export declare class ApplicationService {
             salaryPeriod: import("@prisma/client").$Enums.SalaryPeriod | null;
             hideSalary: boolean;
             applicationDeadline: Date | null;
-            workflowId: string | null;
-            summary: string | null;
-            publishedAt: Date | null;
             closedAt: Date | null;
-            archivedAt: Date | null;
-            createdById: string;
-            updatedById: string | null;
-        };
-        resume: {
-            id: string;
-            resumeUrl: string;
-            resumeName: string;
+            workflowId: string | null;
         };
     } & {
         id: string;
         status: import("@prisma/client").$Enums.ApplicationStatus;
         updatedAt: Date;
-        jobId: string;
         candidateId: string;
+        jobId: string;
         resumeId: string;
         coverLetter: string | null;
         appliedAt: Date;

@@ -4,7 +4,7 @@ export declare class RegisterCompanyOwnerDto {
         companyName: z.ZodString;
         slug: z.ZodOptional<z.ZodString>;
         email: z.ZodEmail;
-        phoneNumber: z.ZodString;
+        phoneNumber: z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>;
         website: z.ZodOptional<z.ZodString>;
         logo: z.ZodOptional<z.ZodString>;
         coverImage: z.ZodOptional<z.ZodString>;
@@ -13,7 +13,7 @@ export declare class RegisterCompanyOwnerDto {
         companySize: z.ZodOptional<z.ZodString>;
         foundedYear: z.ZodOptional<z.ZodNumber>;
         headquarters: z.ZodOptional<z.ZodString>;
-        linkedinUrl: z.ZodOptional<z.ZodString>;
+        linkedinUrl: z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>;
         twitterUrl: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>;
     static registerCompanyOwner: z.ZodObject<{
@@ -24,7 +24,7 @@ export declare class RegisterCompanyOwnerDto {
             companyName: z.ZodString;
             slug: z.ZodOptional<z.ZodString>;
             email: z.ZodEmail;
-            phoneNumber: z.ZodString;
+            phoneNumber: z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>;
             website: z.ZodOptional<z.ZodString>;
             logo: z.ZodOptional<z.ZodString>;
             coverImage: z.ZodOptional<z.ZodString>;
@@ -33,7 +33,7 @@ export declare class RegisterCompanyOwnerDto {
             companySize: z.ZodOptional<z.ZodString>;
             foundedYear: z.ZodOptional<z.ZodNumber>;
             headquarters: z.ZodOptional<z.ZodString>;
-            linkedinUrl: z.ZodOptional<z.ZodString>;
+            linkedinUrl: z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>;
             twitterUrl: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>;
     }, z.core.$strip>;

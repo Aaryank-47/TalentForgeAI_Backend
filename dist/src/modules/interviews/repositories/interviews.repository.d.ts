@@ -23,8 +23,8 @@ export declare class JobInterviewsRepositories {
     static createJobInterview(data: CreateJobInterviewData): Promise<{
         createdAt: Date;
         jobId: string;
-        interviewId: string;
         displayOrder: number;
+        interviewId: string;
         isMandatory: boolean;
     }>;
     static findJobInterviews(jobId: string): Promise<JobInterviewWithInterviewPayload[]>;
@@ -39,36 +39,36 @@ export declare class JobInterviewsRepositories {
             updatedAt: Date;
             mode: import("@prisma/client").$Enums.InterviewMode;
             title: string;
-            createdById: string;
             instructions: string | null;
             durationMinutes: number | null;
+            createdById: string;
         };
     } & {
         createdAt: Date;
         jobId: string;
-        interviewId: string;
         displayOrder: number;
+        interviewId: string;
         isMandatory: boolean;
     })[]>;
     static findJobInterview(jobId: string, interviewId: string): Promise<{
         createdAt: Date;
         jobId: string;
-        interviewId: string;
         displayOrder: number;
+        interviewId: string;
         isMandatory: boolean;
     } | null>;
     static findLastJobInterview(jobId: string): Promise<{
         createdAt: Date;
         jobId: string;
-        interviewId: string;
         displayOrder: number;
+        interviewId: string;
         isMandatory: boolean;
     } | null>;
     static deleteJobInterview(jobId: string, interviewId: string): Promise<{
         createdAt: Date;
         jobId: string;
-        interviewId: string;
         displayOrder: number;
+        interviewId: string;
         isMandatory: boolean;
     }>;
     static deleteAllJobInterviewsByInterviewId(interviewId: string): Promise<Prisma.BatchPayload>;
@@ -78,8 +78,8 @@ export declare class JobInterviewsRepositories {
     }[]): Promise<{
         createdAt: Date;
         jobId: string;
-        interviewId: string;
         displayOrder: number;
+        interviewId: string;
         isMandatory: boolean;
     }[]>;
 }
@@ -99,8 +99,8 @@ export declare class InterviewAssignmentsRepositories {
                 title: string;
             };
         };
-        interviewId: string;
         applicationId: string;
+        interviewId: string;
         creationSource: import("@prisma/client").$Enums.InterviewAssignmentCreationSource;
     }[]>;
     static findInterviewAssignments(interviewId: string, pagination: PaginationResult): Promise<{
@@ -112,8 +112,8 @@ export declare class InterviewAssignmentsRepositories {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        interviewId: string;
         applicationId: string;
+        interviewId: string;
         creationSource: import("@prisma/client").$Enums.InterviewAssignmentCreationSource;
         assignedById: string | null;
     }[]>;
@@ -121,8 +121,8 @@ export declare class InterviewAssignmentsRepositories {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        interviewId: string;
         applicationId: string;
+        interviewId: string;
         creationSource: import("@prisma/client").$Enums.InterviewAssignmentCreationSource;
         assignedById: string | null;
     }>;
@@ -147,14 +147,19 @@ export declare class InterviewSessionsRepositories {
                     companyId: string;
                     description: string;
                     slug: string;
+                    employmentType: import("@prisma/client").$Enums.EmploymentType;
+                    location: string | null;
                     id: string;
                     status: import("@prisma/client").$Enums.JobStatus;
                     createdAt: Date;
                     updatedAt: Date;
                     visibility: import("@prisma/client").$Enums.JobVisibility;
-                    location: string | null;
                     title: string;
-                    employmentType: import("@prisma/client").$Enums.EmploymentType;
+                    createdById: string;
+                    updatedById: string | null;
+                    publishedAt: Date | null;
+                    archivedAt: Date | null;
+                    summary: string | null;
                     workplaceType: import("@prisma/client").$Enums.WorkplaceType;
                     vacancies: number;
                     minExperience: number;
@@ -164,19 +169,14 @@ export declare class InterviewSessionsRepositories {
                     salaryPeriod: import("@prisma/client").$Enums.SalaryPeriod | null;
                     hideSalary: boolean;
                     applicationDeadline: Date | null;
-                    workflowId: string | null;
-                    summary: string | null;
-                    publishedAt: Date | null;
                     closedAt: Date | null;
-                    archivedAt: Date | null;
-                    createdById: string;
-                    updatedById: string | null;
+                    workflowId: string | null;
                 };
             } & {
                 createdAt: Date;
                 jobId: string;
-                interviewId: string;
                 displayOrder: number;
+                interviewId: string;
                 isMandatory: boolean;
             })[];
             aiConfiguration: {
@@ -200,9 +200,9 @@ export declare class InterviewSessionsRepositories {
             updatedAt: Date;
             mode: import("@prisma/client").$Enums.InterviewMode;
             title: string;
-            createdById: string;
             instructions: string | null;
             durationMinutes: number | null;
+            createdById: string;
         };
         participants: ({
             assignment: ({
@@ -220,14 +220,19 @@ export declare class InterviewSessionsRepositories {
                         companyId: string;
                         description: string;
                         slug: string;
+                        employmentType: import("@prisma/client").$Enums.EmploymentType;
+                        location: string | null;
                         id: string;
                         status: import("@prisma/client").$Enums.JobStatus;
                         createdAt: Date;
                         updatedAt: Date;
                         visibility: import("@prisma/client").$Enums.JobVisibility;
-                        location: string | null;
                         title: string;
-                        employmentType: import("@prisma/client").$Enums.EmploymentType;
+                        createdById: string;
+                        updatedById: string | null;
+                        publishedAt: Date | null;
+                        archivedAt: Date | null;
+                        summary: string | null;
                         workplaceType: import("@prisma/client").$Enums.WorkplaceType;
                         vacancies: number;
                         minExperience: number;
@@ -237,20 +242,15 @@ export declare class InterviewSessionsRepositories {
                         salaryPeriod: import("@prisma/client").$Enums.SalaryPeriod | null;
                         hideSalary: boolean;
                         applicationDeadline: Date | null;
-                        workflowId: string | null;
-                        summary: string | null;
-                        publishedAt: Date | null;
                         closedAt: Date | null;
-                        archivedAt: Date | null;
-                        createdById: string;
-                        updatedById: string | null;
+                        workflowId: string | null;
                     };
                 } & {
                     id: string;
                     status: import("@prisma/client").$Enums.ApplicationStatus;
                     updatedAt: Date;
-                    jobId: string;
                     candidateId: string;
+                    jobId: string;
                     resumeId: string;
                     coverLetter: string | null;
                     appliedAt: Date;
@@ -265,8 +265,8 @@ export declare class InterviewSessionsRepositories {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                interviewId: string;
                 applicationId: string;
+                interviewId: string;
                 creationSource: import("@prisma/client").$Enums.InterviewAssignmentCreationSource;
                 assignedById: string | null;
             }) | null;
@@ -295,8 +295,8 @@ export declare class InterviewSessionsRepositories {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            question: string;
             skill: string | null;
+            question: string;
             difficulty: import("@prisma/client").$Enums.QuestionDifficulty | null;
             sessionId: string;
             sequence: number;
@@ -334,9 +334,9 @@ export declare class InterviewSessionParticipantsRepositories {
                 updatedAt: Date;
                 mode: import("@prisma/client").$Enums.InterviewMode;
                 title: string;
-                createdById: string;
                 instructions: string | null;
                 durationMinutes: number | null;
+                createdById: string;
             };
         } & {
             id: string;

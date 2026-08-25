@@ -31,6 +31,57 @@ export const candidateProfileSelect = {
     profileCompletion: true,
     createdAt: true,
     updatedAt: true,
+    skills: {
+        select: {
+            id: true,
+            name: true,
+            yearsOfExperience: true,
+            candidateId: true
+        }
+    },
+    resumes: {
+        select: {
+            id: true,
+            resumeName: true,
+            resumeUrl: true,
+            fileSize: true,
+            uploadedAt: true,
+            parsingStatus: true
+        }
+    },
+    educations: {
+        select: {
+            id: true,
+            candidateId: true,
+            collegeName: true,
+            degree: true,
+            fieldOfStudy: true,
+            currentlyStudying: true,
+            startDate: true,
+            endDate: true,
+            gradingSystem: true,
+            gradeText: true,
+            grade: true,
+            createdAt: true,
+            updatedAt: true
+        }
+    },
+    experiences: {
+        select: {
+            id: true,
+            candidateId: true,
+            companyName: true,
+            designation: true,
+            employmentType: true,
+            description: true,
+            location: true,
+            startDate: true,
+            endDate: true,
+            currentlyWorking: true,
+            createdAt: true,
+            updatedAt: true
+        }
+    }
 };
 export const resume = {
     id: true,
@@ -38,6 +89,10 @@ export const resume = {
     resumeUrl: true,
     fileSize: true,
     uploadedAt: true,
+    parsingStatus: true,
+    parsingError: true,
+    parsingStartedAt: true,
+    parsingCompletedAt: true
 };
 export const skill = {
     id: true,

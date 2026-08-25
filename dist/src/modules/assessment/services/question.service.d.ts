@@ -26,11 +26,16 @@ export declare class QuestionService {
         data: QuestionWithRelations[];
         pagination: any;
     }>;
+    static getAllCompanyAndGlobalQuestions(user: any): Promise<{
+        data: QuestionWithRelations[];
+        pagination: any;
+    }>;
     static getQuestionById(id: string, user: any): Promise<QuestionWithRelations>;
     static updateQuestion(id: string, dto: UpdateQuestionDto, user: any): Promise<Question>;
     static deleteQuestion(id: string, user: any): Promise<Question>;
     static publishQuestion(id: string, user: any): Promise<Question>;
     static archiveQuestion(id: string, user: any): Promise<Question>;
     static duplicateQuestion(id: string, user: any): Promise<Question>;
+    static removeTagFromQuestion(questionId: string, tagId: string, user: any): Promise<void>;
 }
 //# sourceMappingURL=question.service.d.ts.map

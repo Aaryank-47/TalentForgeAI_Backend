@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, JobStatus } from "@prisma/client";
 import type { JobCreationDto, JobUpdateDto } from "../dto/jobs.dto.js";
 import { removeUndefined } from "../../../common/helper/object.helper.js";
 export function toJobCreateInput(
@@ -7,6 +7,7 @@ export function toJobCreateInput(
     slug: string,
     createdById: string
 ): Prisma.JobCreateInput {
+    const isPublish = data.status === JobStatus.PUBLISHED;
     const input: Prisma.JobCreateInput = {
         company: {
             connect: {
@@ -18,6 +19,8 @@ export function toJobCreateInput(
         description: data.description,
         employmentType: data.employmentType,
         workplaceType: data.workplaceType,
+        status: isPublish ? JobStatus.PUBLISHED : JobStatus.DRAFT,
+        publishedAt: isPublish ? new Date() : null,
         vacancies: data.vacancies ?? 1,
         location: data.location ?? null,
         minExperience: data.minExperience ?? 0,

@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { emailValidator, passwordValidator } from "../../../common/validators/validators.js";
 export class CandidateDto {
+    static registerUser = z.object({
+        email: emailValidator,
+        password: passwordValidator,
+        fullName: z.string().trim().min(1, "Full name is required").max(100).optional(),
+    });
     static registerCandidate = z.object({
         email: emailValidator,
         password: passwordValidator,

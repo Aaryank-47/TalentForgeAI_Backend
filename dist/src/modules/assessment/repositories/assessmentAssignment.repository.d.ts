@@ -17,8 +17,8 @@ export declare class JobAssessmentRepository {
         };
     } & {
         createdAt: Date;
-        jobId: string;
         assessmentId: string;
+        jobId: string;
         displayOrder: number;
         isMandatory: boolean;
     })[]>;
@@ -33,21 +33,21 @@ export declare class JobAssessmentRepository {
             deletedAt: Date | null;
             deletedById: string | null;
             title: string;
-            publishedAt: Date | null;
-            archivedAt: Date | null;
-            createdById: string;
-            updatedById: string | null;
             instructions: string | null;
             durationMinutes: number | null;
             passingScore: number | null;
             totalMarks: number | null;
             isTemplate: boolean;
+            createdById: string;
+            updatedById: string | null;
             archivedById: string | null;
+            publishedAt: Date | null;
+            archivedAt: Date | null;
         };
     } & {
         createdAt: Date;
-        jobId: string;
         assessmentId: string;
+        jobId: string;
         displayOrder: number;
         isMandatory: boolean;
     }) | null>;
@@ -69,8 +69,8 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     } | null>;
     static createAssessmentInvitation(data: Prisma.AssessmentInvitationUncheckedCreateInput): Promise<{
         token: string;
@@ -80,8 +80,8 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }>;
     static findApplicationForInvitation(applicationId: string): Promise<({
         candidate: {
@@ -115,15 +115,15 @@ export declare class JobAssessmentRepository {
             updatedAt: Date;
             expiresAt: Date;
             assessmentId: string;
-            idempotencyKey: string | null;
             applicationId: string;
+            idempotencyKey: string | null;
         }[];
     } & {
         id: string;
         status: import("@prisma/client").$Enums.ApplicationStatus;
         updatedAt: Date;
-        jobId: string;
         candidateId: string;
+        jobId: string;
         resumeId: string;
         coverLetter: string | null;
         appliedAt: Date;
@@ -144,16 +144,16 @@ export declare class JobAssessmentRepository {
         deletedAt: Date | null;
         deletedById: string | null;
         title: string;
-        publishedAt: Date | null;
-        archivedAt: Date | null;
-        createdById: string;
-        updatedById: string | null;
         instructions: string | null;
         durationMinutes: number | null;
         passingScore: number | null;
         totalMarks: number | null;
         isTemplate: boolean;
+        createdById: string;
+        updatedById: string | null;
         archivedById: string | null;
+        publishedAt: Date | null;
+        archivedAt: Date | null;
     } | null>;
     static findInvitationWithAttempt(applicationId: string): Promise<({
         application: {
@@ -162,8 +162,8 @@ export declare class JobAssessmentRepository {
                 status: import("@prisma/client").$Enums.AttemptStatus;
                 createdAt: Date;
                 updatedAt: Date;
-                assessmentId: string;
                 candidateId: string;
+                assessmentId: string;
                 applicationId: string;
                 currentSectionId: string | null;
                 startedAt: Date | null;
@@ -182,8 +182,8 @@ export declare class JobAssessmentRepository {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;
             updatedAt: Date;
-            jobId: string;
             candidateId: string;
+            jobId: string;
             resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
@@ -205,8 +205,8 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }) | null>;
     static findInvitationByToken(token: string): Promise<({
         application: {
@@ -218,8 +218,8 @@ export declare class JobAssessmentRepository {
                 status: import("@prisma/client").$Enums.AttemptStatus;
                 createdAt: Date;
                 updatedAt: Date;
-                assessmentId: string;
                 candidateId: string;
+                assessmentId: string;
                 applicationId: string;
                 currentSectionId: string | null;
                 startedAt: Date | null;
@@ -238,8 +238,8 @@ export declare class JobAssessmentRepository {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;
             updatedAt: Date;
-            jobId: string;
             candidateId: string;
+            jobId: string;
             resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
@@ -264,8 +264,8 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }) | null>;
     static findInvitationById(id: string): Promise<({
         application: {
@@ -279,8 +279,8 @@ export declare class JobAssessmentRepository {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;
             updatedAt: Date;
-            jobId: string;
             candidateId: string;
+            jobId: string;
             resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
@@ -303,8 +303,8 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }) | null>;
     static updateInvitationStatus(id: string, status: any): Promise<{
         token: string;
@@ -314,8 +314,8 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }>;
     static findInvitationByIdempotencyKey(idempotencyKey: string): Promise<({
         assessment: {
@@ -330,16 +330,16 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }) | null>;
     static createAssessmentAttempt(data: any): Promise<{
         id: string;
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;

@@ -4,15 +4,24 @@ export declare class CompanyDto {
         companyName: z.ZodString;
         companyEmail: z.ZodOptional<z.ZodEmail>;
         website: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        phoneNumber: z.ZodOptional<z.ZodString>;
+        phoneNumber: z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>;
+        industry: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        companySize: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        headquarters: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        description: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        logo: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        foundedYear: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
+        linkedinUrl: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        twitterUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     }, z.core.$strip>;
     static companyIdParam: z.ZodObject<{
         companyId: z.ZodString;
     }, z.core.$strip>;
     static updateCompany: z.ZodObject<{
+        companyName: z.ZodOptional<z.ZodString>;
         companyEmail: z.ZodOptional<z.ZodEmail>;
         website: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        phoneNumber: z.ZodOptional<z.ZodString>;
+        phoneNumber: z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>;
         logo: z.ZodOptional<z.ZodOptional<z.ZodString>>;
         coverImage: z.ZodOptional<z.ZodOptional<z.ZodString>>;
         description: z.ZodOptional<z.ZodOptional<z.ZodString>>;
@@ -20,7 +29,7 @@ export declare class CompanyDto {
         companySize: z.ZodOptional<z.ZodOptional<z.ZodString>>;
         foundedYear: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
         headquarters: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        linkedinUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        linkedinUrl: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
         twitterUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
         visibility: z.ZodOptional<z.ZodEnum<{
             PUBLIC: "PUBLIC";

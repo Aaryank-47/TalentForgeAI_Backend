@@ -4,6 +4,7 @@ import { ConflictError } from "../../../common/errors/ConflictError.js"
 import type { CreateWorkflowView, GetWorkflowDetailsByIdView, CompanyWorkflowView } from "../interfaces/hiring-workflow.interface.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js"
+import { BadRequestError } from "../../../common/errors/BadRequestError.js"
 
 export class WorkflowRepository {
     static async findWorkflowNameExistingInCompany(
@@ -295,18 +296,70 @@ export class WorkflowRepository {
                 }
             });
 
-            await tx.workflowStage.deleteMany({
+            // Retrieve existing workflow stages to preserve foreign keys
+            const existingStages = await tx.workflowStage.findMany({
                 where: { workflowId }
             });
 
-            await tx.workflowStage.createMany({
-                data: stages.map((s) => ({
-                    workflowId,
-                    stageLibraryId: s.stageLibraryId,
-                    order: s.order,
-                    assessmentId: s.assessmentId ?? null
-                }))
-            });
+            const incomingStageLibraryIds = new Set(stages.map((s) => s.stageLibraryId));
+            const stagesToDelete = existingStages.filter(
+                (s) => !incomingStageLibraryIds.has(s.stageLibraryId)
+            );
+
+            // Delete removed stages if not referenced in application history
+            for (const stage of stagesToDelete) {
+                const historyCount = await tx.workflowHistory.count({
+                    where: {
+                        OR: [{ fromStageId: stage.id }, { toStageId: stage.id }]
+                    }
+                });
+                const appCount = await tx.applicationWorkflow.count({
+                    where: { workflowStageId: stage.id }
+                });
+
+                if (historyCount > 0 || appCount > 0) {
+                    throw new BadRequestError(
+                        `Cannot remove stage from workflow because it has active candidates or history.`
+                    );
+                }
+
+                await tx.workflowStage.delete({
+                    where: { id: stage.id }
+                });
+            }
+
+            // Assign temporary negative orders to avoid @@unique([workflowId, order]) collision during reordering
+            for (const [i, s] of existingStages.entries()) {
+                if (incomingStageLibraryIds.has(s.stageLibraryId)) {
+                    await tx.workflowStage.update({
+                        where: { id: s.id },
+                        data: { order: -(i + 1000) }
+                    });
+                }
+            }
+
+            // Upsert / update each stage with its new target order and assessmentId
+            for (const s of stages) {
+                const existing = existingStages.find((e) => e.stageLibraryId === s.stageLibraryId);
+                if (existing) {
+                    await tx.workflowStage.update({
+                        where: { id: existing.id },
+                        data: {
+                            order: s.order,
+                            assessmentId: s.assessmentId ?? null
+                        }
+                    });
+                } else {
+                    await tx.workflowStage.create({
+                        data: {
+                            workflowId,
+                            stageLibraryId: s.stageLibraryId,
+                            order: s.order,
+                            assessmentId: s.assessmentId ?? null
+                        }
+                    });
+                }
+            }
 
             return await tx.workflow.findUnique({
                 where: { id: workflowId },

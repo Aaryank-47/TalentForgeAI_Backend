@@ -5,10 +5,10 @@ export declare class CandidateDto {
     }, z.z.core.$strip>;
     static updateCandidateProfile: z.ZodObject<{
         fullName: z.ZodOptional<z.ZodString>;
-        phoneNumber: z.ZodOptional<z.ZodString>;
-        profilePicture: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        headline: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        bio: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        phoneNumber: z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>;
+        profilePicture: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        headline: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        bio: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
         dateOfBirth: z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<Date, string>>>;
         gender: z.ZodOptional<z.ZodOptional<z.ZodEnum<{
             MALE: "MALE";
@@ -25,19 +25,19 @@ export declare class CandidateDto {
             LEAD: "LEAD";
             ARCHITECT: "ARCHITECT";
         }>>>;
-        currentLocation: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        preferredLocation: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        currentCompany: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        currentDesignation: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        currentLocation: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        preferredLocation: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        currentCompany: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        currentDesignation: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
         totalExperience: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
         expectedSalary: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
         currentSalary: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
         noticePeriod: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
         resumeUrl: z.ZodOptional<z.ZodString>;
-        linkedinUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        githubUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        portfolioUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        websiteUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        linkedinUrl: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        githubUrl: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        portfolioUrl: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        websiteUrl: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
         isOpenToWork: z.ZodOptional<z.ZodOptional<z.ZodBoolean>>;
     }, z.z.core.$strip>;
     static resumeUpload: z.ZodObject<{
@@ -148,8 +148,8 @@ export declare class CandidateDto {
         noticePeriod: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
     }, z.z.core.$strip>;
     static updateLocationPreferences: z.ZodObject<{
-        preferredLocation: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-        currentLocation: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+        preferredLocation: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        currentLocation: z.ZodOptional<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
     }, z.z.core.$strip>;
     static getPublicProfileParam: z.ZodObject<{
         candidateId: z.ZodString;

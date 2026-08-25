@@ -1,6 +1,7 @@
 export declare class CompanyController {
     static createCompany: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
     static getMyCompanies: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
+    static getCompanyMetadata: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
     static getCompanyDetails: import("express").RequestHandler<{
         companyId: string;
     }, any, any, import("qs").ParsedQs, Record<string, any>>;

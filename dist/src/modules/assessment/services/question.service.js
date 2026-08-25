@@ -276,6 +276,15 @@ export class QuestionService {
         const items = await QuestionRepository.getAllQuestions(filters, pagination);
         return PaginationHelper.buildResponse(items, pagination, totalItems);
     }
+    static async getAllCompanyAndGlobalQuestions(user) {
+        if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+            return this.getAllQuestions({});
+        }
+        else if (user.role === "EMPLOYER") {
+            return this.getAllQuestions({ companyId: user.companyId });
+        }
+        return this.getAllQuestions({ ownership: "GLOBAL" });
+    }
     static async getQuestionById(id, user) {
         const question = await QuestionRepository.findQuestionById(id);
         if (!question)
@@ -412,6 +421,13 @@ export class QuestionService {
                 createdByCompanyMemberId = membership.id;
         }
         return await QuestionRepository.createQuestion(createDto, user.id, createdByCompanyMemberId);
+    }
+    static async removeTagFromQuestion(questionId, tagId, user) {
+        const question = await QuestionRepository.findQuestionById(questionId);
+        if (!question)
+            throw new NotFoundError("Question not found");
+        await validateQuestionAccess(question, user, "write");
+        await QuestionRepository.removeTagFromQuestion(questionId, tagId);
     }
 }
 //# sourceMappingURL=question.service.js.map

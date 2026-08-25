@@ -4,27 +4,27 @@ export declare class AssessmentAttemptRepository {
         fullName: string;
         phoneNumber: string | null;
         linkedinUrl: string | null;
+        currentLocation: string | null;
+        githubUrl: string | null;
+        portfolioUrl: string | null;
+        websiteUrl: string | null;
+        headline: string | null;
+        bio: string | null;
+        currentCompany: string | null;
+        currentDesignation: string | null;
+        totalExperience: number | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
         profilePicture: string | null;
-        headline: string | null;
-        bio: string | null;
         dateOfBirth: Date | null;
         gender: import("@prisma/client").$Enums.Gender | null;
         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
-        currentLocation: string | null;
         preferredLocation: string | null;
-        currentCompany: string | null;
-        currentDesignation: string | null;
-        totalExperience: number | null;
         expectedSalary: number | null;
         currentSalary: number | null;
         noticePeriod: number | null;
-        githubUrl: string | null;
-        portfolioUrl: string | null;
-        websiteUrl: string | null;
         isOpenToWork: boolean;
         profileCompletion: number;
     } | null>;
@@ -40,8 +40,8 @@ export declare class AssessmentAttemptRepository {
                 status: import("@prisma/client").$Enums.AttemptStatus;
                 createdAt: Date;
                 updatedAt: Date;
-                assessmentId: string;
                 candidateId: string;
+                assessmentId: string;
                 applicationId: string;
                 currentSectionId: string | null;
                 startedAt: Date | null;
@@ -60,8 +60,8 @@ export declare class AssessmentAttemptRepository {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;
             updatedAt: Date;
-            jobId: string;
             candidateId: string;
+            jobId: string;
             resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
@@ -88,8 +88,8 @@ export declare class AssessmentAttemptRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }) | null>;
     static updateInvitationStatus(id: string, status: InvitationStatus): Promise<{
         token: string;
@@ -99,16 +99,16 @@ export declare class AssessmentAttemptRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     }>;
     static createAssessmentAttempt(data: any): Promise<{
         id: string;
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -141,8 +141,8 @@ export declare class AssessmentAttemptRepository {
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -169,8 +169,8 @@ export declare class AssessmentAttemptRepository {
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -196,16 +196,16 @@ export declare class AssessmentAttemptRepository {
         updatedAt: Date;
         expiresAt: Date;
         assessmentId: string;
-        idempotencyKey: string | null;
         applicationId: string;
+        idempotencyKey: string | null;
     } | null>;
     static updateAttemptStatus(id: string, status: AttemptStatus, submittedAt?: Date): Promise<{
         id: string;
         status: import("@prisma/client").$Enums.AttemptStatus;
         createdAt: Date;
         updatedAt: Date;
-        assessmentId: string;
         candidateId: string;
+        assessmentId: string;
         applicationId: string;
         currentSectionId: string | null;
         startedAt: Date | null;
@@ -226,21 +226,21 @@ export declare class AssessmentAttemptRepository {
         role: import("@prisma/client").$Enums.CompanyMemberRole;
         status: import("@prisma/client").$Enums.CompanyMemberStatus;
         userId: string;
-        expiresAt: Date | null;
         joinedAt: Date;
         invitationToken: string | null;
         invitedAt: Date | null;
+        expiresAt: Date | null;
         invitedBy: string | null;
     } | null>;
     static findQuestionInSectionItem(assessmentId: string, questionId: string): Promise<{
         id: string;
-        isRequired: boolean;
         sectionId: string;
-        questionId: string;
         displayOrder: number;
+        questionId: string;
         marksOverride: number | null;
         negativeMarksOverride: number | null;
         timeLimitOverride: number | null;
+        isRequired: boolean;
     } | null>;
     static findQuestionWithDetails(id: string): Promise<({
         machineCodingDetail: {
@@ -308,11 +308,11 @@ export declare class AssessmentAttemptRepository {
         deletedById: string | null;
         version: number;
         title: string;
-        publishedAt: Date | null;
-        archivedAt: Date | null;
         createdById: string | null;
         updatedById: string | null;
         archivedById: string | null;
+        publishedAt: Date | null;
+        archivedAt: Date | null;
         difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
         estimatedTime: number;
         defaultMarks: number;
@@ -327,9 +327,9 @@ export declare class AssessmentAttemptRepository {
     static findAnswerByAttemptAndQuestion(attemptId: string, questionId: string): Promise<{
         id: string;
         updatedAt: Date;
+        questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
-        questionId: string;
         attemptId: string;
         score: number | null;
         isCorrect: boolean | null;
@@ -352,9 +352,9 @@ export declare class AssessmentAttemptRepository {
     }): Promise<{
         id: string;
         updatedAt: Date;
+        questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
-        questionId: string;
         attemptId: string;
         score: number | null;
         isCorrect: boolean | null;
@@ -374,9 +374,9 @@ export declare class AssessmentAttemptRepository {
     }): Promise<{
         id: string;
         updatedAt: Date;
+        questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
-        questionId: string;
         attemptId: string;
         score: number | null;
         isCorrect: boolean | null;
@@ -390,9 +390,9 @@ export declare class AssessmentAttemptRepository {
     static findAnswersByAttempt(attemptId: string): Promise<{
         id: string;
         updatedAt: Date;
+        questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
-        questionId: string;
         attemptId: string;
         score: number | null;
         isCorrect: boolean | null;
@@ -406,9 +406,9 @@ export declare class AssessmentAttemptRepository {
     static deleteAnswer(attemptId: string, questionId: string): Promise<{
         id: string;
         updatedAt: Date;
+        questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
-        questionId: string;
         attemptId: string;
         score: number | null;
         isCorrect: boolean | null;

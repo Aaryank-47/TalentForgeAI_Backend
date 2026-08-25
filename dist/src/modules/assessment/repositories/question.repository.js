@@ -680,15 +680,21 @@ export class QuestionRepository {
             }
         });
     }
+    static async removeTagFromQuestion(questionId, tagId) {
+        await prisma.questionTagMap.deleteMany({
+            where: {
+                questionId,
+                tagId
+            }
+        });
+    }
     static buildQuestionsWhereClause(filters) {
         const tagIdsArray = filters.tagIds ? filters.tagIds.split(",") : [];
-        return {
+        const where = {
             deletedAt: null,
             ...(filters.type && { type: filters.type }),
             ...(filters.difficulty && { difficulty: filters.difficulty }),
             ...(filters.status && { status: filters.status }),
-            ...(filters.ownership && { ownership: filters.ownership }),
-            ...(filters.companyId && { companyId: filters.companyId }),
             ...(filters.categoryId && { categoryId: filters.categoryId }),
             ...(tagIdsArray.length > 0 && {
                 tags: {
@@ -704,6 +710,26 @@ export class QuestionRepository {
                 ]
             })
         };
+        if (filters.companyId) {
+            if (filters.ownership === "COMPANY") {
+                where.ownership = "COMPANY";
+                where.companyId = filters.companyId;
+            }
+            else if (filters.ownership === "GLOBAL") {
+                where.ownership = "GLOBAL";
+            }
+            else {
+                where.OR = [
+                    ...(where.OR ? [{ OR: where.OR }] : []),
+                    { ownership: "GLOBAL" },
+                    { ownership: "COMPANY", companyId: filters.companyId }
+                ];
+            }
+        }
+        else if (filters.ownership) {
+            where.ownership = filters.ownership;
+        }
+        return where;
     }
 }
 //# sourceMappingURL=question.repository.js.map

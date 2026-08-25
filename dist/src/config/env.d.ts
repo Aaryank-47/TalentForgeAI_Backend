@@ -40,6 +40,11 @@ export declare const env: {
         readonly host: string;
         readonly port: number;
     };
+    readonly queue: {
+        readonly resumeWorkerConcurrency: number;
+        readonly resumeJobAttempts: number;
+        readonly resumeJobBackoffDelayMs: number;
+    };
 };
 export default env;
 //# sourceMappingURL=env.d.ts.map

@@ -23,6 +23,10 @@ export interface CandidateProfileView {
     websiteUrl: string | null;
     isOpenToWork: boolean;
     profileCompletion: number;
+    skills?: SkillsView[];
+    resumes?: ResumeView[];
+    educations?: CandidateEducationView[];
+    experiences?: CandidateExperienceView[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -40,12 +44,18 @@ export interface CandidateWithRelationsCount {
         experiences: number;
     };
 }
+import type { ResumeProcessingProgressState } from "../../resume/interfaces/resume-pipeline.interface.js";
 export interface ResumeView {
     id: string;
     resumeName: string;
     resumeUrl: string;
     fileSize: number;
     uploadedAt: Date;
+    parsingStatus: string;
+    parsingError?: string | null;
+    parsingStartedAt?: Date | null;
+    parsingCompletedAt?: Date | null;
+    processing?: ResumeProcessingProgressState | null;
 }
 export interface SkillsView {
     id: string;

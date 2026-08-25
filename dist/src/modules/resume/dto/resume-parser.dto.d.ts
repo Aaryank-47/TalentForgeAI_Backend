@@ -1,19 +1,22 @@
 import { z } from "zod";
+export declare const resumePhoneNumberValidator: z.ZodString;
+export declare const resumeSkillNameValidator: z.ZodString;
+export declare const resumeFieldOfStudyValidator: z.ZodNullable<z.ZodString>;
 export declare const personalInfoSchema: z.ZodObject<{
     fullName: z.ZodNullable<z.ZodString>;
     email: z.ZodNullable<z.ZodEmail>;
     phoneNumber: z.ZodNullable<z.ZodString>;
-    currentLocation: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    linkedinUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    githubUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    portfolioUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    websiteUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    currentLocation: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+    linkedinUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+    githubUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+    portfolioUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+    websiteUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
 }, z.core.$strip>;
 export declare const professionalInfoSchema: z.ZodObject<{
-    headline: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    bio: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    currentCompany: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    currentDesignation: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    headline: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+    bio: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+    currentCompany: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+    currentDesignation: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
     totalExperience: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
 }, z.core.$strip>;
 export declare const resumeSkillSchema: z.ZodObject<{
@@ -41,7 +44,7 @@ export declare const resumeExperienceSchema: z.ZodObject<{
 export declare const resumeEducationSchema: z.ZodObject<{
     collegeName: z.ZodString;
     degree: z.ZodString;
-    fieldOfStudy: z.ZodString;
+    fieldOfStudy: z.ZodNullable<z.ZodString>;
     currentlyStudying: z.ZodBoolean;
     startDate: z.ZodNullable<z.ZodString>;
     endDate: z.ZodNullable<z.ZodString>;
@@ -70,17 +73,17 @@ export declare const resumeParsingSchema: z.ZodObject<{
         fullName: z.ZodNullable<z.ZodString>;
         email: z.ZodNullable<z.ZodEmail>;
         phoneNumber: z.ZodNullable<z.ZodString>;
-        currentLocation: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        linkedinUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        githubUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        portfolioUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        websiteUrl: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        currentLocation: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        linkedinUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        githubUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        portfolioUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        websiteUrl: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
     }, z.core.$strip>;
     professional: z.ZodObject<{
-        headline: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        bio: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        currentCompany: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-        currentDesignation: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        headline: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        bio: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        currentCompany: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
+        currentDesignation: z.ZodNullable<z.ZodOptional<z.ZodPipe<z.ZodString, z.ZodTransform<string | undefined, string>>>>;
         totalExperience: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     }, z.core.$strip>;
     skills: z.ZodArray<z.ZodObject<{
@@ -108,7 +111,7 @@ export declare const resumeParsingSchema: z.ZodObject<{
     education: z.ZodArray<z.ZodObject<{
         collegeName: z.ZodString;
         degree: z.ZodString;
-        fieldOfStudy: z.ZodString;
+        fieldOfStudy: z.ZodNullable<z.ZodString>;
         currentlyStudying: z.ZodBoolean;
         startDate: z.ZodNullable<z.ZodString>;
         endDate: z.ZodNullable<z.ZodString>;
@@ -133,4 +136,5 @@ export declare const resumeParsingSchema: z.ZodObject<{
         name: z.ZodString;
     }, z.core.$strip>>;
 }, z.core.$strip>;
+export type ParsedResumeDto = z.infer<typeof resumeParsingSchema>;
 //# sourceMappingURL=resume-parser.dto.d.ts.map

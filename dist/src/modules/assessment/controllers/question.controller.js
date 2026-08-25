@@ -245,5 +245,14 @@ export class QuestionController {
             data: result,
         });
     });
+    static removeTagFromQuestion = asyncHandler(async (req, res) => {
+        const id = req.params.id;
+        const tagId = req.params.tagId;
+        await QuestionService.removeTagFromQuestion(id, tagId, req.user);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Tag removed from question successfully.",
+        });
+    });
 }
 //# sourceMappingURL=question.controller.js.map

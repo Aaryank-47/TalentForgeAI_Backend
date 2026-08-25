@@ -46,14 +46,52 @@ export class AuthRepository {
                 },
                 employer: {
                     select: employerSelect
+                },
+                companyMemberships: {
+                    where: {
+                        status: "ACTIVE"
+                    },
+                    select: {
+                        id: true,
+                        companyId: true,
+                        role: true,
+                        status: true,
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                slug: true,
+                                logo: true,
+                                industry: true,
+                                companySize: true,
+                                headquarters: true,
+                                website: true,
+                                description: true,
+                                companyEmail: true,
+                                phoneNumber: true,
+                            }
+                        }
+                    }
                 }
             }
         });
         if (!profile) {
             throw new NotFoundError("User not found.");
         }
+        const candidate = profile.candidate ? {
+            enabled: true,
+            id: profile.candidate.id,
+            fullName: profile.candidate.fullName
+        } : null;
+        const capabilities = {
+            candidate: !!profile.candidate,
+            employer: (profile.companyMemberships?.length ?? 0) > 0 || !!profile.employer
+        };
         return {
-            profile: profile.candidate ?? profile.employer ?? null
+            profile: profile.candidate ?? profile.employer ?? null,
+            capabilities,
+            candidate,
+            companies: profile.companyMemberships ?? []
         };
     }
     static async updateUserLastLogin(userId, lastLoginAt) {
@@ -185,6 +223,18 @@ export class AuthRepository {
         await prisma.user.update({
             where: { id: userId },
             data: { password: newPassword },
+        });
+    }
+    static async createUserRegistration(data) {
+        return prisma.user.create({
+            data: {
+                email: data.email,
+                password: data.password,
+                role: UserRole.CANDIDATE, // default base platform role for backward-compatibility
+                status: AccountStatus.ACTIVE,
+                isEmailVerified: false,
+            },
+            select: userSelect,
         });
     }
     static async createCandidateRegistration(data) {

@@ -23,6 +23,9 @@ export function omitUndefined(obj) {
     return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined));
 }
 export const invitationTokenGeneration = crypto.randomUUID();
+export const setInvitationTokenExpiration = (expiresInMs = 7 * 24 * 60 * 60 * 1000) => {
+    return new Date(Date.now() + expiresInMs);
+};
 export function extractPublicId(url) {
     try {
         const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/);

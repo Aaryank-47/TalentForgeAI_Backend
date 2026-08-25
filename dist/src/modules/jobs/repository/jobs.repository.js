@@ -56,13 +56,23 @@ export class JobsRepository {
         });
     }
     static async updateJobStatus(jobId, status) {
+        const updateData = {
+            status: status,
+        };
+        if (status === JobStatus.PUBLISHED) {
+            updateData.publishedAt = new Date();
+        }
+        else if (status === JobStatus.CLOSED) {
+            updateData.closedAt = new Date();
+        }
+        else if (status === JobStatus.ARCHIVED) {
+            updateData.archivedAt = new Date();
+        }
         return prisma.job.update({
             where: {
                 id: jobId,
             },
-            data: {
-                status: status,
-            },
+            data: updateData,
             select: JobSelect
         });
     }

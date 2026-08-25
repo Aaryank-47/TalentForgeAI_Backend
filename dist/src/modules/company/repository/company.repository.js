@@ -16,6 +16,14 @@ export class CompanyRepository {
                     companyEmail: input.companyEmail ?? null,
                     phoneNumber: input.phoneNumber ?? null,
                     website: input.website ?? null,
+                    industry: input.industry ?? null,
+                    companySize: input.companySize ?? null,
+                    headquarters: input.headquarters ?? null,
+                    description: input.description ?? null,
+                    logo: input.logo ?? null,
+                    foundedYear: input.foundedYear ?? null,
+                    linkedinUrl: input.linkedinUrl ?? null,
+                    twitterUrl: input.twitterUrl ?? null,
                 },
                 select: companySelect,
             });
@@ -99,6 +107,14 @@ export class CompanyRepository {
             }
             : null;
     }
+    static async findMemberWithDetails(companyId, userId) {
+        return prisma.companyMember.findUnique({
+            where: {
+                userId_companyId: { userId, companyId }
+            },
+            select: companyMemberSelect
+        });
+    }
     static async deleteCompany(companyId, userId) {
         return prisma.company.update({
             where: {
@@ -120,6 +136,9 @@ export class CompanyRepository {
                 role: data.role,
                 status: CompanyMemberStatus.INVITED,
                 invitedBy: data.invitedBy,
+                invitationToken: data.invitationToken ?? null,
+                invitedAt: data.invitedAt ?? null,
+                expiresAt: data.expiresAt ?? null,
             },
         });
     }
@@ -270,10 +289,25 @@ export class CompanyRepository {
             select: invitationSelect,
         });
     }
+    static async findMemberByInvitationToken(invitationToken) {
+        const member = await prisma.companyMember.findUnique({
+            where: { invitationToken },
+        });
+        return member
+            ? {
+                ...member,
+                invitedBy: member.invitedBy ?? "",
+            }
+            : null;
+    }
     static async cancelInvitation(invitationId) {
         return prisma.companyMember.update({
             where: { id: invitationId },
-            data: { status: CompanyMemberStatus.CANCELLED },
+            data: {
+                status: CompanyMemberStatus.CANCELLED,
+                invitationToken: null,
+                expiresAt: new Date(),
+            },
             select: { id: true, status: true },
         });
     }
@@ -281,6 +315,7 @@ export class CompanyRepository {
         return prisma.companyMember.update({
             where: { id: invitationId },
             data: {
+                status: CompanyMemberStatus.INVITED,
                 invitationToken: token,
                 invitedAt: new Date(),
                 expiresAt,

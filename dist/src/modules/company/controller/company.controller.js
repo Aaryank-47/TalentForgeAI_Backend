@@ -22,6 +22,14 @@ export class CompanyController {
             data: companies,
         });
     });
+    static getCompanyMetadata = asyncHandler(async (_req, res) => {
+        const metadata = await CompanyService.getCompanyMetadata();
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: MESSAGE.SUCCESS,
+            data: metadata,
+        });
+    });
     static getCompanyDetails = asyncHandler(async (req, res) => {
         const companyId = req.params.companyId;
         const company = await CompanyService.getCompanyDetails(companyId);

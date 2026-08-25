@@ -49,24 +49,31 @@ export const candidateFullNameValidator = z
 export const phoneNumberValidator = z
     .string()
     .trim()
-    .regex(/^\+?[1-9]\d{1,14}$/, "Please enter a valid phone number")
-    .min(7, "Phone number must be at least 7 digits long")
-    .max(15, "Phone number must be at most 15 digits long");
+    .refine((val) => {
+    if (!val || val === "")
+        return true;
+    // Allow formats like: +1 555-000-0000, +91 9876543210, (555) 000-0000, 6261970047
+    const digitsOnly = val.replace(/\D/g, "");
+    return digitsOnly.length >= 7 && digitsOnly.length <= 15;
+}, { message: "Please enter a valid phone number (7 to 15 digits)" })
+    .transform((val) => (val === "" ? undefined : val));
 export const profilePictureValidator = z
     .string()
     .trim()
-    .url("Please enter a valid profile picture URL")
+    .refine((val) => !val || val === "" || /^https?:\/\/.+/.test(val), { message: "Please enter a valid profile picture URL" })
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const headlineValidator = z
     .string()
     .trim()
-    .min(3, "Headline must be at least 3 characters long")
-    .max(120, "Headline must be at most 120 characters long")
+    .refine((val) => !val || val === "" || val.length >= 2, { message: "Headline must be at least 2 characters long" })
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const bioValidator = z
     .string()
     .trim()
     .max(1000, "Bio must be at most 1000 characters long")
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const dateOfBirthValidator = z
     .string()
@@ -82,26 +89,22 @@ export const experienceLevelValidator = z.nativeEnum(ExperienceLevel).optional()
 export const currentLocationValidator = z
     .string()
     .trim()
-    .min(2, "Current location is too short")
-    .max(100, "Current location must be at most 100 characters long")
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const preferredLocationValidator = z
     .string()
     .trim()
-    .min(2, "Preferred location is too short")
-    .max(100, "Preferred location must be at most 100 characters long")
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const currentCompanyValidator = z
     .string()
     .trim()
-    .min(2, "Current company name is too short")
-    .max(100, "Current company name must be at most 100 characters long")
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const currentDesignationValidator = z
     .string()
     .trim()
-    .min(2, "Current designation is too short")
-    .max(100, "Current designation must be at most 100 characters long")
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const totalExperienceValidator = z
     .number()
@@ -127,22 +130,26 @@ export const noticePeriodValidator = z
 export const linkedInUrlValidator = z
     .string()
     .trim()
-    .url("Please enter a valid LinkedIn URL")
+    .refine((val) => !val || val === "" || /^https?:\/\/.+/.test(val), { message: "Please enter a valid LinkedIn URL" })
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const githubUrlValidator = z
     .string()
     .trim()
-    .url("Please enter a valid GitHub URL")
+    .refine((val) => !val || val === "" || /^https?:\/\/.+/.test(val), { message: "Please enter a valid GitHub URL" })
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const portfolioUrlValidator = z
     .string()
     .trim()
-    .url("Please enter a valid portfolio URL")
+    .refine((val) => !val || val === "" || /^https?:\/\/.+/.test(val), { message: "Please enter a valid portfolio URL" })
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const websiteUrlValidator = z
     .string()
     .trim()
-    .url("Please enter a valid website URL")
+    .refine((val) => !val || val === "" || /^https?:\/\/.+/.test(val), { message: "Please enter a valid website URL" })
+    .transform((val) => (val === "" ? undefined : val))
     .optional();
 export const isOpenToWorkValidator = z
     .boolean()
@@ -424,7 +431,7 @@ export const resumeDeletedAtValidator = z.coerce.date().optional();
 export const skillNameValidator = z
     .string()
     .trim()
-    .min(2, "Skill name must be at least 2 characters long")
+    .min(1, "Skill name must be at least 1 characters long")
     .max(50, "Skill name must be at most 50 characters long");
 export const skillExperienceValidator = z
     .number()
