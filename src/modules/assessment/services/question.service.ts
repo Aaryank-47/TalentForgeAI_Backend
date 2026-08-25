@@ -358,7 +358,9 @@ export class QuestionService {
         return await QuestionRepository.createQuestion(dto, user.id, createdByCompanyMemberId);
     }
 
-    static async getAllQuestions(filters: GetQuestionsQueryDto): Promise<{ data: QuestionWithRelations[], pagination: any }> {
+    static async getAllQuestions(
+        filters: GetQuestionsQueryDto
+    ): Promise<{ data: QuestionWithRelations[], pagination: any }> {
         const pagination = PaginationHelper.getPagination(filters);
         const totalItems = await QuestionRepository.countQuestions(filters);
         const items = await QuestionRepository.getAllQuestions(filters, pagination);
@@ -368,6 +370,18 @@ export class QuestionService {
             pagination,
             totalItems
         );
+    }
+
+    static async getAllCompanyAndGlobalQuestions(
+        user: any
+    ): Promise<{ data: QuestionWithRelations[], pagination: any }> {
+        if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+            return this.getAllQuestions({});
+        } else if (user.role === "EMPLOYER") {
+            return this.getAllQuestions({ companyId: user.companyId });
+        }
+
+        return this.getAllQuestions({ ownership: "GLOBAL" });
     }
 
     static async getQuestionById(id: string, user: any): Promise<QuestionWithRelations> {
@@ -519,5 +533,13 @@ export class QuestionService {
         }
 
         return await QuestionRepository.createQuestion(createDto, user.id, createdByCompanyMemberId);
+    }
+
+    static async removeTagFromQuestion(questionId: string, tagId: string, user: any): Promise<void> {
+        const question = await QuestionRepository.findQuestionById(questionId);
+        if (!question) throw new NotFoundError("Question not found");
+
+        await validateQuestionAccess(question, user, "write");
+        await QuestionRepository.removeTagFromQuestion(questionId, tagId);
     }
 }

@@ -64,7 +64,7 @@ const registerTagRoutes = (router: Router, prefix: string) => {
     router.post(
         `${prefix}`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(QuestionTagDto.createTag, "body"),
         QuestionController.createTag
     );
@@ -95,7 +95,7 @@ const registerTagRoutes = (router: Router, prefix: string) => {
     router.delete(
         `${prefix}/:id`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(QuestionTagDto.tagIdParams, "params"),
         QuestionController.deleteQuestionTag
     );
@@ -105,7 +105,7 @@ const registerLanguageRoutes = (router: Router, prefix: string) => {
     router.post(
         `${prefix}`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(ProgrammingLanguageDto.createLanguage, "body"),
         QuestionController.createLanguage
     );
@@ -136,7 +136,7 @@ const registerLanguageRoutes = (router: Router, prefix: string) => {
     router.delete(
         `${prefix}/:id`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(ProgrammingLanguageDto.languageIdParams, "params"),
         QuestionController.deleteProgrammingLanguage
     );
@@ -230,6 +230,12 @@ const registerQuestionBankRoutes = (router: Router, prefix: string) => {
         authMiddleware,
         validate(questionIdParamsSchema, "params"),
         QuestionController.duplicateQuestion
+    );
+
+    router.delete(
+        `${prefix}:id/tags/:tagId`,
+        authMiddleware,
+        QuestionController.removeTagFromQuestion
     );
 };
 

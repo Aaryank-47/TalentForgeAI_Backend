@@ -190,6 +190,21 @@ export class AssessmentBuilderService {
             throw new ConflictError("Cannot publish an incomplete assessment: Duration must be greater than 0.");
         }
 
+        // Collect all question IDs from the assessment sections
+        const questionIds: string[] = [];
+        for (const sec of assessment.sections) {
+            for (const item of sec.items) {
+                if (item.questionId) {
+                    questionIds.push(item.questionId);
+                }
+            }
+        }
+
+        // Automatically publish any draft questions attached to this assessment
+        if (questionIds.length > 0) {
+            await AssessmentBuilderRepository.publishDraftQuestionsByIds(questionIds);
+        }
+
         await AssessmentBuilderRepository.updateAssessment(assessmentId, {
             status: "PUBLISHED",
             publishedAt: new Date(),

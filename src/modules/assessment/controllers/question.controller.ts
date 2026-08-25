@@ -373,4 +373,17 @@ export class QuestionController {
             });
         }
     );
+
+    static removeTagFromQuestion = asyncHandler(
+        async (req: Request, res: Response) => {
+            const id = req.params.id as string;
+            const tagId = req.params.tagId as string;
+            await QuestionService.removeTagFromQuestion(id, tagId, req.user);
+
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Tag removed from question successfully.",
+            }); 
+        }
+    );
 }
