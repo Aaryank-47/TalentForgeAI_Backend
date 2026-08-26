@@ -1,11 +1,17 @@
 export interface ApplicationView {
     id: string;
     jobId: string;
-    candidateId:string;
-    resumeId:string;
+    candidateId: string;
     status: string;
     appliedAt: Date;
-    updatedAt:Date;
+    updatedAt: Date;
+    applicationResume?: {
+        id: string;
+        fileName: string;
+        fileUrl: string;
+        fileSize: number;
+        sourceResumeId?: string | null;
+    } | null;
 }
 
 export interface ApplicationOverview {

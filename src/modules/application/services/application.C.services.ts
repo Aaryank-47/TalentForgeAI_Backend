@@ -51,9 +51,12 @@ export class ApplicationService {
         const newApplication = await ApplicationRepository.createApplication({
             candidateId: candidateProfile.profile.id,
             jobId: job.id,
-            resumeId: resume.id,
+            sourceResumeId: resume.id,
+            fileName: resume.resumeName,
+            fileUrl: resume.resumeUrl,
+            fileSize: resume.fileSize,
             status: ApplicationStatus.APPLIED
-        })
+        });
 
         let firstStage = null;
         if (job.workflowId) {

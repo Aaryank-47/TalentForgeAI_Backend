@@ -187,9 +187,9 @@ model RefreshToken {
 }
 
 model Candidate {
-  id                 String                @id @default(cuid())
-  userId             String                @unique
-  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String                   @id @default(cuid())
+  userId             String                   @unique
+  user               User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName           String
   phoneNumber        String?
   profilePicture     String?
@@ -210,10 +210,10 @@ model Candidate {
   githubUrl          String?
   portfolioUrl       String?
   websiteUrl         String?
-  isOpenToWork       Boolean               @default(true)
-  profileCompletion  Int                   @default(0)
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
+  isOpenToWork       Boolean                  @default(true)
+  profileCompletion  Int                      @default(0)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
   skills             CandidateSkill[]
   educations         CandidateEducation[]
   experiences        CandidateExperience[]
@@ -446,7 +446,6 @@ model Application {
 
   candidateId String
   jobId       String
-  resumeId    String
 
   status ApplicationStatus @default(APPLIED)
 
@@ -466,7 +465,7 @@ model Application {
 
   candidate             Candidate              @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   job                   Job                    @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  resume                Resume                 @relation(fields: [resumeId], references: [id])
+  applicationResume     ApplicationResume?
   applicationWorkflow   ApplicationWorkflow?
   assessmentAttempts    AssessmentAttempt[]
   assessmentInvitations AssessmentInvitation[]
@@ -479,6 +478,24 @@ model Application {
   @@index([jobId, status])
 }
 
+model ApplicationResume {
+  id String @id @default(cuid())
+
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  sourceResumeId String?
+  sourceResume   Resume? @relation("ResumeSnapshots", fields: [sourceResumeId], references: [id], onDelete: SetNull)
+
+  fileName String
+  fileUrl  String
+  fileSize Int
+
+  createdAt DateTime @default(now())
+
+  @@index([sourceResumeId])
+}
+
 model Resume {
   id          String    @id @default(cuid())
   candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -489,6 +506,7 @@ model Resume {
   fileSize   Int
 
   uploadedAt DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
   deletedAt  DateTime?
 
   parsingStatus      ResumeParsingStatus @default(UPLOADED)
@@ -497,9 +515,10 @@ model Resume {
   parsingError       String?
   rawParsedData      Json?
 
-  applications Application[]
+  applicationSnapshots ApplicationResume[] @relation("ResumeSnapshots")
 
   @@index([candidateId])
+  @@index([candidateId, deletedAt])
   @@index([parsingStatus])
 }
 
@@ -1357,15 +1376,15 @@ model AIInterviewQuestion {
 }
 
 model AIInterviewAnswer {
-  id         String                 @id @default(cuid())
-  questionId String                 @unique
-  question   AIInterviewQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  id           String                 @id @default(cuid())
+  questionId   String                 @unique
+  question     AIInterviewQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
   answerText   String
   recordingUrl String?
   answeredAt   DateTime               @default(now())
-  createdAt  DateTime               @default(now())
-  updatedAt  DateTime               @updatedAt
-  evaluation AIInterviewEvaluation?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  evaluation   AIInterviewEvaluation?
 }
 
 model AIInterviewEvaluation {
@@ -1431,7 +1450,7 @@ model Skill {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  aliases SkillAlias[]
+  aliases         SkillAlias[]
   candidateSkills CandidateSkill[]
 
   @@index([category])
@@ -1463,4 +1482,3 @@ model SkillCandidate {
   @@index([status])
   @@index([normalizedName])
 }
-

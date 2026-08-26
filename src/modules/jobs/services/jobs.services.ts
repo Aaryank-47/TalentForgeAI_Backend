@@ -64,6 +64,23 @@ export class createJobService {
         return jobs;
     }
 
+    static async listPublishedJobs(params?: {
+        search?: string | undefined;
+        employmentType?: any;
+        workplaceType?: any;
+        location?: string | undefined;
+    }): Promise<any[]> {
+        return await JobsRepository.listPublishedJobs(params);
+    }
+
+    static async getPublicJobById(jobId: string): Promise<any> {
+        const job = await JobsRepository.getPublicJobById(jobId);
+        if (!job) {
+            throw new NotFoundError("Job not found or not currently active");
+        }
+        return job;
+    }
+
     static async getJobDetails(
         companyId: string,
         jobId: string

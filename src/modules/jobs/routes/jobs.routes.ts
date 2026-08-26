@@ -13,6 +13,16 @@ import { CompanyDto } from "../../company/dto/company.dto.js"
 
 const router = Router();
 
+router.get(
+    "/published",
+    JobController.listPublishedJobs
+);
+
+router.get(
+    "/published/:jobId",
+    JobController.getPublicJobById
+);
+
 router.post(
     "/company/:companyId/job",
     authMiddleware,

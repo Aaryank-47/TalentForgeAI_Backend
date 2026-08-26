@@ -39,6 +39,39 @@ export class JobController {
         });
     }
 
+    static async listPublishedJobs(
+        req: Request,
+        res: Response
+    ) {
+        const { search, employmentType, workplaceType, location } = req.query;
+        const jobs = await createJobService.listPublishedJobs({
+            search: typeof search === "string" ? search : undefined,
+            employmentType: typeof employmentType === "string" ? employmentType : undefined,
+            workplaceType: typeof workplaceType === "string" ? workplaceType : undefined,
+            location: typeof location === "string" ? location : undefined,
+        });
+
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: "Published jobs retrieved successfully",
+            data: jobs,
+        });
+    }
+
+    static async getPublicJobById(
+        req: Request,
+        res: Response
+    ) {
+        const { jobId } = req.params;
+        const job = await createJobService.getPublicJobById(jobId as string);
+
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: "Job details retrieved successfully",
+            data: job,
+        });
+    }
+
     static async getJobDetails(
         req: Request,
         res: Response

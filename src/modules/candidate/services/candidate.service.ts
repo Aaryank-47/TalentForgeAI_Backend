@@ -1,13 +1,26 @@
 import { AuthRepository } from "../../auth/repositories/auth.repository.js"
 import { NotFoundError } from "../../../common/errors/NotFoundError.js"
-import type { CandidateProfileView, ResumeView, SkillsView, CandidateEducationView, CandidateExperienceView } from "../interfaces/candidate.interface.js"
+import type {
+    CandidateProfileView,
+    ResumeView,
+    SkillsView,
+    CandidateEducationView,
+    CandidateExperienceView
+} from "../interfaces/candidate.interface.js"
 import { CandidateRepository } from "../repository/candidate.repository.js";
-import type { UpdateCandidateProfileDto, SingleSkillDto, AddEducationDto, UpdateEducationDto, AddExperienceDto, UpdateExperienceDto, ToggleOpenToWorkDto, UpdateSalaryPreferencesDto, UpdateLocationPreferencesDto } from "../dto/candidate.dto.js"
+import type {
+    UpdateCandidateProfileDto,
+    SingleSkillDto,
+    AddEducationDto,
+    UpdateEducationDto,
+    AddExperienceDto,
+    UpdateExperienceDto,
+    UpdateSalaryPreferencesDto,
+    UpdateLocationPreferencesDto
+} from "../dto/candidate.dto.js"
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
 import type { Resume, Prisma } from "@prisma/client";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
-import { deleteFileFromCloudinary } from "../../../common/uploads/index.js";
-import { extractPublicId } from "../../company/utils/company.utils.js";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { removeUndefined } from "../../../common/helper/object.helper.js";
@@ -255,17 +268,6 @@ export class CandidateService {
         if (allowedResumes.length !== resumeIds.length) {
             throw new ConflictError("One or more resumes do not exist or do not belong to this user");
         }
-
-        const deletePromises = allowedResumes.map(async (resume) => {
-            const publicId = extractPublicId(resume.resumeUrl);
-            if (publicId) {
-                await deleteFileFromCloudinary({
-                    publicId,
-                    resourceType: 'raw'
-                });
-            }
-        });
-        await Promise.all(deletePromises);
 
         await CandidateRepository.deleteMultipleResumes(resumeIds);
     }

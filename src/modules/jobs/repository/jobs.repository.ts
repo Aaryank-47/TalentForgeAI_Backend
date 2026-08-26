@@ -29,6 +29,94 @@ export class JobsRepository {
         });
     }
 
+    static async listPublishedJobs(params?: {
+        search?: string | undefined;
+        employmentType?: any;
+        workplaceType?: any;
+        location?: string | undefined;
+    }): Promise<any[]> {
+        const where: Prisma.JobWhereInput = {
+            status: JobStatus.PUBLISHED,
+        };
+
+        if (params?.search) {
+            where.OR = [
+                { title: { contains: params.search, mode: "insensitive" } },
+                { description: { contains: params.search, mode: "insensitive" } },
+                { location: { contains: params.search, mode: "insensitive" } },
+            ];
+        }
+
+        if (params?.employmentType) {
+            where.employmentType = params.employmentType;
+        }
+
+        if (params?.workplaceType) {
+            where.workplaceType = params.workplaceType;
+        }
+
+        if (params?.location) {
+            where.location = { contains: params.location, mode: "insensitive" };
+        }
+
+        return prisma.job.findMany({
+            where,
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        companyName: true,
+                        logo: true,
+                        industry: true,
+                        headquarters: true,
+                        isVerified: true,
+                    }
+                },
+                skills: true,
+                benefits: true,
+                _count: {
+                    select: {
+                        applications: true,
+                    }
+                }
+            },
+            orderBy: {
+                publishedAt: "desc",
+            }
+        });
+    }
+
+    static async getPublicJobById(jobId: string): Promise<any> {
+        return prisma.job.findFirst({
+            where: {
+                id: jobId,
+                status: JobStatus.PUBLISHED,
+            },
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        companyName: true,
+                        logo: true,
+                        industry: true,
+                        headquarters: true,
+                        website: true,
+                        description: true,
+                        companySize: true,
+                        isVerified: true,
+                    }
+                },
+                skills: true,
+                benefits: true,
+                _count: {
+                    select: {
+                        applications: true,
+                    }
+                }
+            }
+        });
+    }
+
     static async findJobById(
         jobId: string
     ): Promise<any> {

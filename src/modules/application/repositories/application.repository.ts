@@ -107,15 +107,36 @@ export class ApplicationRepository {
 
     static async createApplication(
         data: {
-            candidateId: string,
-            jobId: string,
-            resumeId: string,
-            status: ApplicationStatus
+            candidateId: string;
+            jobId: string;
+            sourceResumeId: string;
+            fileName: string;
+            fileUrl: string;
+            fileSize: number;
+            status: ApplicationStatus;
         }
     ) {
-        return prisma.application.create({
-            data
-        })
+        return prisma.$transaction(async (tx) => {
+            const application = await tx.application.create({
+                data: {
+                    candidateId: data.candidateId,
+                    jobId: data.jobId,
+                    status: data.status,
+                    applicationResume: {
+                        create: {
+                            sourceResumeId: data.sourceResumeId,
+                            fileName: data.fileName,
+                            fileUrl: data.fileUrl,
+                            fileSize: data.fileSize,
+                        }
+                    }
+                },
+                include: {
+                    applicationResume: true
+                }
+            });
+            return application;
+        });
     }
 
     static async getCandidateApplications(params: {
@@ -166,6 +187,7 @@ export class ApplicationRepository {
                     appliedAt: 'desc',
                 },
                 include: {
+                    applicationResume: true,
                     job: {
                         select: {
                             id: true,
@@ -216,11 +238,13 @@ export class ApplicationRepository {
                         },
                     },
                 },
-                resume: {
+                applicationResume: {
                     select: {
                         id: true,
-                        resumeName: true,
-                        resumeUrl: true,
+                        fileName: true,
+                        fileUrl: true,
+                        fileSize: true,
+                        sourceResumeId: true,
                     },
                 },
             },
@@ -239,6 +263,73 @@ export class ApplicationRepository {
                 ...(withdrawReason !== undefined ? { withdrawReason } : {})
             }
         });
+    }
+
+    static async getCompanyApplications(params: {
+        companyId: string;
+        jobId?: string | undefined;
+        status?: string | undefined;
+        search?: string | undefined;
+        page: number;
+        limit: number;
+    }) {
+        const { companyId, jobId, status, search, page, limit } = params;
+        const skip = (page - 1) * limit;
+
+        const where: any = {
+            job: {
+                companyId,
+            },
+        };
+
+        if (jobId) {
+            where.jobId = jobId;
+        }
+
+        if (status) {
+            where.status = status;
+        }
+
+        if (search) {
+            where.candidate = {
+                user: {
+                    email: {
+                        contains: search,
+                        mode: 'insensitive',
+                    },
+                },
+            };
+        }
+
+        const [applications, total] = await Promise.all([
+            prisma.application.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: {
+                    appliedAt: 'desc',
+                },
+                include: {
+                    candidate: {
+                        include: {
+                            user: {
+                                select: {
+                                    email: true,
+                                    status: true,
+                                }
+                            }
+                        }
+                    },
+                    applicationResume: true,
+                },
+            }),
+            prisma.application.count({ where }),
+        ]);
+
+        return {
+            applications,
+            total,
+        };
     }
 
     static async getJobApplications(params: {
@@ -309,7 +400,7 @@ export class ApplicationRepository {
                             }
                         }
                     },
-                    resume: true,
+                    applicationResume: true,
                 },
             }),
             prisma.application.count({ where }),
@@ -340,7 +431,7 @@ export class ApplicationRepository {
                         skills: true,
                     },
                 },
-                resume: true,
+                applicationResume: true,
                 job: {
                     include: {
                         company: {
