@@ -631,9 +631,9 @@ export class CandidateService {
             throw new NotFoundError('Candidate not found');
         }
 
-        return CandidateRepository.updateCandidateSettings(userId, removeUndefined({
+        return CandidateRepository.updateCandidateProfile(candidate.profile.id, {
             preferredLocation: data.preferredLocation,
             currentLocation: data.currentLocation
-        }) as Prisma.CandidateUpdateInput);
+        });
     }
 }

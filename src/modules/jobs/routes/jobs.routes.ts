@@ -7,12 +7,38 @@ import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany .Middleware.js"
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
+import { ensureCandidateProfile } from "../../../common/middleware/ensureCandidateProfile.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { JobsDto } from "../dto/jobs.dto.js";
 import { CompanyDto } from "../../company/dto/company.dto.js"
 
 const router = Router();
 
+// ─── Saved Jobs (Candidate) ────────────────────────────────────────────────
+router.get(
+    "/saved",
+    authMiddleware,
+    ensureCandidateProfile,
+    JobController.getSavedJobs
+);
+
+router.post(
+    "/:jobId/save",
+    authMiddleware,
+    ensureCandidateProfile,
+    validate(JobsDto.saveJobParam, "params"),
+    JobController.saveJob
+);
+
+router.delete(
+    "/:jobId/save",
+    authMiddleware,
+    ensureCandidateProfile,
+    validate(JobsDto.saveJobParam, "params"),
+    JobController.unsaveJob
+);
+
+// ─── Public / Published Jobs ────────────────────────────────────────────────
 router.get(
     "/published",
     JobController.listPublishedJobs

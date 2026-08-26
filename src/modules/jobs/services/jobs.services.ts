@@ -305,5 +305,37 @@ export class createJobService {
 
         return JobsRepository.removeAssignedCompanyMembers(jobId, companyMemberIds);
     }
+
+    static async saveJob(userId: string, jobId: string) {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        const job = await JobsRepository.findJobById(jobId);
+        if (!job || job.status !== JobStatus.PUBLISHED) {
+            throw new NotFoundError('Published job not found');
+        }
+
+        return JobsRepository.saveJob(candidate.profile.id, jobId);
+    }
+
+    static async unsaveJob(userId: string, jobId: string) {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        return JobsRepository.unsaveJob(candidate.profile.id, jobId);
+    }
+
+    static async getSavedJobs(userId: string) {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+
+        return JobsRepository.getSavedJobs(candidate.profile.id);
+    }
 }
 

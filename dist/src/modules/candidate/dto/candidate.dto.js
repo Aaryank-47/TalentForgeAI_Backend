@@ -130,5 +130,8 @@ export class CandidateDto {
     static getPublicProfileParam = z.object({
         candidateId: candidateIdValidator
     });
+    static savedJobParam = z.object({
+        jobId: z.string().min(1, "Job ID is required")
+    });
 }
 //# sourceMappingURL=candidate.dto.js.map

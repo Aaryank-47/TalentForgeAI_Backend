@@ -25,6 +25,29 @@ export class JobController {
             data: jobs,
         });
     }
+    static async listPublishedJobs(req, res) {
+        const { search, employmentType, workplaceType, location } = req.query;
+        const jobs = await createJobService.listPublishedJobs({
+            search: typeof search === "string" ? search : undefined,
+            employmentType: typeof employmentType === "string" ? employmentType : undefined,
+            workplaceType: typeof workplaceType === "string" ? workplaceType : undefined,
+            location: typeof location === "string" ? location : undefined,
+        });
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: "Published jobs retrieved successfully",
+            data: jobs,
+        });
+    }
+    static async getPublicJobById(req, res) {
+        const { jobId } = req.params;
+        const job = await createJobService.getPublicJobById(jobId);
+        res.status(HTTP_STATUS.OK).json({
+            status: "success",
+            message: "Job details retrieved successfully",
+            data: job,
+        });
+    }
     static async getJobDetails(req, res) {
         const { companyId, jobId } = req.params;
         const job = await createJobService.getJobDetails(companyId, jobId);
@@ -51,6 +74,34 @@ export class JobController {
             status: "success",
             message: MESSAGE.JOB_STATUS_UPDATED,
             data: job
+        });
+    }
+    static async saveJob(req, res) {
+        const userId = req.user.id;
+        const jobId = req.params.jobId;
+        const savedJob = await createJobService.saveJob(userId, jobId);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Job saved successfully",
+            data: savedJob,
+        });
+    }
+    static async unsaveJob(req, res) {
+        const userId = req.user.id;
+        const jobId = req.params.jobId;
+        await createJobService.unsaveJob(userId, jobId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Job removed from saved jobs successfully",
+        });
+    }
+    static async getSavedJobs(req, res) {
+        const userId = req.user.id;
+        const savedJobs = await createJobService.getSavedJobs(userId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Saved jobs fetched successfully",
+            data: savedJobs,
         });
     }
 }

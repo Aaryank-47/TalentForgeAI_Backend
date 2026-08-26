@@ -89,8 +89,26 @@ export class ApplicationRepository {
         });
     }
     static async createApplication(data) {
-        return prisma.application.create({
-            data
+        return prisma.$transaction(async (tx) => {
+            const application = await tx.application.create({
+                data: {
+                    candidateId: data.candidateId,
+                    jobId: data.jobId,
+                    status: data.status,
+                    applicationResume: {
+                        create: {
+                            sourceResumeId: data.sourceResumeId,
+                            fileName: data.fileName,
+                            fileUrl: data.fileUrl,
+                            fileSize: data.fileSize,
+                        }
+                    }
+                },
+                include: {
+                    applicationResume: true
+                }
+            });
+            return application;
         });
     }
     static async getCandidateApplications(params) {
@@ -131,6 +149,45 @@ export class ApplicationRepository {
                     appliedAt: 'desc',
                 },
                 include: {
+                    applicationResume: true,
+                    applicationWorkflow: {
+                        include: {
+                            workflowStage: {
+                                include: {
+                                    stageLibrary: true,
+                                    workflow: {
+                                        include: {
+                                            stages: {
+                                                include: {
+                                                    stageLibrary: true,
+                                                },
+                                                orderBy: {
+                                                    order: 'asc',
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                            workflowHistories: {
+                                include: {
+                                    fromStage: {
+                                        include: {
+                                            stageLibrary: true,
+                                        },
+                                    },
+                                    toStage: {
+                                        include: {
+                                            stageLibrary: true,
+                                        },
+                                    },
+                                },
+                                orderBy: {
+                                    createdAt: 'asc',
+                                },
+                            },
+                        },
+                    },
                     job: {
                         select: {
                             id: true,
@@ -179,11 +236,51 @@ export class ApplicationRepository {
                         },
                     },
                 },
-                resume: {
+                applicationResume: {
                     select: {
                         id: true,
-                        resumeName: true,
-                        resumeUrl: true,
+                        fileName: true,
+                        fileUrl: true,
+                        fileSize: true,
+                        sourceResumeId: true,
+                    },
+                },
+                applicationWorkflow: {
+                    include: {
+                        workflowStage: {
+                            include: {
+                                stageLibrary: true,
+                                workflow: {
+                                    include: {
+                                        stages: {
+                                            include: {
+                                                stageLibrary: true,
+                                            },
+                                            orderBy: {
+                                                order: 'asc',
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        workflowHistories: {
+                            include: {
+                                fromStage: {
+                                    include: {
+                                        stageLibrary: true,
+                                    },
+                                },
+                                toStage: {
+                                    include: {
+                                        stageLibrary: true,
+                                    },
+                                },
+                            },
+                            orderBy: {
+                                createdAt: 'asc',
+                            },
+                        },
                     },
                 },
             },
@@ -197,6 +294,59 @@ export class ApplicationRepository {
                 ...(withdrawReason !== undefined ? { withdrawReason } : {})
             }
         });
+    }
+    static async getCompanyApplications(params) {
+        const { companyId, jobId, status, search, page, limit } = params;
+        const skip = (page - 1) * limit;
+        const where = {
+            job: {
+                companyId,
+            },
+        };
+        if (jobId) {
+            where.jobId = jobId;
+        }
+        if (status) {
+            where.status = status;
+        }
+        if (search) {
+            where.candidate = {
+                user: {
+                    email: {
+                        contains: search,
+                        mode: 'insensitive',
+                    },
+                },
+            };
+        }
+        const [applications, total] = await Promise.all([
+            prisma.application.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: {
+                    appliedAt: 'desc',
+                },
+                include: {
+                    candidate: {
+                        include: {
+                            user: {
+                                select: {
+                                    email: true,
+                                    status: true,
+                                }
+                            }
+                        }
+                    },
+                    applicationResume: true,
+                },
+            }),
+            prisma.application.count({ where }),
+        ]);
+        return {
+            applications,
+            total,
+        };
     }
     static async getJobApplications(params) {
         const { jobId, page, limit, status, search } = params;
@@ -258,7 +408,7 @@ export class ApplicationRepository {
                             }
                         }
                     },
-                    resume: true,
+                    applicationResume: true,
                 },
             }),
             prisma.application.count({ where }),
@@ -287,7 +437,7 @@ export class ApplicationRepository {
                         skills: true,
                     },
                 },
-                resume: true,
+                applicationResume: true,
                 job: {
                     include: {
                         company: {

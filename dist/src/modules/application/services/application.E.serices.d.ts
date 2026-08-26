@@ -39,27 +39,21 @@ export declare class EmployerApplicationService {
                 isOpenToWork: boolean;
                 profileCompletion: number;
             };
-            resume: {
+            applicationResume: {
                 id: string;
-                deletedAt: Date | null;
-                candidateId: string;
-                resumeName: string;
-                resumeUrl: string;
+                createdAt: Date;
                 fileSize: number;
-                uploadedAt: Date;
-                parsingStatus: import("@prisma/client").$Enums.ResumeParsingStatus;
-                parsingStartedAt: Date | null;
-                parsingCompletedAt: Date | null;
-                parsingError: string | null;
-                rawParsedData: import("@prisma/client/runtime/client").JsonValue | null;
-            };
+                applicationId: string;
+                fileName: string;
+                fileUrl: string;
+                sourceResumeId: string | null;
+            } | null;
         } & {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;
             updatedAt: Date;
             candidateId: string;
             jobId: string;
-            resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
             lastStatusUpdatedAt: Date | null;
@@ -143,20 +137,6 @@ export declare class EmployerApplicationService {
             isOpenToWork: boolean;
             profileCompletion: number;
         };
-        resume: {
-            id: string;
-            deletedAt: Date | null;
-            candidateId: string;
-            resumeName: string;
-            resumeUrl: string;
-            fileSize: number;
-            uploadedAt: Date;
-            parsingStatus: import("@prisma/client").$Enums.ResumeParsingStatus;
-            parsingStartedAt: Date | null;
-            parsingCompletedAt: Date | null;
-            parsingError: string | null;
-            rawParsedData: import("@prisma/client/runtime/client").JsonValue | null;
-        };
         job: {
             company: {
                 companyName: string;
@@ -192,13 +172,21 @@ export declare class EmployerApplicationService {
             closedAt: Date | null;
             workflowId: string | null;
         };
+        applicationResume: {
+            id: string;
+            createdAt: Date;
+            fileSize: number;
+            applicationId: string;
+            fileName: string;
+            fileUrl: string;
+            sourceResumeId: string | null;
+        } | null;
     } & {
         id: string;
         status: import("@prisma/client").$Enums.ApplicationStatus;
         updatedAt: Date;
         candidateId: string;
         jobId: string;
-        resumeId: string;
         coverLetter: string | null;
         appliedAt: Date;
         lastStatusUpdatedAt: Date | null;

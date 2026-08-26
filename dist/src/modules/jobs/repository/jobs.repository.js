@@ -17,6 +17,82 @@ export class JobsRepository {
             select: JobSelect
         });
     }
+    static async listPublishedJobs(params) {
+        const where = {
+            status: JobStatus.PUBLISHED,
+        };
+        if (params?.search) {
+            where.OR = [
+                { title: { contains: params.search, mode: "insensitive" } },
+                { description: { contains: params.search, mode: "insensitive" } },
+                { location: { contains: params.search, mode: "insensitive" } },
+            ];
+        }
+        if (params?.employmentType) {
+            where.employmentType = params.employmentType;
+        }
+        if (params?.workplaceType) {
+            where.workplaceType = params.workplaceType;
+        }
+        if (params?.location) {
+            where.location = { contains: params.location, mode: "insensitive" };
+        }
+        return prisma.job.findMany({
+            where,
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        companyName: true,
+                        logo: true,
+                        industry: true,
+                        headquarters: true,
+                        isVerified: true,
+                    }
+                },
+                skills: true,
+                benefits: true,
+                _count: {
+                    select: {
+                        applications: true,
+                    }
+                }
+            },
+            orderBy: {
+                publishedAt: "desc",
+            }
+        });
+    }
+    static async getPublicJobById(jobId) {
+        return prisma.job.findFirst({
+            where: {
+                id: jobId,
+                status: JobStatus.PUBLISHED,
+            },
+            include: {
+                company: {
+                    select: {
+                        id: true,
+                        companyName: true,
+                        logo: true,
+                        industry: true,
+                        headquarters: true,
+                        website: true,
+                        description: true,
+                        companySize: true,
+                        isVerified: true,
+                    }
+                },
+                skills: true,
+                benefits: true,
+                _count: {
+                    select: {
+                        applications: true,
+                    }
+                }
+            }
+        });
+    }
     static async findJobById(jobId) {
         return prisma.job.findUnique({
             where: {
@@ -141,6 +217,80 @@ export class JobsRepository {
                 },
             },
         });
+    }
+    static async saveJob(candidateId, jobId) {
+        return prisma.savedJob.upsert({
+            where: {
+                candidateId_jobId: {
+                    candidateId,
+                    jobId,
+                },
+            },
+            create: {
+                candidateId,
+                jobId,
+            },
+            update: {},
+        });
+    }
+    static async unsaveJob(candidateId, jobId) {
+        return prisma.savedJob.deleteMany({
+            where: {
+                candidateId,
+                jobId,
+            },
+        });
+    }
+    static async getSavedJobs(candidateId) {
+        return prisma.savedJob.findMany({
+            where: {
+                candidateId,
+            },
+            orderBy: {
+                savedAt: 'desc',
+            },
+            include: {
+                job: {
+                    include: {
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                logo: true,
+                                industry: true,
+                                headquarters: true,
+                                isVerified: true,
+                            },
+                        },
+                        skills: {
+                            select: {
+                                id: true,
+                                name: true,
+                                isRequired: true,
+                            },
+                        },
+                        benefits: {
+                            select: {
+                                id: true,
+                                benefit: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+    static async isJobSaved(candidateId, jobId) {
+        const saved = await prisma.savedJob.findUnique({
+            where: {
+                candidateId_jobId: {
+                    candidateId,
+                    jobId,
+                },
+            },
+            select: { id: true },
+        });
+        return !!saved;
     }
 }
 //# sourceMappingURL=jobs.repository.js.map

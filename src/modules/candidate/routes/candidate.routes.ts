@@ -200,5 +200,6 @@ candidateRoutes.patch(
     ensureCandidateProfile,
     validate(CandidateDto.updateLocationPreferences, 'body'),
     CandidateController.updateLocationPreferences
-)
+);
+
 export default candidateRoutes;

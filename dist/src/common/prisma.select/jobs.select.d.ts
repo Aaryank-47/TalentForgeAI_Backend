@@ -38,6 +38,11 @@ export declare const JobSelect: {
             readonly benefit: true;
         };
     };
+    readonly _count: {
+        readonly select: {
+            readonly applications: true;
+        };
+    };
     readonly workflowId: true;
     readonly workflow: {
         readonly select: {

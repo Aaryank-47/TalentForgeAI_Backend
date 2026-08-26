@@ -3,8 +3,6 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { CandidateRepository } from "../repository/candidate.repository.js";
 import { calculateCandidateProfileCompletion } from "../utils/profileCompletion.util.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
-import { deleteFileFromCloudinary } from "../../../common/uploads/index.js";
-import { extractPublicId } from "../../company/utils/company.utils.js";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { removeUndefined } from "../../../common/helper/object.helper.js";
@@ -185,16 +183,6 @@ export class CandidateService {
         if (allowedResumes.length !== resumeIds.length) {
             throw new ConflictError("One or more resumes do not exist or do not belong to this user");
         }
-        const deletePromises = allowedResumes.map(async (resume) => {
-            const publicId = extractPublicId(resume.resumeUrl);
-            if (publicId) {
-                await deleteFileFromCloudinary({
-                    publicId,
-                    resourceType: 'raw'
-                });
-            }
-        });
-        await Promise.all(deletePromises);
         await CandidateRepository.deleteMultipleResumes(resumeIds);
     }
     static async addSkills(candidateId, skills) {
@@ -422,10 +410,10 @@ export class CandidateService {
         if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
             throw new NotFoundError('Candidate not found');
         }
-        return CandidateRepository.updateCandidateSettings(userId, removeUndefined({
+        return CandidateRepository.updateCandidateProfile(candidate.profile.id, {
             preferredLocation: data.preferredLocation,
             currentLocation: data.currentLocation
-        }));
+        });
     }
 }
 //# sourceMappingURL=candidate.service.js.map

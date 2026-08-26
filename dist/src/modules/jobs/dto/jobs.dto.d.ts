@@ -110,6 +110,9 @@ export declare class JobsDto {
     static removeAssignedCompanyMembers: z.ZodObject<{
         companyMemberIds: z.ZodArray<z.ZodString>;
     }, z.core.$strip>;
+    static saveJobParam: z.ZodObject<{
+        jobId: z.ZodString;
+    }, z.core.$strip>;
 }
 export type JobCreationDto = z.infer<typeof JobsDto.createJob>;
 export type JobUpdateDto = z.infer<typeof JobsDto.updateJob>;

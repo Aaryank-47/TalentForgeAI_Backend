@@ -251,7 +251,6 @@ export declare class InterviewSessionsRepositories {
                     updatedAt: Date;
                     candidateId: string;
                     jobId: string;
-                    resumeId: string;
                     coverLetter: string | null;
                     appliedAt: Date;
                     lastStatusUpdatedAt: Date | null;

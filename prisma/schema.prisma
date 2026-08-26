@@ -222,6 +222,7 @@ model Candidate {
   resumes            Resume[]
   applications       Application[]
   assessmentAttempts AssessmentAttempt[]
+  savedJobs          SavedJob[]
 
   @@index([experienceLevel])
   @@index([currentLocation])
@@ -377,6 +378,7 @@ model Job {
   benefits       JobBenefit[]
   members        JobMember[]
   applications   Application[]
+  savedJobs      SavedJob[]
   workflowId     String?
   workflow       Workflow?       @relation(fields: [workflowId], references: [id])
   jobAssessments JobAssessment[]
@@ -387,6 +389,20 @@ model Job {
   @@index([employmentType])
   @@index([workplaceType])
   @@index([workflowId])
+}
+
+model SavedJob {
+  id          String    @id @default(cuid())
+  candidateId String
+  jobId       String
+  savedAt     DateTime  @default(now())
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, jobId])
+  @@index([candidateId])
+  @@index([jobId])
 }
 
 model JobSkill {

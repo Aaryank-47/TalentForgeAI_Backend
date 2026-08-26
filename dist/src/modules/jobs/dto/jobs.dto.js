@@ -99,5 +99,8 @@ export class JobsDto {
     static removeAssignedCompanyMembers = z.object({
         companyMemberIds: z.array(uuidValidator).min(1, "At least one company member ID must be provided"),
     });
+    static saveJobParam = z.object({
+        jobId: jobIdValidator,
+    });
 }
 //# sourceMappingURL=jobs.dto.js.map

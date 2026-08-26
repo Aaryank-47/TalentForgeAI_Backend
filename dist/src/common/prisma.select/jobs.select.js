@@ -38,6 +38,11 @@ export const JobSelect = {
             benefit: true,
         },
     },
+    _count: {
+        select: {
+            applications: true,
+        },
+    },
     workflowId: true,
     workflow: {
         select: {

@@ -276,5 +276,83 @@ export class JobsRepository {
             },
         });
     }
+
+    static async saveJob(candidateId: string, jobId: string) {
+        return prisma.savedJob.upsert({
+            where: {
+                candidateId_jobId: {
+                    candidateId,
+                    jobId,
+                },
+            },
+            create: {
+                candidateId,
+                jobId,
+            },
+            update: {},
+        });
+    }
+
+    static async unsaveJob(candidateId: string, jobId: string) {
+        return prisma.savedJob.deleteMany({
+            where: {
+                candidateId,
+                jobId,
+            },
+        });
+    }
+
+    static async getSavedJobs(candidateId: string) {
+        return prisma.savedJob.findMany({
+            where: {
+                candidateId,
+            },
+            orderBy: {
+                savedAt: 'desc',
+            },
+            include: {
+                job: {
+                    include: {
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                logo: true,
+                                industry: true,
+                                headquarters: true,
+                                isVerified: true,
+                            },
+                        },
+                        skills: {
+                            select: {
+                                id: true,
+                                name: true,
+                                isRequired: true,
+                            },
+                        },
+                        benefits: {
+                            select: {
+                                id: true,
+                                benefit: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    static async isJobSaved(candidateId: string, jobId: string): Promise<boolean> {
+        const saved = await prisma.savedJob.findUnique({
+            where: {
+                candidateId_jobId: {
+                    candidateId,
+                    jobId,
+                },
+            },
+            select: { id: true },
+        });
+        return !!saved;
+    }
 }
 

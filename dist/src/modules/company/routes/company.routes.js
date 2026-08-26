@@ -15,6 +15,7 @@ router.post("/register", authMiddleware, validate(CompanyDto.createCompany, "bod
 router.get("/metadata", CompanyController.getCompanyMetadata);
 router.get("/my", authMiddleware, CompanyController.getMyCompanies);
 router.get("/search", validate(CompanyDto.searchCompany, "query"), CompanyController.searchCompanies);
+router.get("/public/:companyId", validate(CompanyDto.companyIdParam, "params"), CompanyController.getCompanyDetails);
 router.get("/:companyId", authMiddleware, ensureActiveCompanyMember, validate(CompanyDto.companyIdParam, "params"), CompanyController.getCompanyDetails);
 router.patch("/update/:companyId", authMiddleware, ensureActiveCompanyMember, validate(CompanyDto.companyIdParam, "params"), ensureActiveCompany, validate(CompanyDto.updateCompany, "body"), CompanyController.updateCompanyProfile);
 router.delete("/delete/:companyId", authMiddleware, ensureActiveCompanyMember, validate(CompanyDto.companyIdParam, "params"), ensureActiveCompany, CompanyController.deleteCompanyProfile);

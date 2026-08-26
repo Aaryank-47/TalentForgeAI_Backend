@@ -124,7 +124,6 @@ export declare class JobAssessmentRepository {
         updatedAt: Date;
         candidateId: string;
         jobId: string;
-        resumeId: string;
         coverLetter: string | null;
         appliedAt: Date;
         lastStatusUpdatedAt: Date | null;
@@ -184,7 +183,6 @@ export declare class JobAssessmentRepository {
             updatedAt: Date;
             candidateId: string;
             jobId: string;
-            resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
             lastStatusUpdatedAt: Date | null;
@@ -240,7 +238,6 @@ export declare class JobAssessmentRepository {
             updatedAt: Date;
             candidateId: string;
             jobId: string;
-            resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
             lastStatusUpdatedAt: Date | null;
@@ -281,7 +278,6 @@ export declare class JobAssessmentRepository {
             updatedAt: Date;
             candidateId: string;
             jobId: string;
-            resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
             lastStatusUpdatedAt: Date | null;

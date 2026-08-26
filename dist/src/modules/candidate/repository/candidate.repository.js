@@ -62,7 +62,8 @@ export class CandidateRepository {
     static async findResumesByCandidateId(candidateId) {
         return prisma.resume.findMany({
             where: {
-                candidateId: candidateId
+                candidateId: candidateId,
+                deletedAt: null
             },
             select: resume
         });
@@ -70,7 +71,8 @@ export class CandidateRepository {
     static async findResumeById(resumeId) {
         return prisma.resume.findMany({
             where: {
-                id: resumeId
+                id: resumeId,
+                deletedAt: null
             }
         });
     }
@@ -78,6 +80,7 @@ export class CandidateRepository {
         return prisma.resume.findMany({
             where: {
                 id: resumeId,
+                deletedAt: null,
                 candidate: {
                     userId: userId
                 }
@@ -90,6 +93,7 @@ export class CandidateRepository {
                 id: {
                     in: resumeIds
                 },
+                deletedAt: null,
                 candidate: {
                     userId: userId
                 }
@@ -97,18 +101,25 @@ export class CandidateRepository {
         });
     }
     static async deleteResume(resumeId) {
-        return prisma.resume.delete({
+        return prisma.resume.update({
             where: {
                 id: resumeId
+            },
+            data: {
+                deletedAt: new Date()
             }
         });
     }
     static async deleteMultipleResumes(resumeIds) {
-        return prisma.resume.deleteMany({
+        return prisma.resume.updateMany({
             where: {
                 id: {
                     in: resumeIds
-                }
+                },
+                deletedAt: null
+            },
+            data: {
+                deletedAt: new Date()
             }
         });
     }

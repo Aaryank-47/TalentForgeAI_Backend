@@ -1,6 +1,7 @@
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { MESSAGE } from "../../../common/constants/messages.js";
 import { ApplicationService } from "../services/application.C.services.js";
+import { ApplicationStatus } from "../../../common/enums/all_enums.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 export class ApplicationController {
@@ -50,11 +51,13 @@ export class ApplicationController {
     static async withdrawApplication(req, res) {
         const userId = req.user.id;
         const { applicationId } = req.params;
-        const { status, withdrawReason } = req.body;
+        const { status, withdrawReason, remarks } = req.body;
         if (typeof applicationId !== "string") {
             throw new BadRequestError("Application ID is required");
         }
-        await ApplicationService.withdrawApplication(userId, applicationId, status, withdrawReason);
+        const reason = withdrawReason || remarks || "Candidate requested withdrawal";
+        const targetStatus = status || ApplicationStatus.WITHDRAWN;
+        await ApplicationService.withdrawApplication(userId, applicationId, targetStatus, reason);
         res.status(HTTP_STATUS.OK).json({
             success: true,
             statusCode: HTTP_STATUS.OK,

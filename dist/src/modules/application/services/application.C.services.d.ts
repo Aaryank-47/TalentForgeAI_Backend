@@ -24,13 +24,145 @@ export declare class ApplicationService {
                 maximumSalary: number | null;
                 salaryPeriod: import("@prisma/client").$Enums.SalaryPeriod | null;
             };
+            applicationResume: {
+                id: string;
+                createdAt: Date;
+                fileSize: number;
+                applicationId: string;
+                fileName: string;
+                fileUrl: string;
+                sourceResumeId: string | null;
+            } | null;
+            applicationWorkflow: ({
+                workflowHistories: ({
+                    fromStage: ({
+                        stageLibrary: {
+                            type: import("@prisma/client").$Enums.StageType;
+                            companyId: string | null;
+                            description: string | null;
+                            name: string;
+                            id: string;
+                            createdAt: Date;
+                            updatedAt: Date;
+                            isActive: boolean;
+                        };
+                    } & {
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        assessmentId: string | null;
+                        workflowId: string;
+                        stageLibraryId: string;
+                        order: number;
+                        isEnabled: boolean;
+                        isFinal: boolean;
+                        interviewId: string | null;
+                    }) | null;
+                    toStage: {
+                        stageLibrary: {
+                            type: import("@prisma/client").$Enums.StageType;
+                            companyId: string | null;
+                            description: string | null;
+                            name: string;
+                            id: string;
+                            createdAt: Date;
+                            updatedAt: Date;
+                            isActive: boolean;
+                        };
+                    } & {
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        assessmentId: string | null;
+                        workflowId: string;
+                        stageLibraryId: string;
+                        order: number;
+                        isEnabled: boolean;
+                        isFinal: boolean;
+                        interviewId: string | null;
+                    };
+                } & {
+                    id: string;
+                    createdAt: Date;
+                    toStageId: string;
+                    fromStageId: string | null;
+                    applicationWorkflowId: string;
+                    movedByEmployerId: string | null;
+                    comment: string | null;
+                })[];
+                workflowStage: {
+                    workflow: {
+                        stages: ({
+                            stageLibrary: {
+                                type: import("@prisma/client").$Enums.StageType;
+                                companyId: string | null;
+                                description: string | null;
+                                name: string;
+                                id: string;
+                                createdAt: Date;
+                                updatedAt: Date;
+                                isActive: boolean;
+                            };
+                        } & {
+                            id: string;
+                            createdAt: Date;
+                            updatedAt: Date;
+                            assessmentId: string | null;
+                            workflowId: string;
+                            stageLibraryId: string;
+                            order: number;
+                            isEnabled: boolean;
+                            isFinal: boolean;
+                            interviewId: string | null;
+                        })[];
+                    } & {
+                        companyId: string;
+                        description: string | null;
+                        name: string;
+                        id: string;
+                        status: import("@prisma/client").$Enums.WorkflowStatus;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        isDefault: boolean;
+                    };
+                    stageLibrary: {
+                        type: import("@prisma/client").$Enums.StageType;
+                        companyId: string | null;
+                        description: string | null;
+                        name: string;
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        isActive: boolean;
+                    };
+                } & {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    assessmentId: string | null;
+                    workflowId: string;
+                    stageLibraryId: string;
+                    order: number;
+                    isEnabled: boolean;
+                    isFinal: boolean;
+                    interviewId: string | null;
+                };
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                applicationId: string;
+                workflowStageId: string;
+                assignedEmployerId: string | null;
+                remarks: string | null;
+                movedAt: Date;
+            }) | null;
         } & {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;
             updatedAt: Date;
             candidateId: string;
             jobId: string;
-            resumeId: string;
             coverLetter: string | null;
             appliedAt: Date;
             lastStatusUpdatedAt: Date | null;
@@ -43,11 +175,6 @@ export declare class ApplicationService {
         total: number;
     }>;
     static getCandidateApplicationDetails(userId: string, applicationId: string): Promise<{
-        resume: {
-            id: string;
-            resumeName: string;
-            resumeUrl: string;
-        };
         job: {
             company: {
                 companyName: string;
@@ -85,13 +212,143 @@ export declare class ApplicationService {
             closedAt: Date | null;
             workflowId: string | null;
         };
+        applicationResume: {
+            id: string;
+            fileSize: number;
+            fileName: string;
+            fileUrl: string;
+            sourceResumeId: string | null;
+        } | null;
+        applicationWorkflow: ({
+            workflowHistories: ({
+                fromStage: ({
+                    stageLibrary: {
+                        type: import("@prisma/client").$Enums.StageType;
+                        companyId: string | null;
+                        description: string | null;
+                        name: string;
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        isActive: boolean;
+                    };
+                } & {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    assessmentId: string | null;
+                    workflowId: string;
+                    stageLibraryId: string;
+                    order: number;
+                    isEnabled: boolean;
+                    isFinal: boolean;
+                    interviewId: string | null;
+                }) | null;
+                toStage: {
+                    stageLibrary: {
+                        type: import("@prisma/client").$Enums.StageType;
+                        companyId: string | null;
+                        description: string | null;
+                        name: string;
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        isActive: boolean;
+                    };
+                } & {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    assessmentId: string | null;
+                    workflowId: string;
+                    stageLibraryId: string;
+                    order: number;
+                    isEnabled: boolean;
+                    isFinal: boolean;
+                    interviewId: string | null;
+                };
+            } & {
+                id: string;
+                createdAt: Date;
+                toStageId: string;
+                fromStageId: string | null;
+                applicationWorkflowId: string;
+                movedByEmployerId: string | null;
+                comment: string | null;
+            })[];
+            workflowStage: {
+                workflow: {
+                    stages: ({
+                        stageLibrary: {
+                            type: import("@prisma/client").$Enums.StageType;
+                            companyId: string | null;
+                            description: string | null;
+                            name: string;
+                            id: string;
+                            createdAt: Date;
+                            updatedAt: Date;
+                            isActive: boolean;
+                        };
+                    } & {
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        assessmentId: string | null;
+                        workflowId: string;
+                        stageLibraryId: string;
+                        order: number;
+                        isEnabled: boolean;
+                        isFinal: boolean;
+                        interviewId: string | null;
+                    })[];
+                } & {
+                    companyId: string;
+                    description: string | null;
+                    name: string;
+                    id: string;
+                    status: import("@prisma/client").$Enums.WorkflowStatus;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    isDefault: boolean;
+                };
+                stageLibrary: {
+                    type: import("@prisma/client").$Enums.StageType;
+                    companyId: string | null;
+                    description: string | null;
+                    name: string;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    isActive: boolean;
+                };
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                assessmentId: string | null;
+                workflowId: string;
+                stageLibraryId: string;
+                order: number;
+                isEnabled: boolean;
+                isFinal: boolean;
+                interviewId: string | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            applicationId: string;
+            workflowStageId: string;
+            assignedEmployerId: string | null;
+            remarks: string | null;
+            movedAt: Date;
+        }) | null;
     } & {
         id: string;
         status: import("@prisma/client").$Enums.ApplicationStatus;
         updatedAt: Date;
         candidateId: string;
         jobId: string;
-        resumeId: string;
         coverLetter: string | null;
         appliedAt: Date;
         lastStatusUpdatedAt: Date | null;

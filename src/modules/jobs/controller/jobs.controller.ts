@@ -114,4 +114,44 @@ export class JobController {
             data: job
         });
     }
+
+    static async saveJob(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const jobId = req.params.jobId as string;
+        const savedJob = await createJobService.saveJob(userId, jobId);
+        res.status(HTTP_STATUS.CREATED).json({
+            success: true,
+            message: "Job saved successfully",
+            data: savedJob,
+        });
+    }
+
+    static async unsaveJob(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const jobId = req.params.jobId as string;
+        await createJobService.unsaveJob(userId, jobId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Job removed from saved jobs successfully",
+        });
+    }
+
+    static async getSavedJobs(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const savedJobs = await createJobService.getSavedJobs(userId);
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Saved jobs fetched successfully",
+            data: savedJobs,
+        });
+    }
 }

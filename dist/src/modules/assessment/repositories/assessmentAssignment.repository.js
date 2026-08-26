@@ -74,6 +74,9 @@ export class JobAssessmentRepository {
                     deletedAt: null
                 }
             },
+            orderBy: {
+                displayOrder: "asc"
+            },
             include: {
                 assessment: {
                     select: {

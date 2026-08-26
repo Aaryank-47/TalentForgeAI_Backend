@@ -37,6 +37,16 @@ export class createJobService {
         const jobs = await JobsRepository.listCompanyJobs(companyId);
         return jobs;
     }
+    static async listPublishedJobs(params) {
+        return await JobsRepository.listPublishedJobs(params);
+    }
+    static async getPublicJobById(jobId) {
+        const job = await JobsRepository.getPublicJobById(jobId);
+        if (!job) {
+            throw new NotFoundError("Job not found or not currently active");
+        }
+        return job;
+    }
     static async getJobDetails(companyId, jobId) {
         const company = await CompanyRepository.findCompanyById(companyId);
         if (!company) {
@@ -192,6 +202,31 @@ export class createJobService {
             }
         }
         return JobsRepository.removeAssignedCompanyMembers(jobId, companyMemberIds);
+    }
+    static async saveJob(userId, jobId) {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+        const job = await JobsRepository.findJobById(jobId);
+        if (!job || job.status !== JobStatus.PUBLISHED) {
+            throw new NotFoundError('Published job not found');
+        }
+        return JobsRepository.saveJob(candidate.profile.id, jobId);
+    }
+    static async unsaveJob(userId, jobId) {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+        return JobsRepository.unsaveJob(candidate.profile.id, jobId);
+    }
+    static async getSavedJobs(userId) {
+        const candidate = await AuthRepository.findProfileByUserId(userId);
+        if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
+            throw new NotFoundError('Candidate not found');
+        }
+        return JobsRepository.getSavedJobs(candidate.profile.id);
     }
 }
 //# sourceMappingURL=jobs.services.js.map

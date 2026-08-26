@@ -15,8 +15,9 @@ export declare class ApplicationDto {
         }>;
     }, z.z.core.$strip>;
     static withdrawApplication: z.ZodObject<{
-        status: z.ZodLiteral<ApplicationStatus.WITHDRAWN>;
+        status: z.ZodDefault<z.ZodOptional<z.ZodEnum<typeof ApplicationStatus>>>;
         withdrawReason: z.ZodOptional<z.ZodString>;
+        remarks: z.ZodOptional<z.ZodString>;
     }, z.z.core.$strip>;
     static applicationIdParam: z.ZodObject<{
         applicationId: z.ZodString;
