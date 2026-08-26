@@ -11,6 +11,7 @@ export interface AssessmentAttemptStartResponse {
 
 export interface AssessmentAttemptResponse {
     attemptId: string;
+    assessmentId?: string;
     assessmentTitle: string;
     status: AttemptStatus;
     startedAt: Date;
@@ -19,6 +20,7 @@ export interface AssessmentAttemptResponse {
     currentSectionId: string | null;
     description?: string | null;
     instructions?: string | null;
+    sections?: any[];
 }
 
 export interface PaginatedAssessmentAttemptResponse {

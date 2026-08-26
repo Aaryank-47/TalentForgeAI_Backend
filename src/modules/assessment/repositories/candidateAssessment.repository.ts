@@ -55,7 +55,7 @@ export class AssessmentAttemptRepository {
         });
     }
 
-    static async findAttemptById(id: string) {
+    static async findAttemptById(id: string): Promise<any> {
         return await prisma.assessmentAttempt.findUnique({
             where: { id },
             include: {
@@ -65,14 +65,40 @@ export class AssessmentAttemptRepository {
                     }
                 },
                 assessment: {
-                    select: {
-                        id: true,
-                        title: true,
-                        companyId: true,
-                        durationMinutes: true,
-                        status: true,
-                        description: true,
-                        instructions: true
+                    include: {
+                        sections: {
+                            orderBy: { displayOrder: "asc" },
+                            include: {
+                                items: {
+                                    orderBy: { displayOrder: "asc" },
+                                    include: {
+                                        question: {
+                                            include: {
+                                                mcqDetail: {
+                                                    include: {
+                                                        options: {
+                                                            orderBy: { displayOrder: "asc" },
+                                                            select: {
+                                                                id: true,
+                                                                optionText: true,
+                                                                displayOrder: true
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                dsaDetail: {
+                                                    include: {
+                                                        testCases: {
+                                                            where: { type: "SAMPLE" }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -1021,7 +1021,13 @@ export const assessmentAnswerFeedbackValidator = z
   .optional();
 export const selectedOptionIdsValidator = z.array(uuidValidator);
 export const attachmentUrlsValidator = z.array(z.string().url("Please enter valid attachment URLs"));
-export const codeResponseValidator = z.string().optional();
+export const codeResponseValidator = z.union([
+  z.string(),
+  z.object({
+    code: z.string(),
+    language: z.string().optional()
+  })
+]).optional();
 export const submissionUrlValidator = z.string().url("Please enter a valid submission URL").optional();
 export const metaValidator = z.any().optional();
 

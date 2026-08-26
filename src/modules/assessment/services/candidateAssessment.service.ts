@@ -1,4 +1,5 @@
 import { AssessmentAttemptRepository } from "../repositories/candidateAssessment.repository.js";
+import { AssessmentEvaluationService } from "./assessmentEvaluation.service.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
@@ -60,7 +61,19 @@ export class AssessmentAttemptService {
 
         const activeAttempt = invitation.application.assessmentAttempts.find(att => att.status === AttemptStatus.IN_PROGRESS);
         if (activeAttempt) {
-            throw new ConflictError("An attempt is already in progress.");
+            const durationMinutes = invitation.assessment.durationMinutes || 0;
+            const startedAt = activeAttempt.startedAt || activeAttempt.createdAt;
+            const endsAt = new Date(startedAt.getTime() + durationMinutes * 60 * 1000);
+            const remainingSeconds = Math.max(0, Math.floor((endsAt.getTime() - Date.now()) / 1000));
+
+            return {
+                attemptId: activeAttempt.id,
+                assessmentId: activeAttempt.assessmentId,
+                status: activeAttempt.status,
+                startedAt,
+                endsAt,
+                remainingSeconds
+            };
         }
 
         const attemptCount = invitation.application.assessmentAttempts.length;
@@ -121,8 +134,60 @@ export class AssessmentAttemptService {
             ? Math.max(0, Math.floor((endsAt.getTime() - Date.now()) / 1000))
             : 0;
 
+        const sections = (attempt.assessment.sections || []).map((sec: any) => ({
+            id: sec.id,
+            name: sec.name,
+            description: sec.description,
+            type: sec.type,
+            displayOrder: sec.displayOrder,
+            durationMinutes: sec.durationMinutes,
+            questions: (sec.items || []).map((item: any) => {
+                const q = item.question;
+                const mcqOptions = q.mcqDetail?.options?.map((o: any) => ({
+                    id: o.id,
+                    text: o.optionText,
+                    displayOrder: o.displayOrder
+                })) || (q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options).map((opt: string, idx: number) => ({
+                    id: String(idx),
+                    text: opt,
+                    displayOrder: idx + 1
+                })) : []);
+
+                let starterCode = q.dsaDetail?.starterCode || q.starterCode || null;
+                if (typeof starterCode === 'string' && (starterCode.startsWith('{') || starterCode.startsWith('['))) {
+                    try {
+                        starterCode = JSON.parse(starterCode);
+                    } catch {}
+                }
+
+                const sampleTestcases = (q.dsaDetail?.testCases || []).map((tc: any) => ({
+                    input: tc.input,
+                    output: tc.expectedOutput,
+                    explanation: tc.explanation
+                }));
+
+                return {
+                    id: q.id,
+                    sectionItemId: item.id,
+                    type: q.type,
+                    title: q.title,
+                    description: q.description,
+                    problemStatement: q.description || q.title,
+                    difficulty: q.difficulty,
+                    marks: item.weightage || q.defaultMarks || 10,
+                    negativeMarks: q.mcqDetail?.negativeMarks || 0,
+                    allowMultiple: q.mcqDetail?.allowMultipleCorrectAnswers || false,
+                    options: mcqOptions,
+                    starterCode: starterCode,
+                    sampleTestcases: sampleTestcases,
+                    displayOrder: item.displayOrder
+                };
+            })
+        }));
+
         return {
             attemptId: attempt.id,
+            assessmentId: attempt.assessment.id,
             assessmentTitle: attempt.assessment.title,
             status: attempt.status,
             startedAt,
@@ -130,7 +195,8 @@ export class AssessmentAttemptService {
             remainingSeconds,
             currentSectionId: attempt.currentSectionId,
             description: attempt.assessment.description,
-            instructions: attempt.assessment.instructions
+            instructions: attempt.assessment.instructions,
+            sections
         };
     }
 
@@ -250,6 +316,13 @@ export class AssessmentAttemptService {
             await AssessmentAttemptRepository.updateInvitationStatus(invitation.id, InvitationStatus.SUBMITTED);
         }
 
+        // Trigger evaluation orchestrator to calculate MCQ & DSA scorecard immediately
+        try {
+            await AssessmentEvaluationService.runOrchestrator(attemptId);
+        } catch (evalErr) {
+            console.error("Automated attempt evaluation error:", evalErr);
+        }
+
         return {
             attemptId: updatedAttempt.id,
             status: updatedAttempt.status,
@@ -332,13 +405,10 @@ export class AssessmentAttemptService {
                 if (!question.dsaDetail) {
                     throw new ValidationError("Question DSA details not found.");
                 }
-                const supportedLangIds = question.dsaDetail.supportedLanguages.map(sl => sl.programmingLanguageId);
-                const selectedLangId = validatedData.meta?.languageId;
-                if (!selectedLangId) {
-                    throw new ValidationError("Language ID is required for DSA questions.");
-                }
-                if (!supportedLangIds.includes(selectedLangId)) {
-                    throw new ValidationError(`Programming language ID '${selectedLangId}' is not supported by this question.`);
+                const supportedLangIds = (question.dsaDetail.supportedLanguages || []).map(sl => sl.programmingLanguageId);
+                const selectedLangId = validatedData.meta?.languageId || validatedData.meta?.language;
+                if (supportedLangIds.length > 0 && selectedLangId && !supportedLangIds.includes(selectedLangId)) {
+                    logger.warn({ selectedLangId, supportedLangIds }, "Language not in explicit supportedLanguages list, proceeding with candidate language.");
                 }
             } else if (qType === "PROJECT" || qType === "MACHINE_CODING") {
                 validatedData = projectSaveValidationSchema.parse(dto);
@@ -367,10 +437,19 @@ export class AssessmentAttemptService {
         );
 
         try {
+            let finalCodeResponse: string | null = null;
+            if (validatedData.codeResponse !== undefined) {
+                if (typeof validatedData.codeResponse === 'string') {
+                    finalCodeResponse = validatedData.codeResponse;
+                } else if (typeof validatedData.codeResponse === 'object' && validatedData.codeResponse !== null) {
+                    finalCodeResponse = validatedData.codeResponse.code || JSON.stringify(validatedData.codeResponse);
+                }
+            }
+
             const answer = await AssessmentAttemptRepository.upsertAnswer(attemptId, questionId, {
                 selectedOptionIds: validatedData.selectedOptionIds || [],
                 attachmentUrls: validatedData.attachmentUrls || [],
-                codeResponse: validatedData.codeResponse !== undefined ? validatedData.codeResponse : null,
+                codeResponse: finalCodeResponse,
                 submissionUrl: validatedData.submissionUrl !== undefined ? validatedData.submissionUrl : null,
                 meta: validatedData.meta || null
             });
