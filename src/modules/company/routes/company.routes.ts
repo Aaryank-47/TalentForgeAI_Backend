@@ -38,6 +38,12 @@ router.get(
 );
 
 router.get(
+    "/public/:companyId",
+    validate(CompanyDto.companyIdParam, "params"),
+    CompanyController.getCompanyDetails
+);
+
+router.get(
     "/:companyId",
     authMiddleware,
     ensureActiveCompanyMember,
