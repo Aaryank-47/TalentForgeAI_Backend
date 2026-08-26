@@ -88,7 +88,7 @@ router.post(
 router.get(
     "/applications/:applicationId/assessment-invitation",
     authMiddleware,
-    authorize(UserRole.CANDIDATE),
+    authorize(UserRole.CANDIDATE, UserRole.EMPLOYER, UserRole.ADMIN),
     validate(applicationIdParamSchema, "params"),
     JobAssessmentController.getAssessmentInvitation
 );

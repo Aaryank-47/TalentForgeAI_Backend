@@ -155,7 +155,12 @@ export class JobAssessmentService {
         }
 
         const currentStageAssessmentId = application.applicationWorkflow?.workflowStage?.assessmentId;
-        if (!currentStageAssessmentId || currentStageAssessmentId !== assessmentId) {
+        const jobAssessmentMatch = application.job?.jobAssessments?.some(ja => ja.assessmentId === assessmentId);
+
+        if (!currentStageAssessmentId && !jobAssessmentMatch) {
+            throw new ConflictError("This assessment is not assigned to this job or the current workflow stage.");
+        }
+        if (currentStageAssessmentId && currentStageAssessmentId !== assessmentId && !jobAssessmentMatch) {
             throw new ConflictError("This assessment is not assigned to the current workflow stage of this application.");
         }
 
@@ -186,7 +191,7 @@ export class JobAssessmentService {
         });
 
         if (dto.sendEmail && application.candidate.user.email) {
-            const inviteLink = `${env.app.frontendUrl}/assessments/take?token=${token}`;
+            const inviteLink = `${env.app.frontendUrl}/candidate/assessments/${assessment.id}/preparation?token=${token}&applicationId=${applicationId}`;
             const template = emailTemplates.assessmentInvitationTemplate(
                 application.candidate.fullName,
                 assessment.title,
@@ -212,34 +217,55 @@ export class JobAssessmentService {
 
     static async getAssessmentInvitation(
         applicationId: string
-    ): Promise<GetAssessmentInvitationResponse> {
+    ) {
         const invitation = await JobAssessmentRepository.findInvitationWithAttempt(applicationId);
         if (!invitation) {
             throw new NotFoundError("No assessment invitation found for this application.");
         }
 
         const latestAttempt = invitation.application.assessmentAttempts[0];
-        let status = "PENDING";
+        let status = invitation.status as string;
 
         if (latestAttempt) {
             if (latestAttempt.status === "SUBMITTED") {
-                status = "SUBMITTED";
+                status = "COMPLETED";
             } else if (latestAttempt.status === "IN_PROGRESS") {
-                status = "STARTED";
+                status = "IN_PROGRESS";
             } else if (latestAttempt.status === "EXPIRED") {
                 status = "EXPIRED";
             }
         } else {
-            if (new Date(invitation.expiresAt) < new Date()) {
+            if (new Date(invitation.expiresAt) < new Date() && status === "PENDING") {
                 status = "EXPIRED";
             }
         }
 
         return {
             id: invitation.id,
+            token: invitation.token,
+            applicationId: invitation.applicationId,
             status,
-            assessmentTitle: invitation.assessment.title,
-            expiresAt: invitation.expiresAt
+            expiresAt: invitation.expiresAt,
+            createdAt: invitation.createdAt,
+            assessment: {
+                id: invitation.assessment.id,
+                title: invitation.assessment.title,
+                description: invitation.assessment.description,
+                instructions: invitation.assessment.instructions,
+                durationMinutes: invitation.assessment.durationMinutes,
+                passingScore: invitation.assessment.passingScore,
+                totalMarks: invitation.assessment.totalMarks,
+                company: invitation.assessment.company || invitation.application?.job?.company || null,
+            },
+            job: invitation.application?.job || null,
+            attempt: latestAttempt ? {
+                id: latestAttempt.id,
+                status: latestAttempt.status,
+                overallScore: latestAttempt.overallScore,
+                percentage: latestAttempt.percentage,
+                startedAt: latestAttempt.startedAt,
+                submittedAt: latestAttempt.submittedAt,
+            } : null
         };
     }
 
@@ -291,7 +317,7 @@ export class JobAssessmentService {
         }
 
         if (invitation.application.candidate.user.email) {
-            const inviteLink = `${env.app.frontendUrl}/assessments/take?token=${invitation.token}`;
+            const inviteLink = `${env.app.frontendUrl}/candidate/assessments/${invitation.assessment.id}/preparation?token=${invitation.token}&applicationId=${invitation.applicationId}`;
             const template = emailTemplates.assessmentInvitationTemplate(
                 invitation.application.candidate.fullName,
                 invitation.assessment.title,

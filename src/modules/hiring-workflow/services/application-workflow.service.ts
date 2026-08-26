@@ -4,6 +4,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { JobsRepository } from "../../jobs/repository/jobs.repository.js";
+import { JobAssessmentRepository } from "../../assessment/repositories/assessmentAssignment.repository.js";
 import { JobStatus } from "@prisma/client";
 import type { ApplicationWorkflow } from "@prisma/client";
 import { WorkflowRepository } from "../repositories/workflow.repository.js";
@@ -83,36 +84,57 @@ export class ApplicationWorkflowService {
         // Fetch all applications (includes applicationWorkflow relation pre-fetched)
         const applications = await ApplicationRepository.getJobApplicationByJobId(jobId);
 
+        // Fetch any job-level assessments
+        const jobAssessments = await JobAssessmentRepository.findJobAssessmentsByJobId(jobId);
+        const defaultJobAssessment = jobAssessments[0]?.assessment;
+
         // Construct the hiring board structure (stages ordered by order asc)
-        const board = stages.map((stage: any) => ({
-            stageId: stage.id,
-            stageName: stage.stageLibrary.name,
-            order: stage.order,
-            applications: [] as any[]
-        }));
+        const board = stages.map((stage: any) => {
+            const isAssessmentStage = stage.stageLibrary?.type === "ASSESSMENT" || 
+                                     stage.stageLibrary?.type === "TECH_ASSESSMENT" ||
+                                     stage.stageLibrary?.name?.toLowerCase().includes("assessment");
+
+            const resolvedAssessmentId = stage.assessmentId || (isAssessmentStage ? defaultJobAssessment?.id : null);
+            const resolvedAssessment = stage.assessment ? {
+                id: stage.assessment.id,
+                title: stage.assessment.title,
+                status: stage.assessment.status,
+            } : (isAssessmentStage && defaultJobAssessment ? {
+                id: defaultJobAssessment.id,
+                title: defaultJobAssessment.title,
+                status: defaultJobAssessment.status,
+            } : null);
+
+            return {
+                stageId: stage.id,
+                stageName: stage.stageLibrary.name,
+                order: stage.order,
+                assessmentId: resolvedAssessmentId,
+                assessment: resolvedAssessment,
+                applications: [] as any[]
+            };
+        });
 
         // Map applications to their respective workflow stages
         for (const app of applications) {
             const workflowStageId = app.applicationWorkflow?.workflowStageId;
             const stageInBoard = board.find((s: any) => s.stageId === workflowStageId);
+            const appPayload = {
+                id: app.id,
+                candidateId: app.candidateId,
+                status: app.status,
+                appliedAt: app.appliedAt,
+                candidate: app.candidate,
+                assessmentInvitations: (app as any).assessmentInvitations || [],
+                assessmentAttempts: (app as any).assessmentAttempts || []
+            };
+
             if (stageInBoard) {
-                stageInBoard.applications.push({
-                    id: app.id,
-                    candidateId: app.candidateId,
-                    status: app.status,
-                    appliedAt: app.appliedAt,
-                    candidate: app.candidate
-                });
+                stageInBoard.applications.push(appPayload);
             } else {
                 // Fallback: place in the first stage of the workflow if no workflow stage is found
                 if (board.length > 0) {
-                    board[0].applications.push({
-                        id: app.id,
-                        candidateId: app.candidateId,
-                        status: app.status,
-                        appliedAt: app.appliedAt,
-                        candidate: app.candidate
-                    });
+                    board[0].applications.push(appPayload);
                 }
             }
         }

@@ -308,7 +308,22 @@ export class JobAssessmentRepository {
                 },
                 job: {
                     select: {
-                        companyId: true
+                        companyId: true,
+                        jobAssessments: {
+                            select: {
+                                assessmentId: true,
+                                assessment: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        status: true
+                                    }
+                                }
+                            },
+                            orderBy: {
+                                displayOrder: "asc"
+                            }
+                        }
                     }
                 },
                 applicationWorkflow: {
@@ -338,14 +353,46 @@ export class JobAssessmentRepository {
     static async findInvitationWithAttempt(applicationId: string) {
         return await prisma.assessmentInvitation.findFirst({
             where: { applicationId },
+            orderBy: {
+                createdAt: "desc"
+            },
             include: {
                 assessment: {
                     select: {
-                        title: true
+                        id: true,
+                        title: true,
+                        description: true,
+                        instructions: true,
+                        durationMinutes: true,
+                        passingScore: true,
+                        totalMarks: true,
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                logo: true
+                            }
+                        }
                     }
                 },
                 application: {
-                    include: {
+                    select: {
+                        id: true,
+                        job: {
+                            select: {
+                                id: true,
+                                title: true,
+                                workplaceType: true,
+                                location: true,
+                                company: {
+                                    select: {
+                                        id: true,
+                                        companyName: true,
+                                        logo: true
+                                    }
+                                }
+                            }
+                        },
                         assessmentAttempts: {
                             orderBy: {
                                 createdAt: "desc"
@@ -395,6 +442,7 @@ export class JobAssessmentRepository {
             include: {
                 assessment: {
                     select: {
+                        id: true,
                         title: true,
                         companyId: true
                     }
