@@ -11,6 +11,45 @@ export class JobAssessmentRepository {
         });
     }
 
+    static async validateJobWorkflowSupportsAssessments(jobId: string): Promise<void> {
+        const job = await prisma.job.findUnique({
+            where: { id: jobId },
+            select: {
+                id: true,
+                workflow: {
+                    select: {
+                        id: true,
+                        name: true,
+                        stages: {
+                            select: {
+                                stageLibrary: {
+                                    select: {
+                                        name: true,
+                                        type: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!job || !job.workflow) return;
+
+        const hasAssessmentStage = job.workflow.stages.some((s) => {
+            const name = (s.stageLibrary?.name || '').toLowerCase();
+            const type = (s.stageLibrary?.type || '').toLowerCase();
+            return name.includes('assessment') || name.includes('test') || name.includes('exam') || type.includes('assessment');
+        });
+
+        if (!hasAssessmentStage) {
+            throw new BadRequestError(
+                `The hiring workflow "${job.workflow.name}" assigned to this job does not contain any assessment stage. Assessments cannot be attached.`
+            );
+        }
+    }
+
     static async findActiveCompanyMember(userId: string, companyId: string): Promise<CompanyMember | null> {
         return await prisma.companyMember.findFirst({
             where: {

@@ -28,6 +28,10 @@ export class JobAssessmentService {
             throw new NotFoundError("Job not found");
         }
 
+        if (dto.assessments.length > 0) {
+            await JobAssessmentRepository.validateJobWorkflowSupportsAssessments(job.id);
+        }
+
         const assignedCount = await JobAssessmentRepository.attachAssessmentsToJob(jobId, job.companyId, dto.assessments);
 
         return {
@@ -68,6 +72,10 @@ export class JobAssessmentService {
         const job = await JobAssessmentRepository.findJobById(jobId);
         if (!job) {
             throw new NotFoundError("Job not found");
+        }
+
+        if (dto.assessments.length > 0) {
+            await JobAssessmentRepository.validateJobWorkflowSupportsAssessments(job.id);
         }
 
         const assignedCount = await JobAssessmentRepository.syncJobAssessments(jobId, job.companyId, dto.assessments);
