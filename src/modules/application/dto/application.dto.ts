@@ -19,8 +19,9 @@ export class ApplicationDto {
     });
 
     static withdrawApplication = z.object({
-        status: z.literal(ApplicationStatus.WITHDRAWN),
-        withdrawReason: z.string().min(1, "Withdraw reason is required").optional()
+        status: z.nativeEnum(ApplicationStatus).optional().default(ApplicationStatus.WITHDRAWN),
+        withdrawReason: z.string().trim().optional(),
+        remarks: z.string().trim().optional(),
     });
 
     static applicationIdParam = z.object({

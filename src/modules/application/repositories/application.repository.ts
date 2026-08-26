@@ -188,6 +188,44 @@ export class ApplicationRepository {
                 },
                 include: {
                     applicationResume: true,
+                    applicationWorkflow: {
+                        include: {
+                            workflowStage: {
+                                include: {
+                                    stageLibrary: true,
+                                    workflow: {
+                                        include: {
+                                            stages: {
+                                                include: {
+                                                    stageLibrary: true,
+                                                },
+                                                orderBy: {
+                                                    order: 'asc',
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                            workflowHistories: {
+                                include: {
+                                    fromStage: {
+                                        include: {
+                                            stageLibrary: true,
+                                        },
+                                    },
+                                    toStage: {
+                                        include: {
+                                            stageLibrary: true,
+                                        },
+                                    },
+                                },
+                                orderBy: {
+                                    createdAt: 'asc',
+                                },
+                            },
+                        },
+                    },
                     job: {
                         select: {
                             id: true,
@@ -245,6 +283,44 @@ export class ApplicationRepository {
                         fileUrl: true,
                         fileSize: true,
                         sourceResumeId: true,
+                    },
+                },
+                applicationWorkflow: {
+                    include: {
+                        workflowStage: {
+                            include: {
+                                stageLibrary: true,
+                                workflow: {
+                                    include: {
+                                        stages: {
+                                            include: {
+                                                stageLibrary: true,
+                                            },
+                                            orderBy: {
+                                                order: 'asc',
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                        workflowHistories: {
+                            include: {
+                                fromStage: {
+                                    include: {
+                                        stageLibrary: true,
+                                    },
+                                },
+                                toStage: {
+                                    include: {
+                                        stageLibrary: true,
+                                    },
+                                },
+                            },
+                            orderBy: {
+                                createdAt: 'asc',
+                            },
+                        },
                     },
                 },
             },
