@@ -23,4 +23,12 @@ router.get(
     AIInterviewController.getFinalResult
 );
 
+router.get(
+    "/:companyId/ai-interviews",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    AIInterviewController.getCompanyAIInterviews
+);
+
 export default router;

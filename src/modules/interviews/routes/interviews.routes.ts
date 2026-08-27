@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { InterviewsController, JobInterviewsController, InterviewAssignmentsController, InterviewSessionsController, InterviewSessionParticipantsController } from "../controller/interviews.controller.js";
+import { CandidateInterviewController } from "../controller/candidate.interview.controller.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import {
     createInterviewDto,
@@ -21,6 +22,21 @@ import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMem
 import aiInterviewRoutes from "../AI-interview/routes/ai.interview.routes.js";
 
 const router = Router();
+
+// --- Candidate-Facing Interview Routes --- //
+router.get(
+    "/candidate/my-interviews",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    CandidateInterviewController.getMyInterviews
+);
+
+router.get(
+    "/candidate/sessions/:sessionId",
+    authMiddleware,
+    authorize(UserRole.CANDIDATE, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    CandidateInterviewController.getSessionDetails
+);
 
 router.post(
     "/:companyId/create/interview",
@@ -64,6 +80,14 @@ router.patch(
     loadCompanyMembership,
     validate(changeInterviewStatusDto, "body"),
     InterviewsController.changeInterviewStatus
+);
+
+router.delete(
+    "/:companyId/interviews/:interviewId",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewsController.deleteInterview
 );
 
 // --- Job-Interview Association Routes --- //

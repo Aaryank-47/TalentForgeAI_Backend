@@ -4,11 +4,14 @@ export interface ApplicationAssessmentResultResponse {
     assessmentId: string;
     assessmentTitle: string;
     score: number;
+    totalMarks?: number;
     percentage: number;
+    passingScore?: number;
     passed: boolean;
     evaluationStatus: string;
     submittedAt: Date;
     evaluatedAt: Date | null;
+    answers?: any[];
 }
 export interface ATSAssessmentProcessingResult {
     applicationId: string;

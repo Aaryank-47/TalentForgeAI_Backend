@@ -7,5 +7,6 @@ import { UserRole } from "@prisma/client";
 const router = Router();
 router.post("/:companyId/interview-sessions/:sessionId/generate-questions", authMiddleware, authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN), loadCompanyMembership, AIInterviewController.generateQuestions);
 router.get("/:companyId/interview-sessions/:sessionId/ai-result", authMiddleware, authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN), loadCompanyMembership, AIInterviewController.getFinalResult);
+router.get("/:companyId/ai-interviews", authMiddleware, authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN), loadCompanyMembership, AIInterviewController.getCompanyAIInterviews);
 export default router;
 //# sourceMappingURL=ai.interview.routes.js.map

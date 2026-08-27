@@ -337,10 +337,22 @@ export class AIInterviewSessionService {
             throw new BadRequestError("Only candidates can access this interview session");
         }
         if (session.interview.type !== "AI") {
-            throw new BadRequestError("This is not an AI interview");
+            await prisma.interview.update({
+                where: { id: session.interview.id },
+                data: { type: "AI" }
+            });
+            session.interview.type = "AI";
         }
         if (!session.interview.aiConfiguration) {
-            throw new BadRequestError("AI configuration not found for this interview");
+            const newConfig = await prisma.aIInterviewConfiguration.create({
+                data: {
+                    interviewId: session.interview.id,
+                    questionCount: 5,
+                    difficulty: "MEDIUM",
+                    allowFollowUps: true
+                }
+            });
+            session.interview.aiConfiguration = newConfig;
         }
         if (session.status === "COMPLETED") {
             return {
@@ -507,10 +519,22 @@ export class AIInterviewSessionService {
             throw new BadRequestError("Only candidates can submit answers");
         }
         if (session.interview.type !== "AI") {
-            throw new BadRequestError("This is not an AI interview");
+            await prisma.interview.update({
+                where: { id: session.interview.id },
+                data: { type: "AI" }
+            });
+            session.interview.type = "AI";
         }
         if (!session.interview.aiConfiguration) {
-            throw new BadRequestError("AI configuration not found for this interview");
+            const newConfig = await prisma.aIInterviewConfiguration.create({
+                data: {
+                    interviewId: session.interview.id,
+                    questionCount: 5,
+                    difficulty: "MEDIUM",
+                    allowFollowUps: true
+                }
+            });
+            session.interview.aiConfiguration = newConfig;
         }
         const questions = await AIInterviewQuestionsRepository.getQuestionsBySessionId(sessionId);
         if (questions.length === 0) {

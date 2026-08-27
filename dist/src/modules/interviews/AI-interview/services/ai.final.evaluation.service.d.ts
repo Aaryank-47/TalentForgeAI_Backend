@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 export declare class AIInterviewFinalEvaluationService {
     static generateFinalEvaluation(sessionId: string): Promise<{
         id: string;
@@ -5,12 +6,12 @@ export declare class AIInterviewFinalEvaluationService {
         updatedAt: Date;
         overallScore: number;
         sessionId: string;
-        strengths: import("@prisma/client/runtime/client").JsonValue | null;
-        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         technicalScore: number | null;
         communicationScore: number | null;
         problemSolvingScore: number | null;
         overallFeedback: string | null;
+        strengths: Prisma.JsonValue | null;
+        weaknesses: Prisma.JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
     }>;
     static getFinalEvaluation(sessionId: string): Promise<{
@@ -19,12 +20,12 @@ export declare class AIInterviewFinalEvaluationService {
         updatedAt: Date;
         overallScore: number;
         sessionId: string;
-        strengths: import("@prisma/client/runtime/client").JsonValue | null;
-        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         technicalScore: number | null;
         communicationScore: number | null;
         problemSolvingScore: number | null;
         overallFeedback: string | null;
+        strengths: Prisma.JsonValue | null;
+        weaknesses: Prisma.JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
     }>;
     static getFinalReport(sessionId: string): Promise<{
@@ -52,7 +53,7 @@ export declare class AIInterviewFinalEvaluationService {
             topic: string | null;
             skill: string | null;
             difficulty: import("@prisma/client").$Enums.QuestionDifficulty | null;
-            expectedAreas: import("@prisma/client/runtime/client").JsonValue;
+            expectedAreas: Prisma.JsonValue;
             parentAIQuestionId: string | null;
             answer: {
                 id: string;
@@ -63,8 +64,8 @@ export declare class AIInterviewFinalEvaluationService {
                     id: string;
                     score: number;
                     feedback: string | null;
-                    strengths: import("@prisma/client/runtime/client").JsonValue;
-                    weaknesses: import("@prisma/client/runtime/client").JsonValue;
+                    strengths: Prisma.JsonValue;
+                    weaknesses: Prisma.JsonValue;
                 } | null;
             } | null;
         }[];
@@ -74,14 +75,34 @@ export declare class AIInterviewFinalEvaluationService {
             updatedAt: Date;
             overallScore: number;
             sessionId: string;
-            strengths: import("@prisma/client/runtime/client").JsonValue | null;
-            weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
             technicalScore: number | null;
             communicationScore: number | null;
             problemSolvingScore: number | null;
             overallFeedback: string | null;
+            strengths: Prisma.JsonValue | null;
+            weaknesses: Prisma.JsonValue | null;
             recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
         } | null;
     }>;
+    static getCompanyAIInterviews(companyId: string, search?: string): Promise<{
+        id: string;
+        sessionId: string;
+        interviewId: string;
+        candidate: string;
+        email: string;
+        role: string;
+        date: string;
+        aiScore: number;
+        recommendation: string;
+        tabSwitches: any;
+        noiseFlags: any;
+        faceVisibility: any;
+        riskLevel: string;
+        initials: string;
+        color: string | undefined;
+        feedbackSummary: string;
+        strengths: string | number | true | Prisma.JsonObject | Prisma.JsonArray;
+        weaknesses: string | number | true | Prisma.JsonObject | Prisma.JsonArray;
+    }[]>;
 }
 //# sourceMappingURL=ai.final.evaluation.service.d.ts.map

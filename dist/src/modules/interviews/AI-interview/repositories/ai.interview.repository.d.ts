@@ -31,12 +31,12 @@ export declare class AIInterviewQuestionsRepository {
                 score: number;
                 feedback: string | null;
                 answerId: string;
+                strengths: import("@prisma/client/runtime/client").JsonValue | null;
+                weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
                 technicalAccuracy: number | null;
                 relevance: number | null;
                 completeness: number | null;
                 communication: number | null;
-                strengths: import("@prisma/client/runtime/client").JsonValue | null;
-                weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
             } | null;
         } & {
             id: string;
@@ -69,12 +69,12 @@ export declare class AIInterviewQuestionsRepository {
                 score: number;
                 feedback: string | null;
                 answerId: string;
+                strengths: import("@prisma/client/runtime/client").JsonValue | null;
+                weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
                 technicalAccuracy: number | null;
                 relevance: number | null;
                 completeness: number | null;
                 communication: number | null;
-                strengths: import("@prisma/client/runtime/client").JsonValue | null;
-                weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
             } | null;
         } & {
             id: string;
@@ -146,12 +146,12 @@ export declare class AIInterviewEvaluationRepository {
         score: number;
         feedback: string | null;
         answerId: string;
+        strengths: import("@prisma/client/runtime/client").JsonValue | null;
+        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         technicalAccuracy: number | null;
         relevance: number | null;
         completeness: number | null;
         communication: number | null;
-        strengths: import("@prisma/client/runtime/client").JsonValue | null;
-        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
     }>;
     static findFinalEvaluationBySessionId(sessionId: string): Promise<{
         id: string;
@@ -159,12 +159,12 @@ export declare class AIInterviewEvaluationRepository {
         updatedAt: Date;
         overallScore: number;
         sessionId: string;
-        strengths: import("@prisma/client/runtime/client").JsonValue | null;
-        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         technicalScore: number | null;
         communicationScore: number | null;
         problemSolvingScore: number | null;
         overallFeedback: string | null;
+        strengths: import("@prisma/client/runtime/client").JsonValue | null;
+        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
     } | null>;
     static upsertResult(data: CreateAIInterviewResultInput): Promise<{
@@ -173,12 +173,12 @@ export declare class AIInterviewEvaluationRepository {
         updatedAt: Date;
         overallScore: number;
         sessionId: string;
-        strengths: import("@prisma/client/runtime/client").JsonValue | null;
-        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         technicalScore: number | null;
         communicationScore: number | null;
         problemSolvingScore: number | null;
         overallFeedback: string | null;
+        strengths: import("@prisma/client/runtime/client").JsonValue | null;
+        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
     }>;
 }

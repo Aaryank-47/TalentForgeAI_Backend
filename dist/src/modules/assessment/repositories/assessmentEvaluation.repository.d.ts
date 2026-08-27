@@ -42,9 +42,9 @@ export declare class AssessmentEvaluationRepository {
                             options: {
                                 id: string;
                                 displayOrder: number;
-                                isCorrect: boolean;
                                 mcqDetailId: string;
                                 optionText: string;
+                                isCorrect: boolean;
                             }[];
                         } & {
                             id: string;
@@ -53,11 +53,6 @@ export declare class AssessmentEvaluationRepository {
                             negativeMarks: number;
                         }) | null;
                         dsaDetail: ({
-                            supportedLanguages: {
-                                createdAt: Date;
-                                dsaDetailId: string;
-                                programmingLanguageId: string;
-                            }[];
                             testCases: {
                                 type: import("@prisma/client").$Enums.TestCaseType;
                                 input: string;
@@ -69,6 +64,11 @@ export declare class AssessmentEvaluationRepository {
                                 expectedOutput: string;
                                 explanation: string | null;
                             }[];
+                            supportedLanguages: {
+                                createdAt: Date;
+                                dsaDetailId: string;
+                                programmingLanguageId: string;
+                            }[];
                         } & {
                             id: string;
                             questionId: string;
@@ -79,6 +79,7 @@ export declare class AssessmentEvaluationRepository {
                         }) | null;
                     } & {
                         type: import("@prisma/client").$Enums.QuestionType;
+                        code: string | null;
                         companyId: string | null;
                         description: string;
                         id: string;
@@ -98,7 +99,6 @@ export declare class AssessmentEvaluationRepository {
                         estimatedTime: number;
                         defaultMarks: number;
                         ownership: import("@prisma/client").$Enums.QuestionOwnership;
-                        code: string | null;
                         createdByCompanyMemberId: string | null;
                         publishedById: string | null;
                         categoryId: string | null;
@@ -152,9 +152,9 @@ export declare class AssessmentEvaluationRepository {
             questionId: string;
             startedAt: Date | null;
             submittedAt: Date | null;
+            isCorrect: boolean | null;
             attemptId: string;
             score: number | null;
-            isCorrect: boolean | null;
             feedback: string | null;
             selectedOptionIds: string[];
             attachmentUrls: string[];
@@ -243,6 +243,7 @@ export declare class AssessmentEvaluationRepository {
             }) | null;
         } & {
             type: import("@prisma/client").$Enums.QuestionType;
+            code: string | null;
             companyId: string | null;
             description: string;
             id: string;
@@ -262,7 +263,6 @@ export declare class AssessmentEvaluationRepository {
             estimatedTime: number;
             defaultMarks: number;
             ownership: import("@prisma/client").$Enums.QuestionOwnership;
-            code: string | null;
             createdByCompanyMemberId: string | null;
             publishedById: string | null;
             categoryId: string | null;
@@ -285,9 +285,9 @@ export declare class AssessmentEvaluationRepository {
         questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
+        isCorrect: boolean | null;
         attemptId: string;
         score: number | null;
-        isCorrect: boolean | null;
         feedback: string | null;
         selectedOptionIds: string[];
         attachmentUrls: string[];
@@ -301,9 +301,9 @@ export declare class AssessmentEvaluationRepository {
         questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
+        isCorrect: boolean | null;
         attemptId: string;
         score: number | null;
-        isCorrect: boolean | null;
         feedback: string | null;
         selectedOptionIds: string[];
         attachmentUrls: string[];

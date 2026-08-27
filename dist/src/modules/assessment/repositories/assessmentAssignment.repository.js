@@ -8,6 +8,40 @@ export class JobAssessmentRepository {
             where: { id: jobId }
         });
     }
+    static async validateJobWorkflowSupportsAssessments(jobId) {
+        const job = await prisma.job.findUnique({
+            where: { id: jobId },
+            select: {
+                id: true,
+                workflow: {
+                    select: {
+                        id: true,
+                        name: true,
+                        stages: {
+                            select: {
+                                stageLibrary: {
+                                    select: {
+                                        name: true,
+                                        type: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        if (!job || !job.workflow)
+            return;
+        const hasAssessmentStage = job.workflow.stages.some((s) => {
+            const name = (s.stageLibrary?.name || '').toLowerCase();
+            const type = (s.stageLibrary?.type || '').toLowerCase();
+            return name.includes('assessment') || name.includes('test') || name.includes('exam') || type.includes('assessment');
+        });
+        if (!hasAssessmentStage) {
+            throw new BadRequestError(`The hiring workflow "${job.workflow.name}" assigned to this job does not contain any assessment stage. Assessments cannot be attached.`);
+        }
+    }
     static async findActiveCompanyMember(userId, companyId) {
         return await prisma.companyMember.findFirst({
             where: {
@@ -222,7 +256,22 @@ export class JobAssessmentRepository {
                 },
                 job: {
                     select: {
-                        companyId: true
+                        companyId: true,
+                        jobAssessments: {
+                            select: {
+                                assessmentId: true,
+                                assessment: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        status: true
+                                    }
+                                }
+                            },
+                            orderBy: {
+                                displayOrder: "asc"
+                            }
+                        }
                     }
                 },
                 applicationWorkflow: {
@@ -250,14 +299,46 @@ export class JobAssessmentRepository {
     static async findInvitationWithAttempt(applicationId) {
         return await prisma.assessmentInvitation.findFirst({
             where: { applicationId },
+            orderBy: {
+                createdAt: "desc"
+            },
             include: {
                 assessment: {
                     select: {
-                        title: true
+                        id: true,
+                        title: true,
+                        description: true,
+                        instructions: true,
+                        durationMinutes: true,
+                        passingScore: true,
+                        totalMarks: true,
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                logo: true
+                            }
+                        }
                     }
                 },
                 application: {
-                    include: {
+                    select: {
+                        id: true,
+                        job: {
+                            select: {
+                                id: true,
+                                title: true,
+                                workplaceType: true,
+                                location: true,
+                                company: {
+                                    select: {
+                                        id: true,
+                                        companyName: true,
+                                        logo: true
+                                    }
+                                }
+                            }
+                        },
                         assessmentAttempts: {
                             orderBy: {
                                 createdAt: "desc"
@@ -305,6 +386,7 @@ export class JobAssessmentRepository {
             include: {
                 assessment: {
                     select: {
+                        id: true,
                         title: true,
                         companyId: true
                     }

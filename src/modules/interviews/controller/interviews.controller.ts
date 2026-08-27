@@ -93,6 +93,21 @@ export class InterviewsController {
             });
         }
     );
+
+    static deleteInterview = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const interviewId = req.params.interviewId as string;
+
+            const result = await InterviewsServices.deleteInterview(companyId, interviewId);
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: result.message,
+                data: null
+            });
+        }
+    );
 }
 
 export class JobInterviewsController {

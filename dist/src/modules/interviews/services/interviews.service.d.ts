@@ -10,6 +10,9 @@ export declare class InterviewsServices {
         id: string;
         status: import("@prisma/client").$Enums.InterviewStatus;
     }>;
+    static deleteInterview(companyId: string, interviewId: string): Promise<{
+        message: string;
+    }>;
 }
 export declare class JobInterviewsServices {
     static attachInterviewToJob(companyId: string, jobId: string, data: AttachInterviewToJobRequest): Promise<JobInterviewResponse>;

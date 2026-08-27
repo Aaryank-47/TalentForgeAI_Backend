@@ -1,6 +1,7 @@
 import type { Job, Assessment, CompanyMember, Prisma } from "@prisma/client";
 export declare class JobAssessmentRepository {
     static findJobById(jobId: string): Promise<Job | null>;
+    static validateJobWorkflowSupportsAssessments(jobId: string): Promise<void>;
     static findActiveCompanyMember(userId: string, companyId: string): Promise<CompanyMember | null>;
     static findAssessmentById(assessmentId: string): Promise<Assessment | null>;
     static attachAssessmentsToJob(jobId: string, jobCompanyId: string, assessments: {
@@ -92,6 +93,14 @@ export declare class JobAssessmentRepository {
         };
         job: {
             companyId: string;
+            jobAssessments: {
+                assessment: {
+                    id: string;
+                    status: import("@prisma/client").$Enums.AssessmentStatus;
+                    title: string;
+                };
+                assessmentId: string;
+            }[];
         };
         applicationWorkflow: ({
             workflowStage: {
@@ -156,6 +165,7 @@ export declare class JobAssessmentRepository {
     } | null>;
     static findInvitationWithAttempt(applicationId: string): Promise<({
         application: {
+            id: string;
             assessmentAttempts: {
                 id: string;
                 status: import("@prisma/client").$Enums.AttemptStatus;
@@ -177,23 +187,31 @@ export declare class JobAssessmentRepository {
                 evaluationStatus: import("@prisma/client").$Enums.EvaluationStatus;
                 reviewStatus: import("@prisma/client").$Enums.ReviewStatus;
             }[];
-        } & {
-            id: string;
-            status: import("@prisma/client").$Enums.ApplicationStatus;
-            updatedAt: Date;
-            candidateId: string;
-            jobId: string;
-            coverLetter: string | null;
-            appliedAt: Date;
-            lastStatusUpdatedAt: Date | null;
-            withdrawnAt: Date | null;
-            withdrawReason: string | null;
-            rejectedAt: Date | null;
-            rejectionReason: string | null;
-            hiredAt: Date | null;
+            job: {
+                company: {
+                    companyName: string;
+                    logo: string | null;
+                    id: string;
+                };
+                location: string | null;
+                id: string;
+                title: string;
+                workplaceType: import("@prisma/client").$Enums.WorkplaceType;
+            };
         };
         assessment: {
+            description: string | null;
+            company: {
+                companyName: string;
+                logo: string | null;
+                id: string;
+            };
+            id: string;
             title: string;
+            instructions: string | null;
+            durationMinutes: number | null;
+            passingScore: number | null;
+            totalMarks: number | null;
         };
     } & {
         token: string;
@@ -289,6 +307,7 @@ export declare class JobAssessmentRepository {
         };
         assessment: {
             companyId: string;
+            id: string;
             title: string;
         };
     } & {

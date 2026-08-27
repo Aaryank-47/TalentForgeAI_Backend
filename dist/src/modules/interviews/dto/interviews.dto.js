@@ -1,15 +1,19 @@
 import { z } from "zod";
-import { interviewTitleValidator, interviewDescriptionValidator, interviewInstructionsValidator, interviewTypeValidator, interviewModeValidator, interviewDurationMinutesValidator, aiInterviewSystemPromptValidator, aiInterviewEvaluationMetricsValidator, interviewStatusValidator } from "../../../common/validators/validators.js";
+import { interviewTitleValidator, interviewDescriptionValidator, interviewInstructionsValidator, interviewTypeValidator, interviewModeValidator, interviewDurationMinutesValidator, aiInterviewSystemPromptValidator, aiInterviewEvaluationMetricsValidator, aiInterviewQuestionCountValidator, aiInterviewDifficultyValidator, aiInterviewAllowFollowUpsValidator, interviewStatusValidator } from "../../../common/validators/validators.js";
 export const createInterviewDto = z.object({
     title: interviewTitleValidator,
     description: interviewDescriptionValidator.optional(),
     instructions: interviewInstructionsValidator.optional(),
     type: interviewTypeValidator,
     mode: interviewModeValidator,
+    status: interviewStatusValidator.optional(),
     durationMinutes: interviewDurationMinutesValidator.optional(),
     aiConfiguration: z.object({
         systemPrompt: aiInterviewSystemPromptValidator,
-        evaluationMetrics: aiInterviewEvaluationMetricsValidator
+        evaluationMetrics: aiInterviewEvaluationMetricsValidator,
+        questionCount: aiInterviewQuestionCountValidator,
+        difficulty: aiInterviewDifficultyValidator,
+        allowFollowUps: aiInterviewAllowFollowUpsValidator,
     }).optional()
 });
 export const interviewListQueryDto = z.object({
@@ -28,10 +32,14 @@ export const updateInterviewDto = z.object({
     instructions: interviewInstructionsValidator.optional().nullable(),
     type: interviewTypeValidator.optional(),
     mode: interviewModeValidator.optional(),
+    status: interviewStatusValidator.optional(),
     durationMinutes: interviewDurationMinutesValidator.optional(),
     aiConfiguration: z.object({
         systemPrompt: aiInterviewSystemPromptValidator,
-        evaluationMetrics: aiInterviewEvaluationMetricsValidator
+        evaluationMetrics: aiInterviewEvaluationMetricsValidator,
+        questionCount: aiInterviewQuestionCountValidator,
+        difficulty: aiInterviewDifficultyValidator,
+        allowFollowUps: aiInterviewAllowFollowUpsValidator,
     }).optional()
 });
 export const changeInterviewStatusDto = z.object({

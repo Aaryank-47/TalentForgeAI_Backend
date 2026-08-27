@@ -21,5 +21,15 @@ export class AIInterviewController {
             data: report
         });
     });
+    static getCompanyAIInterviews = asyncHandler(async (req, res) => {
+        const { companyId } = req.params;
+        const { search } = req.query;
+        const results = await AIInterviewFinalEvaluationService.getCompanyAIInterviews(companyId, search);
+        return res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: "Company AI interviews retrieved successfully",
+            data: results
+        });
+    });
 }
 //# sourceMappingURL=ai.interview.controller.js.map

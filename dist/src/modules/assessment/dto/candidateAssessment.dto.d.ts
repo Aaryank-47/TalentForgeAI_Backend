@@ -22,7 +22,10 @@ export type GetAttemptsQueryDto = z.infer<typeof getAttemptsQuerySchema>;
 export declare const createAssessmentAnswerSchema: z.ZodObject<{
     questionId: z.ZodString;
     selectedOptionIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+        code: z.ZodString;
+        language: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>]>>>;
     submissionUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     attachmentUrls: z.ZodOptional<z.ZodArray<z.ZodString>>;
     meta: z.ZodOptional<z.ZodOptional<z.ZodAny>>;
@@ -35,19 +38,28 @@ export declare const mcqValidationSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const dsaValidationSchema: z.ZodObject<{
     questionId: z.ZodString;
-    codeResponse: z.ZodOptional<z.ZodString>;
+    codeResponse: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+        code: z.ZodString;
+        language: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>]>>;
     meta: z.ZodOptional<z.ZodAny>;
 }, z.core.$strict>;
 export declare const projectValidationSchema: z.ZodObject<{
     questionId: z.ZodString;
     submissionUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     attachmentUrls: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+        code: z.ZodString;
+        language: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>]>>>;
     meta: z.ZodOptional<z.ZodOptional<z.ZodAny>>;
 }, z.core.$strict>;
 export declare const saveAssessmentAnswerSchema: z.ZodObject<{
     selectedOptionIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+        code: z.ZodString;
+        language: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>]>>>;
     submissionUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     attachmentUrls: z.ZodOptional<z.ZodArray<z.ZodString>>;
     meta: z.ZodOptional<z.ZodOptional<z.ZodAny>>;
@@ -58,13 +70,19 @@ export declare const mcqSaveValidationSchema: z.ZodObject<{
     meta: z.ZodOptional<z.ZodOptional<z.ZodAny>>;
 }, z.core.$strict>;
 export declare const dsaSaveValidationSchema: z.ZodObject<{
-    codeResponse: z.ZodOptional<z.ZodString>;
+    codeResponse: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+        code: z.ZodString;
+        language: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>]>>;
     meta: z.ZodOptional<z.ZodAny>;
 }, z.core.$strict>;
 export declare const projectSaveValidationSchema: z.ZodObject<{
     submissionUrl: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     attachmentUrls: z.ZodOptional<z.ZodArray<z.ZodString>>;
-    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    codeResponse: z.ZodOptional<z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+        code: z.ZodString;
+        language: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>]>>>;
     meta: z.ZodOptional<z.ZodOptional<z.ZodAny>>;
 }, z.core.$strict>;
 export declare const attemptIdParamSchema: z.ZodObject<{

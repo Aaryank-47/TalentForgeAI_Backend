@@ -4,6 +4,21 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ApplicationStatus } from "../../../common/enums/all_enums.js";
 export class EmployerApplicationService {
+    static async getCompanyApplications(userId, companyId, query) {
+        const isMember = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        if (!isMember) {
+            throw new ForbiddenError("You do not have permission to view applications for this company");
+        }
+        const result = await ApplicationRepository.getCompanyApplications({
+            companyId,
+            jobId: query.jobId,
+            status: query.status,
+            search: query.search,
+            page: query.page,
+            limit: query.limit,
+        });
+        return result;
+    }
     static async getJobApplications(userId, jobId, query) {
         const job = await ApplicationRepository.getJob(jobId);
         if (!job) {

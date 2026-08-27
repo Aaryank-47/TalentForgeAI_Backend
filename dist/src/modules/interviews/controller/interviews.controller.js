@@ -59,6 +59,16 @@ export class InterviewsController {
             data: updated
         });
     });
+    static deleteInterview = asyncHandler(async (req, res) => {
+        const companyId = req.params.companyId;
+        const interviewId = req.params.interviewId;
+        const result = await InterviewsServices.deleteInterview(companyId, interviewId);
+        return res.status(HTTP_STATUS.OK).json({
+            success: true,
+            message: result.message,
+            data: null
+        });
+    });
 }
 export class JobInterviewsController {
     static attachInterview = asyncHandler(async (req, res) => {

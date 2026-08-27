@@ -8,6 +8,9 @@ import {
     interviewDurationMinutesValidator,
     aiInterviewSystemPromptValidator,
     aiInterviewEvaluationMetricsValidator,
+    aiInterviewQuestionCountValidator,
+    aiInterviewDifficultyValidator,
+    aiInterviewAllowFollowUpsValidator,
     interviewStatusValidator
 } from "../../../common/validators/validators.js"
 
@@ -17,10 +20,14 @@ export const createInterviewDto = z.object({
     instructions: interviewInstructionsValidator.optional(),
     type: interviewTypeValidator,
     mode: interviewModeValidator,
+    status: interviewStatusValidator.optional(),
     durationMinutes: interviewDurationMinutesValidator.optional(),
     aiConfiguration: z.object({
         systemPrompt: aiInterviewSystemPromptValidator,
-        evaluationMetrics: aiInterviewEvaluationMetricsValidator
+        evaluationMetrics: aiInterviewEvaluationMetricsValidator,
+        questionCount: aiInterviewQuestionCountValidator,
+        difficulty: aiInterviewDifficultyValidator,
+        allowFollowUps: aiInterviewAllowFollowUpsValidator,
     }).optional()
 })
 
@@ -45,10 +52,14 @@ export const updateInterviewDto = z.object({
     instructions: interviewInstructionsValidator.optional().nullable(),
     type: interviewTypeValidator.optional(),
     mode: interviewModeValidator.optional(),
+    status: interviewStatusValidator.optional(),
     durationMinutes: interviewDurationMinutesValidator.optional(),
     aiConfiguration: z.object({
         systemPrompt: aiInterviewSystemPromptValidator,
-        evaluationMetrics: aiInterviewEvaluationMetricsValidator
+        evaluationMetrics: aiInterviewEvaluationMetricsValidator,
+        questionCount: aiInterviewQuestionCountValidator,
+        difficulty: aiInterviewDifficultyValidator,
+        allowFollowUps: aiInterviewAllowFollowUpsValidator,
     }).optional()
 });
 

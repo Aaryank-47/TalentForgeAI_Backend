@@ -113,6 +113,15 @@ export class InterviewsRepositories {
             }
         });
     }
+
+    static async deleteInterview(companyId: string, interviewId: string) {
+        return prisma.interview.delete({
+            where: {
+                id: interviewId,
+                companyId
+            }
+        });
+    }
 }
 
 export class JobInterviewsRepositories {

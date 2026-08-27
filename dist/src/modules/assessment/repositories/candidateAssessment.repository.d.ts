@@ -122,40 +122,7 @@ export declare class AssessmentAttemptRepository {
         evaluationStatus: import("@prisma/client").$Enums.EvaluationStatus;
         reviewStatus: import("@prisma/client").$Enums.ReviewStatus;
     }>;
-    static findAttemptById(id: string): Promise<({
-        candidate: {
-            userId: string;
-        };
-        assessment: {
-            companyId: string;
-            description: string | null;
-            id: string;
-            status: import("@prisma/client").$Enums.AssessmentStatus;
-            title: string;
-            instructions: string | null;
-            durationMinutes: number | null;
-        };
-    } & {
-        id: string;
-        status: import("@prisma/client").$Enums.AttemptStatus;
-        createdAt: Date;
-        updatedAt: Date;
-        candidateId: string;
-        assessmentId: string;
-        applicationId: string;
-        currentSectionId: string | null;
-        startedAt: Date | null;
-        submittedAt: Date | null;
-        lastActivityAt: Date | null;
-        attemptNumber: number;
-        timeTakenInSeconds: number | null;
-        completedDurationSeconds: number | null;
-        overallScore: number | null;
-        percentage: number | null;
-        passed: boolean | null;
-        evaluationStatus: import("@prisma/client").$Enums.EvaluationStatus;
-        reviewStatus: import("@prisma/client").$Enums.ReviewStatus;
-    }) | null>;
+    static findAttemptById(id: string): Promise<any>;
     static findAttemptsByCandidate(candidateId: string, filters: {
         status?: any;
     }, skip: number, limit: number): Promise<({
@@ -262,9 +229,9 @@ export declare class AssessmentAttemptRepository {
             options: {
                 id: string;
                 displayOrder: number;
-                isCorrect: boolean;
                 mcqDetailId: string;
                 optionText: string;
+                isCorrect: boolean;
             }[];
         } & {
             id: string;
@@ -297,6 +264,7 @@ export declare class AssessmentAttemptRepository {
         }) | null;
     } & {
         type: import("@prisma/client").$Enums.QuestionType;
+        code: string | null;
         companyId: string | null;
         description: string;
         id: string;
@@ -316,7 +284,6 @@ export declare class AssessmentAttemptRepository {
         estimatedTime: number;
         defaultMarks: number;
         ownership: import("@prisma/client").$Enums.QuestionOwnership;
-        code: string | null;
         createdByCompanyMemberId: string | null;
         publishedById: string | null;
         categoryId: string | null;
@@ -329,9 +296,9 @@ export declare class AssessmentAttemptRepository {
         questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
+        isCorrect: boolean | null;
         attemptId: string;
         score: number | null;
-        isCorrect: boolean | null;
         feedback: string | null;
         selectedOptionIds: string[];
         attachmentUrls: string[];
@@ -354,9 +321,9 @@ export declare class AssessmentAttemptRepository {
         questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
+        isCorrect: boolean | null;
         attemptId: string;
         score: number | null;
-        isCorrect: boolean | null;
         feedback: string | null;
         selectedOptionIds: string[];
         attachmentUrls: string[];
@@ -376,9 +343,9 @@ export declare class AssessmentAttemptRepository {
         questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
+        isCorrect: boolean | null;
         attemptId: string;
         score: number | null;
-        isCorrect: boolean | null;
         feedback: string | null;
         selectedOptionIds: string[];
         attachmentUrls: string[];
@@ -392,9 +359,9 @@ export declare class AssessmentAttemptRepository {
         questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
+        isCorrect: boolean | null;
         attemptId: string;
         score: number | null;
-        isCorrect: boolean | null;
         feedback: string | null;
         selectedOptionIds: string[];
         attachmentUrls: string[];
@@ -408,9 +375,9 @@ export declare class AssessmentAttemptRepository {
         questionId: string;
         startedAt: Date | null;
         submittedAt: Date | null;
+        isCorrect: boolean | null;
         attemptId: string;
         score: number | null;
-        isCorrect: boolean | null;
         feedback: string | null;
         selectedOptionIds: string[];
         attachmentUrls: string[];

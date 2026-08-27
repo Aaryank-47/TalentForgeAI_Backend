@@ -23,18 +23,43 @@ export class ATSIntegrationRepository {
         return await prisma.assessmentAttempt.findFirst({
             where: {
                 applicationId,
-                status: AttemptStatus.SUBMITTED,
-                evaluationStatus: EvaluationStatus.COMPLETED
+                status: { in: [AttemptStatus.SUBMITTED, AttemptStatus.IN_PROGRESS] }
             },
             include: {
                 assessment: {
                     select: {
-                        title: true
+                        id: true,
+                        title: true,
+                        totalMarks: true,
+                        passingScore: true,
+                        durationMinutes: true,
+                        sections: {
+                            include: {
+                                items: {
+                                    include: {
+                                        question: {
+                                            include: {
+                                                mcqDetail: {
+                                                    include: {
+                                                        options: true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                answers: {
+                    include: {
+                        question: true
                     }
                 }
             },
             orderBy: {
-                submittedAt: "desc"
+                createdAt: "desc"
             }
         });
     }

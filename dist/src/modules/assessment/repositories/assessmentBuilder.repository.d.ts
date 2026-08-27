@@ -34,6 +34,7 @@ export declare class AssessmentBuilderRepository {
             items: ({
                 question: {
                     type: import("@prisma/client").$Enums.QuestionType;
+                    code: string | null;
                     companyId: string | null;
                     description: string;
                     id: string;
@@ -53,7 +54,6 @@ export declare class AssessmentBuilderRepository {
                     estimatedTime: number;
                     defaultMarks: number;
                     ownership: import("@prisma/client").$Enums.QuestionOwnership;
-                    code: string | null;
                     createdByCompanyMemberId: string | null;
                     publishedById: string | null;
                     categoryId: string | null;

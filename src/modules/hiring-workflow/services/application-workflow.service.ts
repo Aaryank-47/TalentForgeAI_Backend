@@ -266,7 +266,7 @@ export class ApplicationWorkflowService {
         }
 
         const invalidWorkflowApp = applications.find(
-            (a) => a.job.workflowId !== nextWorkflowStage.workflowId
+            (a: any) => a.job?.workflowId !== nextWorkflowStage.workflowId
         );
         if (invalidWorkflowApp) {
             throw new BadRequestError(
@@ -278,8 +278,8 @@ export class ApplicationWorkflowService {
         let assignedEmployerId: string | null = null;
         if (assignedTo) {
             // All applications share one company (validated above), so check membership once
-            const firstApp = applications[0]!;
-            const companyId = firstApp.job.companyId;
+            const firstApp = applications[0]! as any;
+            const companyId = firstApp.job?.companyId;
             const [assignedEmployer, isMember] = await Promise.all([
                 AuthRepository.findEmployerByUserId(assignedTo),
                 CompanyRepository.findMemberByUserAndCompany(assignedTo, companyId),

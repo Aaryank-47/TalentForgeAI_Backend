@@ -154,9 +154,6 @@ export declare class CandidateDto {
     static getPublicProfileParam: z.ZodObject<{
         candidateId: z.ZodString;
     }, z.z.core.$strip>;
-    static savedJobParam: z.ZodObject<{
-        jobId: z.ZodString;
-    }, z.z.core.$strip>;
 }
 export type CandidateIdParamDto = z.infer<typeof CandidateDto.candidateIdParam>;
 export type UpdateCandidateProfileDto = z.infer<typeof CandidateDto.updateCandidateProfile>;
@@ -174,5 +171,4 @@ export type ToggleOpenToWorkDto = z.infer<typeof CandidateDto.toggleOpenToWork>;
 export type UpdateSalaryPreferencesDto = z.infer<typeof CandidateDto.updateSalaryPreferences>;
 export type UpdateLocationPreferencesDto = z.infer<typeof CandidateDto.updateLocationPreferences>;
 export type GetPublicProfileParamDto = z.infer<typeof CandidateDto.getPublicProfileParam>;
-export type SavedJobParamDto = z.infer<typeof CandidateDto.savedJobParam>;
 //# sourceMappingURL=candidate.dto.d.ts.map

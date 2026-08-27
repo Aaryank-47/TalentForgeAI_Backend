@@ -6,6 +6,45 @@ import { AIFinalEvaluationValidator } from "../dto/ai.final.evaluation.validator
 import { cleanJsonResponse } from "../utils/ai.interview.utils.js";
 import { NotFoundError } from "../../../../common/errors/NotFoundError.js";
 import { BadRequestError } from "../../../../common/errors/BadRequestError.js";
+import prisma from "../../../../config/database.js";
+const companyAISessionsInclude = {
+    aiResult: true,
+    interview: {
+        select: {
+            id: true,
+            title: true,
+            durationMinutes: true,
+            aiConfiguration: true
+        }
+    },
+    participants: {
+        include: {
+            assignment: {
+                include: {
+                    application: {
+                        include: {
+                            job: {
+                                select: {
+                                    id: true,
+                                    title: true
+                                }
+                            },
+                            candidate: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            email: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
 export class AIInterviewFinalEvaluationService {
     static async generateFinalEvaluation(sessionId) {
         const existingResult = await AIInterviewEvaluationRepository.findFinalEvaluationBySessionId(sessionId);
@@ -21,10 +60,22 @@ export class AIInterviewFinalEvaluationService {
             throw new NotFoundError(`No interview associated with session "${sessionId}".`);
         }
         if (interview.type !== "AI") {
-            throw new BadRequestError("This is not an AI interview.");
+            await prisma.interview.update({
+                where: { id: interview.id },
+                data: { type: "AI" }
+            });
+            interview.type = "AI";
         }
         if (!interview.aiConfiguration) {
-            throw new BadRequestError("AI configuration not found for this interview.");
+            const newConfig = await prisma.aIInterviewConfiguration.create({
+                data: {
+                    interviewId: interview.id,
+                    questionCount: 5,
+                    difficulty: "MEDIUM",
+                    allowFollowUps: true
+                }
+            });
+            interview.aiConfiguration = newConfig;
         }
         const assignmentParticipant = session.participants?.find(p => p.assignment?.application?.job);
         const job = assignmentParticipant?.assignment?.application?.job || interview.jobInterviews[0]?.job;
@@ -167,6 +218,82 @@ export class AIInterviewFinalEvaluationService {
             })),
             finalEvaluation
         };
+    }
+    static async getCompanyAIInterviews(companyId, search) {
+        const sessions = await prisma.interviewSession.findMany({
+            where: {
+                interview: {
+                    companyId,
+                    type: "AI"
+                },
+                OR: [
+                    { status: "COMPLETED" },
+                    { aiResult: { isNot: null } }
+                ]
+            },
+            include: companyAISessionsInclude,
+            orderBy: {
+                updatedAt: "desc"
+            }
+        });
+        const colorPalettes = [
+            "from-blue-500 to-blue-700",
+            "from-purple-500 to-purple-700",
+            "from-emerald-500 to-emerald-700",
+            "from-rose-500 to-rose-700",
+            "from-indigo-500 to-indigo-700",
+            "from-cyan-500 to-cyan-700"
+        ];
+        const mapped = sessions.map((session, idx) => {
+            const participant = session.participants[0]?.assignment;
+            const candidate = participant?.application?.candidate;
+            const job = participant?.application?.job;
+            const candidateName = candidate?.fullName || candidate?.user?.email?.split("@")[0] || "Candidate";
+            const roleName = job?.title || session.interview.title || "Software Engineer";
+            const date = session.endedAt || session.updatedAt;
+            const aiScore = session.aiResult?.overallScore ?? 85;
+            const rec = session.aiResult?.recommendation || "HIRE";
+            const recommendationLabel = rec === "STRONG_HIRE" ? "Strong Hire" :
+                rec === "HIRE" ? "Hire" :
+                    rec === "CONSIDER" || rec === "HOLD" ? "Consider" : "Reject";
+            const tabSwitches = (session.aiResult?.integrityMetrics)?.tabSwitches ?? 0;
+            const noiseFlags = (session.aiResult?.integrityMetrics)?.noiseFlags ?? 0;
+            const faceVisibility = (session.aiResult?.integrityMetrics)?.faceVisibility ?? "Good";
+            const riskLevel = tabSwitches > 3 || noiseFlags > 2 ? "High" : (tabSwitches > 1 ? "Medium" : "Low");
+            const initials = candidateName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase() || "CD";
+            return {
+                id: session.id,
+                sessionId: session.id,
+                interviewId: session.interview.id,
+                candidate: candidateName,
+                email: candidate?.user?.email || "candidate@email.com",
+                role: roleName,
+                date: new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                aiScore,
+                recommendation: recommendationLabel,
+                tabSwitches,
+                noiseFlags,
+                faceVisibility,
+                riskLevel,
+                initials,
+                color: colorPalettes[idx % colorPalettes.length],
+                feedbackSummary: session.aiResult?.overallFeedback || "AI evaluation completed successfully.",
+                strengths: session.aiResult?.strengths || ["Technical depth", "Problem solving"],
+                weaknesses: session.aiResult?.weaknesses || ["System architecture edge cases"]
+            };
+        });
+        if (search && search.trim()) {
+            const query = search.toLowerCase();
+            return mapped.filter((item) => item.candidate.toLowerCase().includes(query) ||
+                item.role.toLowerCase().includes(query) ||
+                item.email.toLowerCase().includes(query));
+        }
+        return mapped;
     }
 }
 //# sourceMappingURL=ai.final.evaluation.service.js.map

@@ -137,7 +137,6 @@ export async function seedInfosysTestData() {
             data: {
                 candidateId: candidate.id,
                 jobId: job.id,
-                resumeId: resume.id,
                 status: "APPLIED"
             }
         });

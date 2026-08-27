@@ -18,6 +18,20 @@ export declare class InterviewsRepositories {
         id: string;
         status: import("@prisma/client").$Enums.InterviewStatus;
     }>;
+    static deleteInterview(companyId: string, interviewId: string): Promise<{
+        type: import("@prisma/client").$Enums.InterviewType;
+        companyId: string;
+        description: string | null;
+        id: string;
+        status: import("@prisma/client").$Enums.InterviewStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        mode: import("@prisma/client").$Enums.InterviewMode;
+        title: string;
+        instructions: string | null;
+        durationMinutes: number | null;
+        createdById: string;
+    }>;
 }
 export declare class JobInterviewsRepositories {
     static createJobInterview(data: CreateJobInterviewData): Promise<{

@@ -32,4 +32,22 @@ export class AIInterviewController {
             });
         }
     );
+
+    static getCompanyAIInterviews = asyncHandler(
+        async (req: Request, res: Response) => {
+            const { companyId } = req.params;
+            const { search } = req.query;
+
+            const results = await AIInterviewFinalEvaluationService.getCompanyAIInterviews(
+                companyId as string,
+                search as string | undefined
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Company AI interviews retrieved successfully",
+                data: results
+            });
+        }
+    );
 }

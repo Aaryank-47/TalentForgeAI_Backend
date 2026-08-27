@@ -24,8 +24,122 @@ export declare class ATSIntegrationRepository {
     }) | null>;
     static findCompletedAttemptByApplication(applicationId: string): Promise<({
         assessment: {
+            id: string;
             title: string;
+            durationMinutes: number | null;
+            passingScore: number | null;
+            totalMarks: number | null;
+            sections: ({
+                items: ({
+                    question: {
+                        mcqDetail: ({
+                            options: {
+                                id: string;
+                                displayOrder: number;
+                                mcqDetailId: string;
+                                optionText: string;
+                                isCorrect: boolean;
+                            }[];
+                        } & {
+                            id: string;
+                            questionId: string;
+                            allowMultipleCorrectAnswers: boolean;
+                            negativeMarks: number;
+                        }) | null;
+                    } & {
+                        type: import("@prisma/client").$Enums.QuestionType;
+                        code: string | null;
+                        companyId: string | null;
+                        description: string;
+                        id: string;
+                        status: import("@prisma/client").$Enums.QuestionStatus;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        deletedAt: Date | null;
+                        deletedById: string | null;
+                        version: number;
+                        title: string;
+                        createdById: string | null;
+                        updatedById: string | null;
+                        archivedById: string | null;
+                        publishedAt: Date | null;
+                        archivedAt: Date | null;
+                        difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
+                        estimatedTime: number;
+                        defaultMarks: number;
+                        ownership: import("@prisma/client").$Enums.QuestionOwnership;
+                        createdByCompanyMemberId: string | null;
+                        publishedById: string | null;
+                        categoryId: string | null;
+                        usageCount: number;
+                        successRate: number | null;
+                    };
+                } & {
+                    id: string;
+                    sectionId: string;
+                    displayOrder: number;
+                    questionId: string;
+                    marksOverride: number | null;
+                    negativeMarksOverride: number | null;
+                    timeLimitOverride: number | null;
+                    isRequired: boolean;
+                })[];
+            } & {
+                description: string | null;
+                id: string;
+                assessmentId: string;
+                title: string;
+                instructions: string | null;
+                durationMinutes: number | null;
+                displayOrder: number;
+                sectionType: import("@prisma/client").$Enums.QuestionType;
+            })[];
         };
+        answers: ({
+            question: {
+                type: import("@prisma/client").$Enums.QuestionType;
+                code: string | null;
+                companyId: string | null;
+                description: string;
+                id: string;
+                status: import("@prisma/client").$Enums.QuestionStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                deletedById: string | null;
+                version: number;
+                title: string;
+                createdById: string | null;
+                updatedById: string | null;
+                archivedById: string | null;
+                publishedAt: Date | null;
+                archivedAt: Date | null;
+                difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
+                estimatedTime: number;
+                defaultMarks: number;
+                ownership: import("@prisma/client").$Enums.QuestionOwnership;
+                createdByCompanyMemberId: string | null;
+                publishedById: string | null;
+                categoryId: string | null;
+                usageCount: number;
+                successRate: number | null;
+            };
+        } & {
+            id: string;
+            updatedAt: Date;
+            questionId: string;
+            startedAt: Date | null;
+            submittedAt: Date | null;
+            isCorrect: boolean | null;
+            attemptId: string;
+            score: number | null;
+            feedback: string | null;
+            selectedOptionIds: string[];
+            attachmentUrls: string[];
+            codeResponse: string | null;
+            submissionUrl: string | null;
+            meta: import("@prisma/client/runtime/client").JsonValue | null;
+        })[];
     } & {
         id: string;
         status: import("@prisma/client").$Enums.AttemptStatus;

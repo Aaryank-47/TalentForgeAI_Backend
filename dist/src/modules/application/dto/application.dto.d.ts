@@ -22,6 +22,9 @@ export declare class ApplicationDto {
     static applicationIdParam: z.ZodObject<{
         applicationId: z.ZodString;
     }, z.z.core.$strip>;
+    static companyIdParam: z.ZodObject<{
+        companyId: z.ZodString;
+    }, z.z.core.$strip>;
     static jobIdParam: z.ZodObject<{
         jobId: z.ZodString;
     }, z.z.core.$strip>;

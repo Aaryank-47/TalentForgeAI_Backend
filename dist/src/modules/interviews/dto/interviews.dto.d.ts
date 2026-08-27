@@ -11,10 +11,22 @@ export declare const createInterviewDto: z.ZodObject<{
         INDIVIDUAL: "INDIVIDUAL";
         GROUP: "GROUP";
     }>;
+    status: z.ZodOptional<z.ZodEnum<{
+        DRAFT: "DRAFT";
+        ACTIVE: "ACTIVE";
+        ARCHIVED: "ARCHIVED";
+    }>>;
     durationMinutes: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
     aiConfiguration: z.ZodOptional<z.ZodObject<{
         systemPrompt: z.ZodOptional<z.ZodString>;
         evaluationMetrics: z.ZodOptional<z.ZodAny>;
+        questionCount: z.ZodOptional<z.ZodNumber>;
+        difficulty: z.ZodOptional<z.ZodEnum<{
+            EASY: "EASY";
+            MEDIUM: "MEDIUM";
+            HARD: "HARD";
+        }>>;
+        allowFollowUps: z.ZodOptional<z.ZodBoolean>;
     }, z.core.$strip>>;
 }, z.core.$strip>;
 export type CreateInterviewDto = z.infer<typeof createInterviewDto>;
@@ -54,10 +66,22 @@ export declare const updateInterviewDto: z.ZodObject<{
         INDIVIDUAL: "INDIVIDUAL";
         GROUP: "GROUP";
     }>>;
+    status: z.ZodOptional<z.ZodEnum<{
+        DRAFT: "DRAFT";
+        ACTIVE: "ACTIVE";
+        ARCHIVED: "ARCHIVED";
+    }>>;
     durationMinutes: z.ZodOptional<z.ZodOptional<z.ZodNumber>>;
     aiConfiguration: z.ZodOptional<z.ZodObject<{
         systemPrompt: z.ZodOptional<z.ZodString>;
         evaluationMetrics: z.ZodOptional<z.ZodAny>;
+        questionCount: z.ZodOptional<z.ZodNumber>;
+        difficulty: z.ZodOptional<z.ZodEnum<{
+            EASY: "EASY";
+            MEDIUM: "MEDIUM";
+            HARD: "HARD";
+        }>>;
+        allowFollowUps: z.ZodOptional<z.ZodBoolean>;
     }, z.core.$strip>>;
 }, z.core.$strip>;
 export type UpdateInterviewDto = z.infer<typeof updateInterviewDto>;

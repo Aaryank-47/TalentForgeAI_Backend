@@ -1,4 +1,5 @@
 import { ATSIntegrationRepository } from "../repositories/atsIntegration.repository.js";
+import { AssessmentEvaluationService } from "./assessmentEvaluation.service.js";
 import { ApplicationWorkflowRepository } from "../../hiring-workflow/repositories/application-workflow.repository.js";
 import { ApplicationRepository } from "../../application/repositories/application.repository.js";
 import prisma from "../../../config/database.js";
@@ -51,21 +52,50 @@ export class AssessmentATSIntegrationService {
                 throw new ForbiddenError("You do not have permission to view this application assessment result.");
             }
         }
-        const attempt = await ATSIntegrationRepository.findCompletedAttemptByApplication(applicationId);
+        let attempt = await ATSIntegrationRepository.findCompletedAttemptByApplication(applicationId);
         if (!attempt) {
-            throw new NotFoundError("No completed assessment attempt found for this application.");
+            throw new NotFoundError("No assessment attempt found for this application.");
         }
+        // If attempt was submitted but evaluation is not yet completed, run the evaluator now
+        if (attempt.evaluationStatus !== EvaluationStatus.COMPLETED) {
+            try {
+                await AssessmentEvaluationService.runOrchestrator(attempt.id);
+                // Re-fetch evaluated attempt
+                const evaluated = await ATSIntegrationRepository.findCompletedAttemptByApplication(applicationId);
+                if (evaluated) {
+                    attempt = evaluated;
+                }
+            }
+            catch (err) {
+                logger.warn({ attemptId: attempt.id, err }, "Scorecard on-demand evaluation failed.");
+            }
+        }
+        const answersList = (attempt.answers || []).map((ans) => ({
+            id: ans.id,
+            questionId: ans.questionId,
+            questionTitle: ans.question?.title,
+            questionType: ans.question?.type,
+            score: ans.score,
+            isCorrect: ans.isCorrect,
+            feedback: ans.feedback,
+            selectedOptionIds: ans.selectedOptionIds,
+            codeResponse: ans.codeResponse,
+            timeSpentSeconds: ans.timeSpentSeconds
+        }));
         return {
             applicationId,
             assessmentAttemptId: attempt.id,
             assessmentId: attempt.assessmentId,
             assessmentTitle: attempt.assessment.title,
             score: attempt.overallScore ?? 0,
+            totalMarks: attempt.assessment.totalMarks ?? 100,
             percentage: attempt.percentage ?? 0,
+            passingScore: attempt.assessment.passingScore ?? 60,
             passed: attempt.passed ?? false,
             evaluationStatus: attempt.evaluationStatus,
             submittedAt: attempt.submittedAt || attempt.createdAt,
-            evaluatedAt: attempt.updatedAt
+            evaluatedAt: attempt.updatedAt,
+            answers: answersList
         };
     }
     static async processAssessmentResult(attemptId) {

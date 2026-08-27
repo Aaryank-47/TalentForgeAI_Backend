@@ -92,12 +92,12 @@ export declare class AIInterviewSessionService {
             score: number;
             feedback: string | null;
             answerId: string;
+            strengths: import("@prisma/client/runtime/client").JsonValue | null;
+            weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
             technicalAccuracy: number | null;
             relevance: number | null;
             completeness: number | null;
             communication: number | null;
-            strengths: import("@prisma/client/runtime/client").JsonValue | null;
-            weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         };
         nextQuestion: {
             sessionId: string;
@@ -141,12 +141,12 @@ export declare class AIQuestionProgressionService {
             score: number;
             feedback: string | null;
             answerId: string;
+            strengths: import("@prisma/client/runtime/client").JsonValue | null;
+            weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
             technicalAccuracy: number | null;
             relevance: number | null;
             completeness: number | null;
             communication: number | null;
-            strengths: import("@prisma/client/runtime/client").JsonValue | null;
-            weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         };
         nextQuestion: null;
         completed: boolean;
@@ -160,12 +160,12 @@ export declare class AIQuestionProgressionService {
             score: number;
             feedback: string | null;
             answerId: string;
+            strengths: import("@prisma/client/runtime/client").JsonValue | null;
+            weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
             technicalAccuracy: number | null;
             relevance: number | null;
             completeness: number | null;
             communication: number | null;
-            strengths: import("@prisma/client/runtime/client").JsonValue | null;
-            weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         };
         nextQuestion: {
             id: string;

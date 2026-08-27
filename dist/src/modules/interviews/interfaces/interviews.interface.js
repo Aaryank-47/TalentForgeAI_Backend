@@ -16,15 +16,37 @@ export const interviewSelect = {
             userId: true,
         },
     },
+    aiConfiguration: {
+        select: {
+            id: true,
+            systemPrompt: true,
+            evaluationMetrics: true,
+            questionCount: true,
+            difficulty: true,
+            allowFollowUps: true,
+        }
+    },
 };
 export const interviewListSelect = {
     id: true,
     title: true,
+    description: true,
+    instructions: true,
     type: true,
     mode: true,
     durationMinutes: true,
     status: true,
     createdAt: true,
+    aiConfiguration: {
+        select: {
+            id: true,
+            systemPrompt: true,
+            evaluationMetrics: true,
+            questionCount: true,
+            difficulty: true,
+            allowFollowUps: true,
+        }
+    },
 };
 export const interviewDetailSelect = {
     id: true,
@@ -43,6 +65,16 @@ export const interviewDetailSelect = {
             id: true,
             userId: true,
         },
+    },
+    aiConfiguration: {
+        select: {
+            id: true,
+            systemPrompt: true,
+            evaluationMetrics: true,
+            questionCount: true,
+            difficulty: true,
+            allowFollowUps: true,
+        }
     },
     jobInterviews: {
         select: {

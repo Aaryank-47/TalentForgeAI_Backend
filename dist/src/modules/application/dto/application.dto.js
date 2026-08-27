@@ -23,6 +23,9 @@ export class ApplicationDto {
     static applicationIdParam = z.object({
         applicationId: applicationIdValidator,
     });
+    static companyIdParam = z.object({
+        companyId: z.string().cuid("Please enter a valid company ID"),
+    });
     static jobIdParam = z.object({
         jobId: jobIdValidator,
     });

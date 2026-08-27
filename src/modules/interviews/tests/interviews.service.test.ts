@@ -410,8 +410,7 @@ describe("InterviewSessionsServices & ParticipantsServices tests", () => {
         application = await prisma.application.create({
             data: {
                 candidateId: candidate.id,
-                jobId: job.id,
-                resumeId: resume.id
+                jobId: job.id
             }
         });
 

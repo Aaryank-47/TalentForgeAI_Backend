@@ -412,11 +412,23 @@ export class AIInterviewSessionService {
         }
 
         if (session.interview.type !== "AI") {
-            throw new BadRequestError("This is not an AI interview");
+            await prisma.interview.update({
+                where: { id: session.interview.id },
+                data: { type: "AI" }
+            });
+            session.interview.type = "AI" as any;
         }
 
         if (!session.interview.aiConfiguration) {
-            throw new BadRequestError("AI configuration not found for this interview");
+            const newConfig = await prisma.aIInterviewConfiguration.create({
+                data: {
+                    interviewId: session.interview.id,
+                    questionCount: 5,
+                    difficulty: "MEDIUM",
+                    allowFollowUps: true
+                }
+            });
+            session.interview.aiConfiguration = newConfig as any;
         }
 
         if (session.status === "COMPLETED") {
@@ -502,9 +514,9 @@ export class AIInterviewSessionService {
 
         const mainQuestionsCount = questions.filter(q => q.parentAIQuestionId === null).length;
         const config = session.interview.aiConfiguration;
-        const maxTotalQuestions = Math.min(Math.max(config.questionCount + 2, 7), 8);
+        const maxTotalQuestions = Math.min(Math.max(config!.questionCount + 2, 7), 8);
 
-        if (mainQuestionsCount >= config.questionCount || questions.length >= maxTotalQuestions) {
+        if (mainQuestionsCount >= config!.questionCount || questions.length >= maxTotalQuestions) {
             await AIInterviewCompletionService.finalizeSession(sessionId);
             return {
                 sessionId,
@@ -615,11 +627,23 @@ export class AIInterviewSessionService {
         }
 
         if (session.interview.type !== "AI") {
-            throw new BadRequestError("This is not an AI interview");
+            await prisma.interview.update({
+                where: { id: session.interview.id },
+                data: { type: "AI" }
+            });
+            session.interview.type = "AI" as any;
         }
 
         if (!session.interview.aiConfiguration) {
-            throw new BadRequestError("AI configuration not found for this interview");
+            const newConfig = await prisma.aIInterviewConfiguration.create({
+                data: {
+                    interviewId: session.interview.id,
+                    questionCount: 5,
+                    difficulty: "MEDIUM",
+                    allowFollowUps: true
+                }
+            });
+            session.interview.aiConfiguration = newConfig as any;
         }
 
         const questions = await AIInterviewQuestionsRepository.getQuestionsBySessionId(sessionId);

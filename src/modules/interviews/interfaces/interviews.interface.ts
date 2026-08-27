@@ -19,6 +19,16 @@ export const interviewSelect = {
             userId: true,
         },
     },
+    aiConfiguration: {
+        select: {
+            id: true,
+            systemPrompt: true,
+            evaluationMetrics: true,
+            questionCount: true,
+            difficulty: true,
+            allowFollowUps: true,
+        }
+    },
 } satisfies Prisma.InterviewSelect;
 
 export type InterviewResponse = Prisma.InterviewGetPayload<{
@@ -28,11 +38,23 @@ export type InterviewResponse = Prisma.InterviewGetPayload<{
 export const interviewListSelect = {
     id: true,
     title: true,
+    description: true,
+    instructions: true,
     type: true,
     mode: true,
     durationMinutes: true,
     status: true,
     createdAt: true,
+    aiConfiguration: {
+        select: {
+            id: true,
+            systemPrompt: true,
+            evaluationMetrics: true,
+            questionCount: true,
+            difficulty: true,
+            allowFollowUps: true,
+        }
+    },
 } satisfies Prisma.InterviewSelect;
 
 export type InterviewSummary = Prisma.InterviewGetPayload<{
@@ -56,6 +78,16 @@ export const interviewDetailSelect = {
             id: true,
             userId: true,
         },
+    },
+    aiConfiguration: {
+        select: {
+            id: true,
+            systemPrompt: true,
+            evaluationMetrics: true,
+            questionCount: true,
+            difficulty: true,
+            allowFollowUps: true,
+        }
     },
     jobInterviews: {
         select: {

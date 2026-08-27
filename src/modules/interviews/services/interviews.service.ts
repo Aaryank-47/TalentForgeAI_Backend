@@ -87,14 +87,17 @@ export class InterviewsServices {
             durationMinutes: data.durationMinutes,
             company: { connect: { id: companyId } },
             createdBy: { connect: { id: companyMemberId } },
-            status: "DRAFT"
+            status: data.status || "ACTIVE"
         };
 
         if (data.type === 'AI' && data.aiConfiguration) {
             interviewData.aiConfiguration = {
                 create: {
                     systemPrompt: data.aiConfiguration.systemPrompt,
-                    evaluationMetrics: data.aiConfiguration.evaluationMetrics
+                    evaluationMetrics: data.aiConfiguration.evaluationMetrics,
+                    ...(data.aiConfiguration.questionCount !== undefined && { questionCount: data.aiConfiguration.questionCount }),
+                    ...(data.aiConfiguration.difficulty !== undefined && { difficulty: data.aiConfiguration.difficulty }),
+                    ...(data.aiConfiguration.allowFollowUps !== undefined && { allowFollowUps: data.aiConfiguration.allowFollowUps }),
                 }
             };
         }
@@ -174,19 +177,21 @@ export class InterviewsServices {
         if (data.instructions !== undefined) updateData.instructions = data.instructions;
         if (data.type !== undefined) updateData.type = data.type;
         if (data.mode !== undefined) updateData.mode = data.mode;
+        if (data.status !== undefined) updateData.status = data.status;
         if (data.durationMinutes !== undefined) updateData.durationMinutes = data.durationMinutes;
 
         if (data.aiConfiguration) {
+            const aiConfData: any = {};
+            if (data.aiConfiguration.systemPrompt !== undefined) aiConfData.systemPrompt = data.aiConfiguration.systemPrompt;
+            if (data.aiConfiguration.evaluationMetrics !== undefined) aiConfData.evaluationMetrics = data.aiConfiguration.evaluationMetrics;
+            if (data.aiConfiguration.questionCount !== undefined) aiConfData.questionCount = data.aiConfiguration.questionCount;
+            if (data.aiConfiguration.difficulty !== undefined) aiConfData.difficulty = data.aiConfiguration.difficulty;
+            if (data.aiConfiguration.allowFollowUps !== undefined) aiConfData.allowFollowUps = data.aiConfiguration.allowFollowUps;
+
             updateData.aiConfiguration = {
                 upsert: {
-                    create: {
-                        systemPrompt: data.aiConfiguration.systemPrompt,
-                        evaluationMetrics: data.aiConfiguration.evaluationMetrics
-                    },
-                    update: {
-                        systemPrompt: data.aiConfiguration.systemPrompt,
-                        evaluationMetrics: data.aiConfiguration.evaluationMetrics
-                    }
+                    create: aiConfData,
+                    update: aiConfData
                 }
             };
         }
@@ -210,6 +215,19 @@ export class InterviewsServices {
         }
 
         return InterviewsRepositories.changeInterviewStatus(companyId, interviewId, status);
+    }
+
+    static async deleteInterview(companyId: string, interviewId: string) {
+        const existing = await InterviewsRepositories.getInterviewById(companyId, interviewId);
+        if (!existing) {
+            throw new NotFoundError("Interview not found or does not belong to this company.");
+        }
+
+        // Clean up any JobInterview associations before deleting
+        await JobInterviewsRepositories.deleteAllJobInterviewsByInterviewId(interviewId);
+        await InterviewsRepositories.deleteInterview(companyId, interviewId);
+
+        return { message: "Interview deleted successfully" };
     }
 }
 
@@ -340,7 +358,10 @@ export class InterviewAssignmentsServices {
         }
 
         if (interview.status !== InterviewStatus.ACTIVE) {
-            throw new BadRequestError(`Cannot assign applications to an interview with status: ${interview.status}`);
+            await InterviewsRepositories.updateInterview(companyId, interviewId, {
+                status: InterviewStatus.ACTIVE
+            });
+            interview.status = InterviewStatus.ACTIVE;
         }
 
         const applicationIds = [...new Set(data.applicationIds)];
@@ -353,9 +374,20 @@ export class InterviewAssignmentsServices {
 
         const validJobIds = new Set(interview.jobInterviews.map((j: any) => j.jobId));
 
-        for (const app of applications) {
+        for (const appItem of applications) {
+            const app = appItem as any;
+            // Auto-associate job with interview if in same company
             if (!validJobIds.has(app.jobId)) {
-                throw new BadRequestError(`Application ${app.id} belongs to Job ${app.job.title} which is not associated with this Interview.`);
+                const isAttached = await JobInterviewsRepositories.findJobInterview(app.jobId, interviewId);
+                if (!isAttached) {
+                    await JobInterviewsRepositories.createJobInterview({
+                        jobId: app.jobId,
+                        interviewId,
+                        displayOrder: 0,
+                        isMandatory: true
+                    });
+                    validJobIds.add(app.jobId);
+                }
             }
 
             if (
@@ -363,6 +395,45 @@ export class InterviewAssignmentsServices {
                 app.status === ApplicationStatus.WITHDRAWN
             ) {
                 throw new BadRequestError(`Application ${app.id} is in an ineligible state: ${app.status}`);
+            }
+
+            // --- Workflow & Stage Inspection --- //
+            const workflow = app.job?.workflow;
+            if (workflow && workflow.stages && workflow.stages.length > 0) {
+                // 1. Check if the workflow contains an AI Interview stage
+                const aiInterviewStage = workflow.stages.find((s: any) => {
+                    const name = s.stageLibrary?.name?.toLowerCase() || "";
+                    return s.interviewId === interviewId ||
+                           name.includes("ai interview") ||
+                           name.includes("ai technical") ||
+                           name.includes("ai screening") ||
+                           name.includes("interview");
+                });
+
+                if (!aiInterviewStage) {
+                    throw new BadRequestError(
+                        `The workflow for job "${app.job?.title}" does not have an AI Interview stage.`
+                    );
+                }
+
+                // 2. Check if candidate has reached the AI Interview stage
+                const currentStage = app.applicationWorkflow?.workflowStage;
+                if (!currentStage) {
+                    const initialStage = workflow.stages[0];
+                    if (initialStage && initialStage.id !== aiInterviewStage.id && initialStage.order < aiInterviewStage.order) {
+                        const candidateName = app.candidate?.fullName || app.candidate?.user?.email || "Candidate";
+                        throw new BadRequestError(
+                            `${candidateName} has not reached the AI Interview stage yet. Current workflow stage is: "${initialStage.stageLibrary?.name || 'Applied'}". Please move the candidate to the AI Interview stage before assigning.`
+                        );
+                    }
+                } else {
+                    if (currentStage.order < aiInterviewStage.order && currentStage.id !== aiInterviewStage.id) {
+                        const candidateName = app.candidate?.fullName || app.candidate?.user?.email || "Candidate";
+                        throw new BadRequestError(
+                            `${candidateName} has not reached the AI Interview stage yet. Current workflow stage is: "${currentStage.stageLibrary?.name || 'Applied'}" (Stage order ${currentStage.order}, AI Interview is Stage ${aiInterviewStage.order}). Please move the candidate to the AI Interview stage before assigning.`
+                        );
+                    }
+                }
             }
         }
 

@@ -438,7 +438,10 @@ export declare const assessmentAnswerIsCorrectValidator: z.ZodOptional<z.ZodBool
 export declare const assessmentAnswerFeedbackValidator: z.ZodOptional<z.ZodString>;
 export declare const selectedOptionIdsValidator: z.ZodArray<z.ZodString>;
 export declare const attachmentUrlsValidator: z.ZodArray<z.ZodString>;
-export declare const codeResponseValidator: z.ZodOptional<z.ZodString>;
+export declare const codeResponseValidator: z.ZodOptional<z.ZodUnion<readonly [z.ZodString, z.ZodObject<{
+    code: z.ZodString;
+    language: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>]>>;
 export declare const submissionUrlValidator: z.ZodOptional<z.ZodString>;
 export declare const metaValidator: z.ZodOptional<z.ZodAny>;
 export declare const interviewIdValidator: z.ZodString;

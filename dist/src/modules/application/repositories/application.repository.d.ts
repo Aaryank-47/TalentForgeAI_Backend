@@ -216,9 +216,77 @@ export declare class ApplicationRepository {
                 verifiedBy: string | null;
             };
             id: string;
+            workflow: ({
+                stages: ({
+                    stageLibrary: {
+                        type: import("@prisma/client").$Enums.StageType;
+                        companyId: string | null;
+                        description: string | null;
+                        name: string;
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        isActive: boolean;
+                    };
+                } & {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    assessmentId: string | null;
+                    workflowId: string;
+                    stageLibraryId: string;
+                    order: number;
+                    isEnabled: boolean;
+                    isFinal: boolean;
+                    interviewId: string | null;
+                })[];
+            } & {
+                companyId: string;
+                description: string | null;
+                name: string;
+                id: string;
+                status: import("@prisma/client").$Enums.WorkflowStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                isDefault: boolean;
+            }) | null;
             title: string;
             workflowId: string | null;
         };
+        applicationWorkflow: ({
+            workflowStage: {
+                stageLibrary: {
+                    type: import("@prisma/client").$Enums.StageType;
+                    companyId: string | null;
+                    description: string | null;
+                    name: string;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    isActive: boolean;
+                };
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                assessmentId: string | null;
+                workflowId: string;
+                stageLibraryId: string;
+                order: number;
+                isEnabled: boolean;
+                isFinal: boolean;
+                interviewId: string | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            applicationId: string;
+            workflowStageId: string;
+            assignedEmployerId: string | null;
+            remarks: string | null;
+            movedAt: Date;
+        }) | null;
     } & {
         id: string;
         status: import("@prisma/client").$Enums.ApplicationStatus;
@@ -727,10 +795,48 @@ export declare class ApplicationRepository {
     }): Promise<{
         applications: ({
             candidate: {
+                skills: {
+                    name: string;
+                    yearsOfExperience: number | null;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    candidateId: string;
+                    skillId: string | null;
+                }[];
                 user: {
                     email: string;
                     status: import("@prisma/client").$Enums.AccountStatus;
                 };
+                educations: {
+                    startDate: Date;
+                    endDate: Date | null;
+                    collegeName: string;
+                    degree: string;
+                    fieldOfStudy: string;
+                    currentlyStudying: boolean;
+                    gradingSystem: import("@prisma/client").$Enums.GradingSystem;
+                    gradeText: string | null;
+                    grade: number | null;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    candidateId: string;
+                }[];
+                experiences: {
+                    companyName: string;
+                    description: string | null;
+                    designation: string;
+                    currentlyWorking: boolean;
+                    employmentType: import("@prisma/client").$Enums.EmploymentType;
+                    location: string | null;
+                    startDate: Date;
+                    endDate: Date | null;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    candidateId: string;
+                }[];
             } & {
                 fullName: string;
                 phoneNumber: string | null;
@@ -759,6 +865,34 @@ export declare class ApplicationRepository {
                 isOpenToWork: boolean;
                 profileCompletion: number;
             };
+            assessmentAttempts: {
+                id: string;
+                status: import("@prisma/client").$Enums.AttemptStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                candidateId: string;
+                assessmentId: string;
+                applicationId: string;
+                currentSectionId: string | null;
+                startedAt: Date | null;
+                submittedAt: Date | null;
+                lastActivityAt: Date | null;
+                attemptNumber: number;
+                timeTakenInSeconds: number | null;
+                completedDurationSeconds: number | null;
+                overallScore: number | null;
+                percentage: number | null;
+                passed: boolean | null;
+                evaluationStatus: import("@prisma/client").$Enums.EvaluationStatus;
+                reviewStatus: import("@prisma/client").$Enums.ReviewStatus;
+            }[];
+            job: {
+                employmentType: import("@prisma/client").$Enums.EmploymentType;
+                location: string | null;
+                id: string;
+                title: string;
+                workplaceType: import("@prisma/client").$Enums.WorkplaceType;
+            };
             applicationResume: {
                 id: string;
                 createdAt: Date;
@@ -768,6 +902,40 @@ export declare class ApplicationRepository {
                 fileUrl: string;
                 sourceResumeId: string | null;
             } | null;
+            applicationWorkflow: ({
+                workflowStage: {
+                    stageLibrary: {
+                        type: import("@prisma/client").$Enums.StageType;
+                        companyId: string | null;
+                        description: string | null;
+                        name: string;
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        isActive: boolean;
+                    };
+                } & {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    assessmentId: string | null;
+                    workflowId: string;
+                    stageLibraryId: string;
+                    order: number;
+                    isEnabled: boolean;
+                    isFinal: boolean;
+                    interviewId: string | null;
+                };
+            } & {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                applicationId: string;
+                workflowStageId: string;
+                assignedEmployerId: string | null;
+                remarks: string | null;
+                movedAt: Date;
+            }) | null;
         } & {
             id: string;
             status: import("@prisma/client").$Enums.ApplicationStatus;

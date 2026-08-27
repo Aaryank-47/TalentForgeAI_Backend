@@ -39,7 +39,28 @@ export class ApplicationRepository {
                         workflowId: true,
                         companyId: true,
                         title: true,
-                        company: true
+                        company: true,
+                        workflow: {
+                            include: {
+                                stages: {
+                                    include: {
+                                        stageLibrary: true
+                                    },
+                                    orderBy: {
+                                        order: "asc"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                applicationWorkflow: {
+                    include: {
+                        workflowStage: {
+                            include: {
+                                stageLibrary: true
+                            }
+                        }
                     }
                 },
                 candidate: {
@@ -355,6 +376,7 @@ export class ApplicationRepository {
         const where: any = {
             job: {
                 companyId,
+                status: 'PUBLISHED'
             },
         };
 
