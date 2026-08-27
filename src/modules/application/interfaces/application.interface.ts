@@ -14,16 +14,9 @@ export interface ApplicationView {
     } | null;
 }
 
-export interface ApplicationOverview {
-    totalApplications: number;
-    totalApplied: number;
-    totalRejected: number;
-    totalHired: number;
-    totalWithdraw: number;
-    applicationStages: {
-        INREVIEW: number;
-        HIRED: number;
-        REJECTED: number;
-        WITHDRAWN: number;
-    }
+export interface ApplicationListResult {
+    applications: any[];
+    total: number;
 }
+
+export type ApplicationDetailResult = NonNullable<Awaited<ReturnType<typeof import("../repositories/application.repository.js").ApplicationRepository.getJobApplicationDetails>>>;

@@ -6,6 +6,42 @@ import { PaginationHelper } from "../../../common/helper/pagination.helper.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 
 export class EmployerApplicationController {
+    static async getCompanyApplications(
+        req: Request,
+        res: Response
+    ): Promise<void> {
+        const userId = req.user.id;
+        const { companyId } = req.params;
+        const { jobId, status, search } = req.query;
+
+        if (!companyId || typeof companyId !== "string") {
+            throw new BadRequestError("Company ID is required");
+        }
+
+        const pagination = PaginationHelper.getPagination(req.query);
+
+        const result = await EmployerApplicationService.getCompanyApplications(userId, companyId, {
+            page: pagination.page,
+            limit: pagination.limit,
+            jobId: typeof jobId === "string" ? jobId : undefined,
+            status: typeof status === "string" ? status : undefined,
+            search: typeof search === "string" ? search : undefined,
+        });
+
+        const responseData = PaginationHelper.buildResponse(
+            result.applications,
+            pagination,
+            result.total
+        );
+
+        res.status(HTTP_STATUS.OK).json({
+            success: true,
+            statusCode: HTTP_STATUS.OK,
+            message: MESSAGE.APPLICATION_FETCHED,
+            ...responseData,
+        });
+    }
+
     static async getJobApplications(
         req: Request,
         res: Response

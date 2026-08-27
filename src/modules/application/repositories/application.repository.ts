@@ -363,17 +363,51 @@ export class ApplicationRepository {
         }
 
         if (status) {
-            where.status = status;
+            const upperStatus = status.toUpperCase();
+            if (['APPLIED', 'INREVIEW', 'WITHDRAWN', 'HIRED', 'REJECTED'].includes(upperStatus)) {
+                where.status = upperStatus;
+            } else {
+                where.OR = [
+                    {
+                        applicationWorkflow: {
+                            workflowStage: {
+                                stageLibrary: {
+                                    name: {
+                                        contains: status,
+                                        mode: 'insensitive',
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        status: {
+                            contains: status,
+                            mode: 'insensitive',
+                        }
+                    }
+                ];
+            }
         }
 
         if (search) {
             where.candidate = {
-                user: {
-                    email: {
-                        contains: search,
-                        mode: 'insensitive',
+                OR: [
+                    {
+                        fullName: {
+                            contains: search,
+                            mode: 'insensitive',
+                        }
                     },
-                },
+                    {
+                        user: {
+                            email: {
+                                contains: search,
+                                mode: 'insensitive',
+                            },
+                        },
+                    }
+                ]
             };
         }
 
@@ -386,6 +420,15 @@ export class ApplicationRepository {
                     appliedAt: 'desc',
                 },
                 include: {
+                    job: {
+                        select: {
+                            id: true,
+                            title: true,
+                            location: true,
+                            workplaceType: true,
+                            employmentType: true,
+                        }
+                    },
                     candidate: {
                         include: {
                             user: {
@@ -393,10 +436,28 @@ export class ApplicationRepository {
                                     email: true,
                                     status: true,
                                 }
+                            },
+                            skills: true,
+                            experiences: true,
+                            educations: true,
+                        }
+                    },
+                    applicationWorkflow: {
+                        include: {
+                            workflowStage: {
+                                include: {
+                                    stageLibrary: true
+                                }
                             }
                         }
                     },
                     applicationResume: true,
+                    assessmentAttempts: {
+                        orderBy: {
+                            createdAt: 'desc'
+                        },
+                        take: 1
+                    }
                 },
             }),
             prisma.application.count({ where }),

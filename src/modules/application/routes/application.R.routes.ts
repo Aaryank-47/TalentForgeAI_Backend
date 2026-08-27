@@ -8,6 +8,14 @@ import { ApplicationDto } from "../dto/application.dto.js";
 const recruiterApplicationRoutes = Router();
 
 recruiterApplicationRoutes.get(
+    "/company/:companyId",
+    authMiddleware,
+    authorize("EMPLOYER", "ADMIN"),
+    validate(ApplicationDto.companyIdParam, "params"),
+    EmployerApplicationController.getCompanyApplications
+);
+
+recruiterApplicationRoutes.get(
     "/jobs/:jobId/applications",
     authMiddleware,
     authorize("EMPLOYER", "ADMIN"),
