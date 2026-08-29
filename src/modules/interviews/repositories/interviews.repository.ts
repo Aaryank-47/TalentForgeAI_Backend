@@ -499,6 +499,22 @@ export class InterviewSessionParticipantsRepositories {
                     include: {
                         interview: true
                     }
+                },
+                companyMember: {
+                    include: {
+                        user: {
+                            include: { employer: true, admin: true }
+                        }
+                    }
+                },
+                assignment: {
+                    include: {
+                        application: {
+                            include: {
+                                candidate: true
+                            }
+                        }
+                    }
                 }
             }
         });

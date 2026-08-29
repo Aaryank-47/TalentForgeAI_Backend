@@ -16,12 +16,15 @@ export function registerInterviewHandlers(socket: Socket) {
             const { sessionId } = data;
             try {
                 // Delegate validation and database updates to the service layer
-                await InterviewSessionParticipantsServices.verifyAndJoinSession(user.id, sessionId);
+                const participantInfo = await InterviewSessionParticipantsServices.verifyAndJoinSession(user.id, sessionId);
 
                 const oldSocketId = InterviewRoomManager.joinRoom(sessionId, {
                     socketId: socket.id,
                     userId: user.id,
                     role: user.role,
+                    name: participantInfo.name,
+                    initials: participantInfo.initials,
+                    avatarColor: participantInfo.avatarColor,
                     joinedAt: new Date()
                 });
 
@@ -42,6 +45,9 @@ export function registerInterviewHandlers(socket: Socket) {
                 socket.to(sessionId).emit("user-joined", {
                     userId: user.id,
                     role: user.role,
+                    name: participantInfo.name,
+                    initials: participantInfo.initials,
+                    avatarColor: participantInfo.avatarColor,
                     socketId: socket.id
                 });
 
@@ -141,7 +147,7 @@ export function registerInterviewHandlers(socket: Socket) {
     // TEXT CHAT EVENT
     socket.on("send-message", (data: {
         sessionId: string,
-        message: string
+        message: any
     }) => {
         if (!InterviewRoomManager.isSocketInRoom(data.sessionId, socket.id)) {
             socket.emit("error", {
@@ -149,13 +155,11 @@ export function registerInterviewHandlers(socket: Socket) {
             });
             return;
         }
-        const payload = {
-            senderId: user.id,
-            senderEmail: user.email,
-            message: data.message,
-            timestamp: new Date()
-        };
-        socket.nsp.to(data.sessionId).emit("new-message", payload);
+        
+        // Ensure sender ID cannot be spoofed
+        data.message.senderId = user.id;
+        
+        socket.nsp.to(data.sessionId).emit("new-message", data.message);
     });
 
     socket.on("disconnecting", async () => {

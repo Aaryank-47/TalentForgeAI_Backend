@@ -59,6 +59,16 @@ export class InterviewRoomManager {
         return room ? Array.from(room.values()) : [];
     }
 
+    static getSocketIdByUserId(
+        sessionId: string,
+        userId: string
+    ): string | null {
+        const room = this.activeRooms.get(sessionId);
+        if (!room) return null;
+        const participant = room.get(userId);
+        return participant ? participant.socketId : null;
+    }
+
     private static roomStates: Map<string, { code: string; language: string }> = new Map();
 
     static setCodeState(sessionId: string, code: string): void {

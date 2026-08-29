@@ -4,44 +4,48 @@ import type { WebRTCOfferPayload, WebRTCAnswerPayload, IceCandidatePayload } fro
 
 
 export function registerWebRTCSignalingHandlers(socket: Socket) {
+    const user = socket.data.user;
+    if (!user) return;
+
     // Relays WebRTC offer to the targeted peer socket ID
     socket.on("webrtc-offer", (
         data: WebRTCOfferPayload
     ) => {
-        // SECURITY CHECK: Verify both sender and recipient belong to this room
-        if (!InterviewRoomManager.isSocketInRoom(data.sessionId, socket.id) ||
-            !InterviewRoomManager.isSocketInRoom(data.sessionId, data.to)) {
-            socket.emit("error", { message: "Unauthorized signaling action" });
+        const targetSocketId = InterviewRoomManager.getSocketIdByUserId(data.sessionId, data.to);
+        if (!targetSocketId) {
+            socket.emit("error", { message: "Target user not in room" });
             return;
         }
 
-        socket.to(data.to).emit("webrtc-offer", {
-            from: socket.id,
+        socket.to(targetSocketId).emit("webrtc-offer", {
+            from: user.id,
             offer: data.offer
         });
     });
 
     socket.on("webrtc-answer", (data: WebRTCAnswerPayload) => {
-        if (!InterviewRoomManager.isSocketInRoom(data.sessionId, socket.id) ||
-            !InterviewRoomManager.isSocketInRoom(data.sessionId, data.to)) {
-            socket.emit("error", { message: "Unauthorized signaling action" });
+        const targetSocketId = InterviewRoomManager.getSocketIdByUserId(data.sessionId, data.to);
+        if (!targetSocketId) {
+            socket.emit("error", { message: "Target user not in room" });
             return;
         }
-        socket.to(data.to).emit("webrtc-answer", {
-            from: socket.id,
+
+        socket.to(targetSocketId).emit("webrtc-answer", {
+            from: user.id,
             answer: data.answer
         });
     });
 
     // Relays ICE Candidate information to the peer socket ID
     socket.on("webrtc-candidate", (data: IceCandidatePayload) => {
-        if (!InterviewRoomManager.isSocketInRoom(data.sessionId, socket.id) ||
-            !InterviewRoomManager.isSocketInRoom(data.sessionId, data.to)) {
-            socket.emit("error", { message: "Unauthorized signaling action" });
+        const targetSocketId = InterviewRoomManager.getSocketIdByUserId(data.sessionId, data.to);
+        if (!targetSocketId) {
+            socket.emit("error", { message: "Target user not in room" });
             return;
         }
-        socket.to(data.to).emit("webrtc-candidate", {
-            from: socket.id,
+
+        socket.to(targetSocketId).emit("webrtc-candidate", {
+            from: user.id,
             candidate: data.candidate
         });
     });

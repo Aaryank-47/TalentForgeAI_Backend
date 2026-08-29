@@ -876,6 +876,9 @@ export class InterviewSessionParticipantsServices {
         participantType: string;
         sessionId: string;
         companyId: string;
+        name: string;
+        initials: string;
+        avatarColor: string;
     }> {
         const participant = await InterviewSessionParticipantsRepositories.findParticipantForSession(userId, sessionId);
 
@@ -890,11 +893,18 @@ export class InterviewSessionParticipantsServices {
 
         await InterviewSessionParticipantsRepositories.updateParticipantJoinedStatus(participant.id);
 
+        const name = participant.companyMember?.user?.employer?.fullName || participant.companyMember?.user?.admin?.fullName || participant.assignment?.application?.candidate?.fullName || "User";
+        const initials = name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+        const avatarColor = participant.participantType === 'INTERVIEWER' ? 'from-blue-500 to-blue-700' : 'from-purple-500 to-purple-700';
+
         return {
             participantId: participant.id,
             participantType: participant.participantType,
             sessionId: participant.sessionId,
-            companyId: participant.session.interview.companyId
+            companyId: participant.session.interview.companyId,
+            name,
+            initials,
+            avatarColor
         };
     }
 }

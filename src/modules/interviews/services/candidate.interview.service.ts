@@ -128,10 +128,11 @@ export class CandidateInterviewService {
                 }
             }
 
-            let sessionParticipant = assignment.sessionParticipants[0];
+            // Iterate over all session participants for this assignment
+            let participantsToProcess = assignment.sessionParticipants;
 
             // If session doesn't exist for this assignment yet, auto-create a scheduled session
-            if (!sessionParticipant) {
+            if (participantsToProcess.length === 0) {
                 const newSession = await prisma.interviewSession.create({
                     data: {
                         interviewId: assignment.interviewId,
@@ -149,14 +150,16 @@ export class CandidateInterviewService {
                         participants: true
                     }
                 });
-                sessionParticipant = {
+                const newParticipant = {
                     ...newSession.participants[0]!,
                     session: newSession
                 } as any;
+                participantsToProcess = [newParticipant];
             }
 
-            const session = sessionParticipant!.session;
-            let interview = assignment.interview;
+            for (const sessionParticipant of participantsToProcess) {
+                const session = sessionParticipant!.session;
+                let interview = assignment.interview;
 
             if (interview.type === "AI" && !interview.aiConfiguration) {
                 const createdConfig = await prisma.aIInterviewConfiguration.create({
@@ -208,7 +211,8 @@ export class CandidateInterviewService {
             } else {
                 pendingList.push(item);
             }
-        }
+        } // End of participants loop
+    } // End of assignments loop
 
         return {
             pending: pendingList,
