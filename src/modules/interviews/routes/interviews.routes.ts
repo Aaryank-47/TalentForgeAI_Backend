@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { InterviewsController, JobInterviewsController, InterviewAssignmentsController, InterviewSessionsController, InterviewSessionParticipantsController } from "../controller/interviews.controller.js";
+import { InterviewsController, JobInterviewsController, InterviewAssignmentsController, InterviewSessionsController, InterviewSessionParticipantsController, InterviewEvaluationController } from "../controller/interviews.controller.js";
 import { CandidateInterviewController } from "../controller/candidate.interview.controller.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import {
@@ -13,7 +13,8 @@ import {
     getInterviewAssignmentsQueryDto,
     createInterviewSessionDto,
     updateInterviewSessionDto,
-    addSessionParticipantsDto
+    addSessionParticipantsDto,
+    submitInterviewEvaluationDto
 } from "../dto/interviews.dto.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
@@ -133,6 +134,14 @@ router.get(
 
 // --- Interview Assignments Routes --- //
 
+router.get(
+    "/:companyId/eligible-candidates",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewAssignmentsController.getEligibleCandidates
+);
+
 router.post(
     "/:companyId/interviews/:interviewId/assignments",
     authMiddleware,
@@ -187,6 +196,14 @@ router.get(
 );
 
 router.get(
+    "/:companyId/interview-sessions",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewSessionsController.getAllCompanySessions
+);
+
+router.get(
     "/:companyId/interview-sessions/:sessionId",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
@@ -201,6 +218,40 @@ router.patch(
     loadCompanyMembership,
     validate(updateInterviewSessionDto, "body"),
     InterviewSessionsController.updateSession
+);
+
+router.post(
+    "/:companyId/interview-sessions/:sessionId/start",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewSessionsController.startSession
+);
+
+router.post(
+    "/:companyId/interview-sessions/:sessionId/end",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewSessionsController.endSession
+);
+
+// --- Interview Session Evaluation Routes --- //
+
+router.post(
+    "/:companyId/interview-sessions/:sessionId/evaluation",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    validate(submitInterviewEvaluationDto, "body"),
+    InterviewEvaluationController.submitEvaluation
+);
+
+router.get(
+    "/:companyId/interview-sessions/:sessionId/evaluation",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.CANDIDATE),
+    InterviewEvaluationController.getEvaluations
 );
 
 // --- Interview Session Participants Routes --- //

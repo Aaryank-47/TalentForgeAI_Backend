@@ -271,14 +271,59 @@ export const interviewSessionParticipantSelect = {
     hasJoined: true,
     joinedAt: true,
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
+    assignment: {
+        select: {
+            application: {
+                select: {
+                    id: true,
+                    jobId: true,
+                    job: {
+                        select: {
+                            title: true
+                        }
+                    },
+                    candidate: {
+                        select: {
+                            id: true,
+                            fullName: true,
+                            profilePicture: true,
+                            user: {
+                                select: {
+                                    email: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 } satisfies Prisma.InterviewSessionParticipantSelect;
 
 export type InterviewSessionParticipantPayload = Prisma.InterviewSessionParticipantGetPayload<{
     select: typeof interviewSessionParticipantSelect;
 }>;
 
-export type InterviewSessionParticipantResponse = InterviewSessionParticipantPayload;
+export type InterviewSessionParticipantResponse = Omit<InterviewSessionParticipantPayload, 'assignment'> & {
+    assignment?: {
+        application: {
+            id: string;
+            jobId: string;
+            job: {
+                title: string;
+            };
+            candidate: {
+                id: string;
+                fullName: string;
+                profilePicture: string | null;
+                user: {
+                    email: string;
+                };
+            };
+        };
+    } | null;
+};
 
 export const interviewSessionSelect = {
     id: true,

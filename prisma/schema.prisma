@@ -309,6 +309,7 @@ model CompanyMember {
   createdInterviews            Interview[]                   @relation("InterviewCreatedBy")
   interviewAssignments         InterviewAssignment[]         @relation("InterviewAssignmentAssignedBy")
   interviewSessionParticipants InterviewSessionParticipant[]
+  interviewEvaluations         InterviewEvaluation[]
 
   @@unique([userId, companyId])
   @@index([companyId])
@@ -1316,10 +1317,35 @@ model InterviewSession {
   participants InterviewSessionParticipant[]
   aiQuestions  AIInterviewQuestion[]
   aiResult     AIInterviewResult?
+  evaluations  InterviewEvaluation[]
 
   @@index([interviewId])
   @@index([status])
   @@index([scheduledAt])
+}
+
+model InterviewEvaluation {
+  id                  String            @id @default(cuid())
+  sessionId           String
+  session             InterviewSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  companyMemberId     String
+  companyMember       CompanyMember     @relation(fields: [companyMemberId], references: [id], onDelete: Cascade)
+  overallScore        Float
+  communicationScore  Float?
+  technicalScore      Float?
+  problemSolvingScore Float?
+  behaviourScore      Float?
+  cultureFitScore     Float?
+  strengths           Json?
+  improvements        Json?
+  comments            String?
+  recommendation      AIRecommendation?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@unique([sessionId, companyMemberId])
+  @@index([sessionId])
+  @@index([companyMemberId])
 }
 
 model InterviewSessionParticipant {

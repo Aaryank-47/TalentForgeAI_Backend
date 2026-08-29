@@ -4,7 +4,7 @@ import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { InterviewParticipantType } from "@prisma/client";
 
 export class CandidateInterviewService {
-    static async getMyInterviews(userId: string) {
+    static async getMyInterviews(userId: string, type?: string) {
         const candidate = await prisma.candidate.findUnique({
             where: { userId }
         });
@@ -16,15 +16,18 @@ export class CandidateInterviewService {
             };
         }
 
-        // 1. Find all assignments for this candidate's applications (strictly AI interviews)
+        const interviewFilter: any = {};
+        if (type) {
+            interviewFilter.type = type;
+        }
+
+        // 1. Find all assignments for this candidate's applications
         const assignments = await prisma.interviewAssignment.findMany({
             where: {
                 application: {
                     candidateId: candidate.id
                 },
-                interview: {
-                    type: "AI"
-                }
+                interview: interviewFilter
             },
             include: {
                 interview: {
@@ -94,30 +97,33 @@ export class CandidateInterviewService {
         const completedList: any[] = [];
 
         for (const assignment of assignments) {
-            // Workflow Stage Inspection: Verify candidate has reached the AI interview stage
             const jobInfo = assignment.application.job as any;
-            const workflow = jobInfo?.workflow;
-            if (workflow && workflow.stages && workflow.stages.length > 0) {
-                const aiStage = workflow.stages.find((s: any) => {
-                    const name = s.stageLibrary?.name?.toLowerCase() || "";
-                    return s.interviewId === assignment.interviewId ||
-                           name.includes("ai interview") ||
-                           name.includes("ai technical") ||
-                           name.includes("ai screening") ||
-                           name.includes("interview");
-                });
+            
+            // Workflow Stage Inspection: Verify candidate has reached the AI interview stage (only for AI interviews)
+            if (assignment.interview.type === "AI") {
+                const workflow = jobInfo?.workflow;
+                if (workflow && workflow.stages && workflow.stages.length > 0) {
+                    const aiStage = workflow.stages.find((s: any) => {
+                        const name = s.stageLibrary?.name?.toLowerCase() || "";
+                        return s.interviewId === assignment.interviewId ||
+                               name.includes("ai interview") ||
+                               name.includes("ai technical") ||
+                               name.includes("ai screening") ||
+                               name.includes("interview");
+                    });
 
-                if (aiStage) {
-                    const currentStage = assignment.application.applicationWorkflow?.workflowStage;
-                    if (!currentStage) {
-                        const initialStage = workflow.stages[0];
-                        if (initialStage && initialStage.id !== aiStage.id && initialStage.order < aiStage.order) {
+                    if (aiStage) {
+                        const currentStage = assignment.application.applicationWorkflow?.workflowStage;
+                        if (!currentStage) {
+                            const initialStage = workflow.stages[0];
+                            if (initialStage && initialStage.id !== aiStage.id && initialStage.order < aiStage.order) {
+                                // Candidate has not reached the AI interview stage yet
+                                continue;
+                            }
+                        } else if (currentStage.order < aiStage.order && currentStage.id !== aiStage.id) {
                             // Candidate has not reached the AI interview stage yet
                             continue;
                         }
-                    } else if (currentStage.order < aiStage.order && currentStage.id !== aiStage.id) {
-                        // Candidate has not reached the AI interview stage yet
-                        continue;
                     }
                 }
             }
@@ -152,7 +158,7 @@ export class CandidateInterviewService {
             const session = sessionParticipant!.session;
             let interview = assignment.interview;
 
-            if (!interview.aiConfiguration) {
+            if (interview.type === "AI" && !interview.aiConfiguration) {
                 const createdConfig = await prisma.aIInterviewConfiguration.create({
                     data: {
                         interviewId: interview.id,
@@ -167,7 +173,7 @@ export class CandidateInterviewService {
                 };
             }
 
-            const company = jobInfo?.company || interview.company;
+            const company = (assignment.application.job as any)?.company || interview.company;
             const aiConfig = interview.aiConfiguration;
             const evalMetrics: any = aiConfig?.evaluationMetrics || {};
 
@@ -272,6 +278,17 @@ export class CandidateInterviewService {
         const company = job?.company || interview.company;
         const aiConfig = interview.aiConfiguration;
         const evalMetrics: any = aiConfig?.evaluationMetrics || {};
+        
+        const interviewers = session.participants
+            .filter(p => p.participantType === 'INTERVIEWER')
+            .map(p => ({
+                id: p.id,
+                name: "Interviewer",
+                role: "Staff",
+                department: "Recruitment",
+                initials: "I",
+                avatarColor: 'from-slate-400 to-slate-600'
+            }));
 
         return {
             sessionId: session.id,
@@ -294,7 +311,8 @@ export class CandidateInterviewService {
             aiResult: session.aiResult ? {
                 overallScore: session.aiResult.overallScore,
                 recommendation: session.aiResult.recommendation
-            } : null
+            } : null,
+            interviewers
         };
     }
 }

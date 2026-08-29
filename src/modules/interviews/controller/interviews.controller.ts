@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { asyncHandler } from "../../../common/helper/asyncHandler.js";
-import { InterviewsServices, JobInterviewsServices, InterviewAssignmentsServices, InterviewSessionsServices, InterviewSessionParticipantsServices } from "../services/interviews.service.js";
+import { InterviewsServices, JobInterviewsServices, InterviewAssignmentsServices, InterviewSessionsServices, InterviewSessionParticipantsServices, InterviewEvaluationServices } from "../services/interviews.service.js";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 
 export class InterviewsController {
@@ -198,6 +198,19 @@ export class JobInterviewsController {
 }
 
 export class InterviewAssignmentsController {
+    static getEligibleCandidates = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            
+            const result = await InterviewAssignmentsServices.getEligibleCandidates(companyId);
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Eligible candidates fetched successfully",
+                data: result
+            });
+        }
+    );
     static createAssignments = asyncHandler(
         async (req: Request, res: Response) => {
             const companyId = req.params.companyId as string;
@@ -291,9 +304,18 @@ export class InterviewSessionsController {
         async (req: Request, res: Response) => {
             const companyId = req.params.companyId as string;
             const interviewId = req.params.interviewId as string;
+            const companyMemberId = (req as any).companyMember?.id;
+
+            if (!companyMemberId) {
+                return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                    success: false,
+                    message: "Unauthorized: Company member not found"
+                });
+            }
 
             const session = await InterviewSessionsServices.createSession(
                 companyId,
+                companyMemberId,
                 interviewId,
                 req.body
             );
@@ -319,6 +341,22 @@ export class InterviewSessionsController {
             return res.status(HTTP_STATUS.OK).json({
                 success: true,
                 message: "Interview sessions fetched successfully",
+                data: sessions
+            });
+        }
+    );
+
+    static getAllCompanySessions = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+
+            const sessions = await InterviewSessionsServices.getAllCompanySessions(
+                companyId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "All company interview sessions fetched successfully",
                 data: sessions
             });
         }
@@ -357,6 +395,89 @@ export class InterviewSessionsController {
                 success: true,
                 message: "Interview session updated successfully",
                 data: session
+            });
+        }
+    );
+
+    static startSession = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+            const userId = (req as any).user.id;
+
+            const session = await InterviewSessionsServices.startSession(
+                companyId,
+                sessionId,
+                userId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview session started successfully",
+                data: session
+            });
+        }
+    );
+
+    static endSession = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+            const userId = (req as any).user.id;
+
+            const session = await InterviewSessionsServices.endSession(
+                companyId,
+                sessionId,
+                userId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview session ended successfully",
+                data: session
+            });
+        }
+    );
+}
+
+export class InterviewEvaluationController {
+    static submitEvaluation = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+            const userId = (req as any).user.id;
+
+            const evaluation = await InterviewEvaluationServices.submitEvaluation(
+                companyId,
+                sessionId,
+                userId,
+                req.body
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview evaluation submitted successfully",
+                data: evaluation
+            });
+        }
+    );
+
+    static getEvaluations = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+            const userId = (req as any).user.id;
+
+            const evaluations = await InterviewEvaluationServices.getEvaluations(
+                companyId,
+                sessionId,
+                userId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview evaluations fetched successfully",
+                data: evaluations
             });
         }
     );

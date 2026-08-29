@@ -7,7 +7,8 @@ export class CandidateInterviewController {
     static getMyInterviews = asyncHandler(
         async (req: Request, res: Response) => {
             const user = req.user!;
-            const data = await CandidateInterviewService.getMyInterviews(user.id);
+            const type = req.query.type as string | undefined;
+            const data = await CandidateInterviewService.getMyInterviews(user.id, type);
 
             return res.status(HTTP_STATUS.OK).json({
                 success: true,

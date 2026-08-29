@@ -205,6 +205,64 @@ export class JobInterviewsRepositories {
 }
 
 export class InterviewAssignmentsRepositories {
+    static async findEligibleCandidates(companyId: string) {
+        return prisma.application.findMany({
+            where: {
+                job: { companyId },
+                status: { notIn: ["REJECTED", "WITHDRAWN", "HIRED"] },
+                applicationWorkflow: {
+                    workflowStage: {
+                        stageLibrary: {
+                            name: {
+                                contains: "interview",
+                                mode: "insensitive"
+                            },
+                            NOT: {
+                                name: {
+                                    contains: "ai-interview",
+                                    mode: "insensitive"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            select: {
+                id: true,
+                candidate: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        profilePicture: true,
+                        user: {
+                            select: {
+                                email: true
+                            }
+                        }
+                    }
+                },
+                job: {
+                    select: {
+                        id: true,
+                        title: true
+                    }
+                },
+                applicationWorkflow: {
+                    select: {
+                        workflowStage: {
+                            select: {
+                                stageLibrary: {
+                                    select: {
+                                        name: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
     static async createInterviewAssignments(
         assignments: Prisma.InterviewAssignmentCreateManyInput[]
     ) {
@@ -305,6 +363,18 @@ export class InterviewSessionsRepositories {
     static async findSessionsByInterviewId(interviewId: string): Promise<InterviewSessionResponse[]> {
         return prisma.interviewSession.findMany({
             where: { interviewId },
+            orderBy: { scheduledAt: 'asc' },
+            select: interviewSessionSelect
+        });
+    }
+
+    static async findSessionsByCompanyId(companyId: string): Promise<InterviewSessionResponse[]> {
+        return prisma.interviewSession.findMany({
+            where: { 
+                interview: {
+                    companyId: companyId
+                }
+            },
             orderBy: { scheduledAt: 'asc' },
             select: interviewSessionSelect
         });
@@ -440,6 +510,85 @@ export class InterviewSessionParticipantsRepositories {
             data: {
                 hasJoined: true,
                 joinedAt: new Date()
+            }
+        });
+    }
+}
+
+export class InterviewEvaluationRepositories {
+    static async upsertEvaluation(
+    sessionId: string,
+    companyMemberId: string,
+    data: Omit<Prisma.InterviewEvaluationUncheckedCreateInput, "sessionId" | "companyMemberId">
+) {
+    return prisma.interviewEvaluation.upsert({
+        where: {
+            sessionId_companyMemberId: {
+                sessionId,
+                companyMemberId
+            }
+        },
+        create: {
+            ...data,
+            sessionId,
+            companyMemberId
+        },
+        update: {
+            overallScore: data.overallScore,
+            ...(data.communicationScore !== undefined && { communicationScore: data.communicationScore }),
+            ...(data.technicalScore !== undefined && { technicalScore: data.technicalScore }),
+            ...(data.problemSolvingScore !== undefined && { problemSolvingScore: data.problemSolvingScore }),
+            ...(data.behaviourScore !== undefined && { behaviourScore: data.behaviourScore }),
+            ...(data.cultureFitScore !== undefined && { cultureFitScore: data.cultureFitScore }),
+            ...(data.strengths !== undefined && { strengths: data.strengths }),
+            ...(data.improvements !== undefined && { improvements: data.improvements }),
+            ...(data.comments !== undefined && { comments: data.comments }),
+            ...(data.recommendation !== undefined && { recommendation: data.recommendation })
+        },
+        include: {
+            companyMember: {
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            email: true,
+                            role: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+    static async findSessionEvaluations(sessionId: string) {
+        return prisma.interviewEvaluation.findMany({
+            where: { sessionId },
+            include: {
+                companyMember: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                email: true,
+                                role: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { createdAt: "desc" }
+        });
+    }
+
+    static async findEvaluationByMember(sessionId: string, companyMemberId: string) {
+        return prisma.interviewEvaluation.findUnique({
+            where: {
+                sessionId_companyMemberId: {
+                    sessionId,
+                    companyMemberId
+                }
             }
         });
     }

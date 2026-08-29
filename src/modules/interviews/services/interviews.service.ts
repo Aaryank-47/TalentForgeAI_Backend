@@ -1,16 +1,18 @@
-import { InterviewsRepositories, JobInterviewsRepositories, InterviewAssignmentsRepositories, InterviewSessionsRepositories, InterviewSessionParticipantsRepositories } from "../repositories/interviews.repository.js";
+import { InterviewsRepositories, JobInterviewsRepositories, InterviewAssignmentsRepositories, InterviewSessionsRepositories, InterviewSessionParticipantsRepositories, InterviewEvaluationRepositories } from "../repositories/interviews.repository.js";
 import { ApplicationRepository } from "../../application/repositories/application.repository.js";
-import type { 
-    CreateInterviewDto, 
-    InterviewListQueryDto, 
-    UpdateInterviewDto, 
-    AttachInterviewToJobRequest, 
-    ReorderJobInterviewsRequest, 
-    CreateInterviewAssignmentsRequest, 
+import type {
+    CreateInterviewDto,
+    InterviewListQueryDto,
+    UpdateInterviewDto,
+    AttachInterviewToJobRequest,
+    ReorderJobInterviewsRequest,
+    CreateInterviewAssignmentsRequest,
     GetInterviewAssignmentsQueryDto,
     CreateInterviewSessionRequest,
     UpdateInterviewSessionRequest,
-    AddSessionParticipantsRequest } from "../dto/interviews.dto.js";
+    AddSessionParticipantsRequest,
+    SubmitInterviewEvaluationRequest
+} from "../dto/interviews.dto.js";
 import type {
     InterviewResponse,
     PaginatedInterviewResponse,
@@ -18,8 +20,8 @@ import type {
     JobInterviewResponse,
     JobInterviewWithInterviewResponse,
     RemoveJobInterviewResponse,
-    InterviewAssignmentResponse, 
-    PaginatedInterviewAssignmentResponse, 
+    InterviewAssignmentResponse,
+    PaginatedInterviewAssignmentResponse,
     InterviewAssignmentDetailResponse,
     InterviewSessionResponse,
     InterviewSessionDetailResponse,
@@ -32,6 +34,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ApplicationStatus, JobStatus, InterviewStatus, InterviewAssignmentCreationSource, InterviewSessionStatus, InterviewParticipantType } from "@prisma/client";
 import prisma from "../../../config/database.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
+import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { CompanyRepository } from "../../company/repository/company.repository.js";
 
 async function validateSessionParticipants(
@@ -87,7 +90,7 @@ export class InterviewsServices {
             durationMinutes: data.durationMinutes,
             company: { connect: { id: companyId } },
             createdBy: { connect: { id: companyMemberId } },
-            status: data.status || "ACTIVE"
+            status: data.status || "DRAFT"
         };
 
         if (data.type === 'AI' && data.aiConfiguration) {
@@ -346,6 +349,9 @@ export class JobInterviewsServices {
 }
 
 export class InterviewAssignmentsServices {
+    static async getEligibleCandidates(companyId: string) {
+        return InterviewAssignmentsRepositories.findEligibleCandidates(companyId);
+    }
     static async createInterviewAssignments(
         companyId: string,
         companyMemberId: string,
@@ -391,7 +397,7 @@ export class InterviewAssignmentsServices {
             }
 
             if (
-                app.status === ApplicationStatus.REJECTED || 
+                app.status === ApplicationStatus.REJECTED ||
                 app.status === ApplicationStatus.WITHDRAWN
             ) {
                 throw new BadRequestError(`Application ${app.id} is in an ineligible state: ${app.status}`);
@@ -404,10 +410,10 @@ export class InterviewAssignmentsServices {
                 const aiInterviewStage = workflow.stages.find((s: any) => {
                     const name = s.stageLibrary?.name?.toLowerCase() || "";
                     return s.interviewId === interviewId ||
-                           name.includes("ai interview") ||
-                           name.includes("ai technical") ||
-                           name.includes("ai screening") ||
-                           name.includes("interview");
+                        name.includes("ai interview") ||
+                        name.includes("ai technical") ||
+                        name.includes("ai screening") ||
+                        name.includes("interview");
                 });
 
                 if (!aiInterviewStage) {
@@ -527,6 +533,7 @@ export class InterviewAssignmentsServices {
 export class InterviewSessionsServices {
     static async createSession(
         companyId: string,
+        companyMemberId: string,
         interviewId: string,
         data: CreateInterviewSessionRequest
     ): Promise<InterviewSessionResponse> {
@@ -535,8 +542,40 @@ export class InterviewSessionsServices {
             throw new NotFoundError("Interview not found or does not belong to this company.");
         }
 
-        const assignments = data.assignmentIds ? [...new Set(data.assignmentIds)] : [];
+        let assignments = data.assignmentIds ? [...new Set(data.assignmentIds)] : [];
+        const applicationIds = data.applicationIds ? [...new Set(data.applicationIds)] : [];
         const members = data.companyMemberIds ? [...new Set(data.companyMemberIds)] : [];
+
+        // If application IDs are provided, create assignments for them if they don't exist
+        if (applicationIds.length > 0) {
+            // Check for existing assignments
+            const existingAssignments = await InterviewAssignmentsRepositories.findExistingAssignments(
+                interviewId,
+                applicationIds
+            );
+            
+            const existingAppIds = new Set(existingAssignments.map(ea => ea.applicationId));
+            const newAppIds = applicationIds.filter(appId => !existingAppIds.has(appId));
+            
+            let newAssignments: any[] = [];
+            if (newAppIds.length > 0) {
+                const assignmentsData = newAppIds.map(appId => ({
+                    interviewId,
+                    applicationId: appId,
+                    creationSource: "MANUAL" as any,
+                    assignedById: companyMemberId
+                }));
+                newAssignments = await InterviewAssignmentsRepositories.createInterviewAssignments(assignmentsData);
+            }
+            
+            // Collect all assignment IDs
+            const allAssignmentIds = [
+                ...existingAssignments.map(ea => ea.id),
+                ...newAssignments.map(na => na.id)
+            ];
+            
+            assignments = [...new Set([...assignments, ...allAssignmentIds])];
+        }
 
         await validateSessionParticipants(companyId, interviewId, assignments, members);
 
@@ -570,6 +609,12 @@ export class InterviewSessionsServices {
         }
 
         return InterviewSessionsRepositories.findSessionsByInterviewId(interviewId);
+    }
+
+    static async getAllCompanySessions(
+        companyId: string
+    ): Promise<InterviewSessionResponse[]> {
+        return InterviewSessionsRepositories.findSessionsByCompanyId(companyId);
     }
 
     static async getSession(
@@ -612,6 +657,125 @@ export class InterviewSessionsServices {
         }
 
         return InterviewSessionsRepositories.updateSession(sessionId, updateData);
+    }
+
+    static async startSession(
+        companyId: string,
+        sessionId: string,
+        userId: string
+    ): Promise<InterviewSessionResponse> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        if (!member) {
+            throw new ForbiddenError("You are not authorized to start this session.");
+        }
+
+        if (session.status !== InterviewSessionStatus.SCHEDULED) {
+            throw new BadRequestError(`Cannot start a session with status: ${session.status}`);
+        }
+
+        return InterviewSessionsRepositories.updateSession(sessionId, {
+            status: InterviewSessionStatus.IN_PROGRESS,
+            startedAt: new Date()
+        });
+    }
+
+    static async endSession(
+        companyId: string,
+        sessionId: string,
+        userId: string
+    ): Promise<InterviewSessionResponse> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        if (!member) {
+            throw new ForbiddenError("You are not authorized to end this session.");
+        }
+
+        if (session.status !== InterviewSessionStatus.IN_PROGRESS) {
+            throw new BadRequestError(`Cannot end a session with status: ${session.status}`);
+        }
+
+        return InterviewSessionsRepositories.updateSession(sessionId, {
+            status: InterviewSessionStatus.COMPLETED,
+            endedAt: new Date()
+        });
+    }
+}
+
+export class InterviewEvaluationServices {
+    static async submitEvaluation(
+        companyId: string,
+        sessionId: string,
+        userId: string,
+        data: SubmitInterviewEvaluationRequest
+    ) {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        if (!member) {
+            throw new ForbiddenError("Only authorized company interviewers can submit evaluations.");
+        }
+
+        return InterviewEvaluationRepositories.upsertEvaluation(sessionId, member.id, {
+            overallScore: data.overallScore,
+            communicationScore: data.communicationScore ?? null,
+            technicalScore: data.technicalScore ?? null,
+            problemSolvingScore: data.problemSolvingScore ?? null,
+            behaviourScore: data.behaviourScore ?? null,
+            cultureFitScore: data.cultureFitScore ?? null,
+            strengths: data.strengths ?? [],
+            improvements: data.improvements ?? [],
+            comments: data.comments ?? null,
+            recommendation: data.recommendation ?? null
+        });
+    }
+
+    static async getEvaluations(
+        companyId: string,
+        sessionId: string,
+        userId: string
+    ) {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        if (session.interview.companyId !== companyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        if (!member) {
+            const participant = await InterviewSessionParticipantsRepositories.findParticipantForSession(userId, sessionId);
+            if (!participant) {
+                throw new ForbiddenError("You are not authorized to view evaluations for this session.");
+            }
+        }
+
+        return InterviewEvaluationRepositories.findSessionEvaluations(sessionId);
     }
 }
 

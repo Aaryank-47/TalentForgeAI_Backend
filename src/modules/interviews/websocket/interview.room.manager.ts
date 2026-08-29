@@ -58,4 +58,22 @@ export class InterviewRoomManager {
         const room = this.activeRooms.get(sessionId);
         return room ? Array.from(room.values()) : [];
     }
+
+    private static roomStates: Map<string, { code: string; language: string }> = new Map();
+
+    static setCodeState(sessionId: string, code: string): void {
+        const state = this.roomStates.get(sessionId) || { code: "", language: "javascript" };
+        state.code = code;
+        this.roomStates.set(sessionId, state);
+    }
+
+    static setLanguageState(sessionId: string, language: string): void {
+        const state = this.roomStates.get(sessionId) || { code: "", language: "javascript" };
+        state.language = language;
+        this.roomStates.set(sessionId, state);
+    }
+
+    static getCodeSyncState(sessionId: string): { code: string; language: string } {
+        return this.roomStates.get(sessionId) || { code: "", language: "javascript" };
+    }
 }

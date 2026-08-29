@@ -11,7 +11,13 @@ import {
     aiInterviewQuestionCountValidator,
     aiInterviewDifficultyValidator,
     aiInterviewAllowFollowUpsValidator,
-    interviewStatusValidator
+    interviewStatusValidator,
+    interviewEvaluationOverallScoreValidator,
+    interviewEvaluationScoreValidator,
+    interviewEvaluationRecommendationValidator,
+    interviewEvaluationStrengthsValidator,
+    interviewEvaluationImprovementsValidator,
+    interviewEvaluationCommentsValidator
 } from "../../../common/validators/validators.js"
 
 export const createInterviewDto = z.object({
@@ -110,6 +116,7 @@ export type GetInterviewAssignmentsQueryDto = z.infer<typeof getInterviewAssignm
 export const createInterviewSessionDto = z.object({
     scheduledAt: z.string().datetime({ message: "Invalid ISO datetime string" }).refine(val => new Date(val) > new Date(), { message: "scheduledAt must be in the future" }),
     assignmentIds: z.array(z.string().cuid({ message: "Invalid assignment ID" })).optional(),
+    applicationIds: z.array(z.string().cuid({ message: "Invalid application ID" })).optional(),
     companyMemberIds: z.array(z.string().cuid({ message: "Invalid company member ID" })).optional()
 });
 
@@ -131,3 +138,18 @@ export const addSessionParticipantsDto = z.object({
 }, { message: "At least one assignmentId or companyMemberId must be provided" });
 
 export type AddSessionParticipantsRequest = z.infer<typeof addSessionParticipantsDto>;
+
+export const submitInterviewEvaluationDto = z.object({
+    overallScore: interviewEvaluationOverallScoreValidator,
+    communicationScore: interviewEvaluationScoreValidator,
+    technicalScore: interviewEvaluationScoreValidator,
+    problemSolvingScore: interviewEvaluationScoreValidator,
+    behaviourScore: interviewEvaluationScoreValidator,
+    cultureFitScore: interviewEvaluationScoreValidator,
+    recommendation: interviewEvaluationRecommendationValidator,
+    strengths: interviewEvaluationStrengthsValidator,
+    improvements: interviewEvaluationImprovementsValidator,
+    comments: interviewEvaluationCommentsValidator
+});
+
+export type SubmitInterviewEvaluationRequest = z.infer<typeof submitInterviewEvaluationDto>;
