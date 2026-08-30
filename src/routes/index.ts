@@ -18,6 +18,7 @@ import assessmentEvaluationRoutes from '../modules/assessment/routes/assessmentE
 import atsIntegrationRoutes from '../modules/assessment/routes/atsIntegration.routes.js';
 import interviewsRoutes from '../modules/interviews/routes/interviews.routes.js';
 import resumeRoutes from '../modules/resume/routes/resume.routes.js';
+import analyticsRoutes from '../modules/analytics/routes/analytics.routes.js';
 
 const router = Router();
 
@@ -41,5 +42,6 @@ router.use("/hiring-workflow/applications", applicationWorkflowRoutes);
 router.use("/questions", questionRoutes);
 router.use("/assessments", assessmentRoutes);
 router.use("/interviews", interviewsRoutes);
+router.use("/analytics", analyticsRoutes);
 
 export default router;
