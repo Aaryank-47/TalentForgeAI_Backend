@@ -17,15 +17,37 @@ export const loadCompanyMembership = async (
             throw new UnauthorizedError("Unauthorized access.");
         }
 
-        const companyId = req.params.companyId || (typeof req.headers["x-company-id"] === "string" ? req.headers["x-company-id"] : undefined);
+        let companyId = req.params.companyId || (typeof req.headers["x-company-id"] === "string" ? req.headers["x-company-id"] : undefined);
+
+        // If companyId in params is the literal string 'company' or empty, resolve from header or active user company
+        if (!companyId || companyId === 'company' || companyId === 'default') {
+            const headerCompanyId = typeof req.headers["x-company-id"] === "string" ? req.headers["x-company-id"] : undefined;
+            if (headerCompanyId && headerCompanyId !== 'company' && headerCompanyId !== 'default') {
+                companyId = headerCompanyId;
+            } else {
+                const activeMemberships = await CompanyRepository.findActiveMembershipsByUser(user.id);
+                if (activeMemberships.length > 0 && activeMemberships[0]) {
+                    companyId = activeMemberships[0].companyId;
+                }
+            }
+        }
 
         if (!companyId) {
             throw new NotFoundError("Company id is required.");
         }
-        const membership = await CompanyRepository.membership(
+        let membership = await CompanyRepository.membership(
             companyId as string,
             user.id
         );
+
+        if (!membership) {
+            // Fallback: check if user has active membership in any company
+            const activeMemberships = await CompanyRepository.findActiveMembershipsByUser(user.id);
+            if (activeMemberships.length > 0 && activeMemberships[0]) {
+                companyId = activeMemberships[0].companyId;
+                membership = await CompanyRepository.membership(companyId, user.id);
+            }
+        }
 
         if (!membership) {
             throw new ForbiddenError(
@@ -39,6 +61,7 @@ export const loadCompanyMembership = async (
             );
         }
 
+        req.params.companyId = companyId;
         req.companyMember = membership;
 
         next();

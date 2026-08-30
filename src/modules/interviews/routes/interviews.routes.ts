@@ -229,6 +229,14 @@ router.post(
 );
 
 router.post(
+    "/:companyId/interview-sessions/:sessionId/cancel",
+    authMiddleware,
+    authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+    loadCompanyMembership,
+    InterviewSessionsController.cancelSession
+);
+
+router.post(
     "/:companyId/interview-sessions/:sessionId/end",
     authMiddleware,
     authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN),

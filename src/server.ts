@@ -13,6 +13,8 @@ import {
 import { logger } from './common/logger/logger.js';
 import prisma from './config/database.js';
 
+import { InterviewSessionsServices } from './modules/interviews/services/interviews.service.js';
+
 const port = env.port;
 
 // Create HTTP server using Express
@@ -25,6 +27,9 @@ async function startServer() {
 
   // Initialize Resume Processing Background Worker
   initResumeProcessingWorker();
+
+  // Initialize Interview Auto-Expiry Background Scheduler (runs every 60s)
+  InterviewSessionsServices.initAutoExpiryScheduler();
 
   // Start the HTTP + Socket.IO server
   httpServer.listen(port, () => { 

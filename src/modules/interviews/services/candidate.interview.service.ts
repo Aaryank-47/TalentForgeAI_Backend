@@ -158,8 +158,21 @@ export class CandidateInterviewService {
             }
 
             for (const sessionParticipant of participantsToProcess) {
-                const session = sessionParticipant!.session;
+                let session = sessionParticipant!.session;
                 let interview = assignment.interview;
+
+                // Auto-expire scheduled session if time is over and nobody started/joined
+                if (session.status === "SCHEDULED" && !session.startedAt) {
+                    const durationMin = interview.durationMinutes || 45;
+                    const scheduledEndTime = new Date(new Date(session.scheduledAt).getTime() + durationMin * 60 * 1000);
+                    if (new Date() > scheduledEndTime) {
+                        session = await prisma.interviewSession.update({
+                            where: { id: session.id },
+                            data: { status: "EXPIRED" },
+                            include: { aiResult: true }
+                        }) as any;
+                    }
+                }
 
             if (interview.type === "AI" && !interview.aiConfiguration) {
                 const createdConfig = await prisma.aIInterviewConfiguration.create({
@@ -186,6 +199,7 @@ export class CandidateInterviewService {
                 sessionId: session.id,
                 interviewId: interview.id,
                 role: jobInfo?.title || interview.title,
+                interviewTitle: interview.title,
                 company: company?.companyName || "TalentForge Partner",
                 companyLogo: (company?.companyName || "TF").slice(0, 2).toUpperCase(),
                 companyColor: "bg-primary-600",
@@ -198,6 +212,9 @@ export class CandidateInterviewService {
                 deadline: evalMetrics?.deadline?.duration || "48 Hours",
                 deadlineUrgency: "normal",
                 assignedDate: new Date(assignment.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                scheduledAt: session.scheduledAt,
+                startedAt: session.startedAt,
+                endedAt: session.endedAt,
                 status: session.status,
                 attemptsUsed: session.status === "COMPLETED" ? 1 : 0,
                 attemptsAllowed: evalMetrics?.maxAttempts || 1,
@@ -206,7 +223,7 @@ export class CandidateInterviewService {
                 submittedDate: session.endedAt ? new Date(session.endedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : null
             };
 
-            if (session.status === "COMPLETED" || session.status === "EXPIRED") {
+            if (session.status === "COMPLETED" || session.status === "EXPIRED" || session.status === "CANCELLED") {
                 completedList.push(item);
             } else {
                 pendingList.push(item);
@@ -229,7 +246,7 @@ export class CandidateInterviewService {
             throw new NotFoundError("Candidate profile not found");
         }
 
-        const session = await prisma.interviewSession.findUnique({
+        let session = await prisma.interviewSession.findUnique({
             where: { id: sessionId },
             include: {
                 interview: {
@@ -246,6 +263,16 @@ export class CandidateInterviewService {
                 },
                 participants: {
                     include: {
+                        companyMember: {
+                            include: {
+                                user: {
+                                    include: {
+                                        employer: true,
+                                        admin: true
+                                    }
+                                }
+                            }
+                        },
                         assignment: {
                             include: {
                                 application: {
@@ -269,6 +296,60 @@ export class CandidateInterviewService {
             throw new NotFoundError("Interview session not found");
         }
 
+        // Auto-expire scheduled session if time has passed without start
+        if (session.status === "SCHEDULED" && !session.startedAt) {
+            const durationMin = session.interview.durationMinutes || 45;
+            const scheduledEndTime = new Date(new Date(session.scheduledAt).getTime() + durationMin * 60 * 1000);
+            if (new Date() > scheduledEndTime) {
+                session = await prisma.interviewSession.update({
+                    where: { id: sessionId },
+                    data: { status: "EXPIRED" },
+                    include: {
+                        interview: {
+                            include: {
+                                aiConfiguration: true,
+                                company: {
+                                    select: {
+                                        id: true,
+                                        companyName: true,
+                                        logo: true
+                                    }
+                                }
+                            }
+                        },
+                        participants: {
+                            include: {
+                                companyMember: {
+                                    include: {
+                                        user: {
+                                            include: {
+                                                employer: true,
+                                                admin: true
+                                            }
+                                        }
+                                    }
+                                },
+                                assignment: {
+                                    include: {
+                                        application: {
+                                            include: {
+                                                job: {
+                                                    include: {
+                                                        company: true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        aiResult: true
+                    }
+                });
+            }
+        }
+
         const candidateParticipant = session.participants.find(
             p => p.assignment?.application?.candidateId === candidate.id
         );
@@ -285,19 +366,28 @@ export class CandidateInterviewService {
         
         const interviewers = session.participants
             .filter(p => p.participantType === 'INTERVIEWER')
-            .map(p => ({
-                id: p.id,
-                name: "Interviewer",
-                role: "Staff",
-                department: "Recruitment",
-                initials: "I",
-                avatarColor: 'from-slate-400 to-slate-600'
-            }));
+            .map(p => {
+                const u = p.companyMember?.user;
+                const emp = u?.employer;
+                const adm = u?.admin;
+                const name = emp?.fullName || adm?.fullName || u?.email?.split('@')[0] || 'Interviewer';
+                const role = emp?.designation || adm?.designation || p.companyMember?.role || 'Staff';
+                const department = emp?.department || adm?.department || 'Recruitment';
+                return {
+                    id: p.id,
+                    name,
+                    role,
+                    department,
+                    initials: (name || 'I').charAt(0).toUpperCase(),
+                    avatarColor: 'from-slate-500 to-slate-700'
+                };
+            });
 
         return {
             sessionId: session.id,
             interviewId: interview.id,
             role: job?.title || interview.title,
+            interviewTitle: interview.title,
             company: company?.companyName || "TalentForge Partner",
             companyLogo: (company?.companyName || "TF").slice(0, 2).toUpperCase(),
             companyColor: "bg-primary-600",
@@ -310,6 +400,7 @@ export class CandidateInterviewService {
             difficulty: aiConfig?.difficulty || "MEDIUM",
             instructions: interview.instructions || "Answer each question clearly. You will be evaluated on technical depth and communication.",
             status: session.status,
+            scheduledAt: session.scheduledAt,
             startedAt: session.startedAt,
             endedAt: session.endedAt,
             aiResult: session.aiResult ? {

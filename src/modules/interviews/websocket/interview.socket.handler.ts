@@ -162,6 +162,19 @@ export function registerInterviewHandlers(socket: Socket) {
         socket.nsp.to(data.sessionId).emit("new-message", data.message);
     });
 
+    // LEAVE ROOM EVENT
+    socket.on("leave-room", (data: { sessionId: string }) => {
+        if (!data?.sessionId) return;
+        const removeUserId = InterviewRoomManager.leaveRoom(data.sessionId, socket.id);
+        socket.leave(data.sessionId);
+        if (removeUserId) {
+            socket.to(data.sessionId).emit("user-left", {
+                userId: removeUserId,
+                socketId: socket.id
+            });
+        }
+    });
+
     socket.on("disconnecting", async () => {
         for (const room of socket.rooms) {
             if (room !== socket.id) {

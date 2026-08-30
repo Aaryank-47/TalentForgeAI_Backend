@@ -453,6 +453,7 @@ describe("InterviewSessionsServices & ParticipantsServices tests", () => {
 
         session = await InterviewSessionsServices.createSession(
             company.id,
+            companyMember.id,
             interview.id,
             {
                 scheduledAt,

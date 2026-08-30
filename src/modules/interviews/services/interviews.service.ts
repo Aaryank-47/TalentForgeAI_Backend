@@ -599,10 +599,70 @@ export class InterviewSessionsServices {
         );
     }
 
+    static async expireOverdueSessions(companyId?: string) {
+        try {
+            const now = new Date();
+            const scheduledSessions = await prisma.interviewSession.findMany({
+                where: {
+                    status: InterviewSessionStatus.SCHEDULED,
+                    startedAt: null,
+                    ...(companyId && companyId !== 'company' && companyId !== 'default' ? { interview: { companyId } } : {})
+                },
+                include: {
+                    interview: {
+                        select: { durationMinutes: true }
+                    },
+                    participants: {
+                        select: { hasJoined: true }
+                    }
+                }
+            });
+
+            const overdueIds: string[] = [];
+            for (const s of scheduledSessions) {
+                const durationMin = s.interview?.durationMinutes || 45;
+                const scheduledEndTime = new Date(new Date(s.scheduledAt).getTime() + durationMin * 60 * 1000);
+                const nobodyJoined = s.participants.length === 0 || s.participants.every(p => !p.hasJoined);
+                if (now > scheduledEndTime && nobodyJoined) {
+                    overdueIds.push(s.id);
+                }
+            }
+
+            if (overdueIds.length > 0) {
+                await prisma.interviewSession.updateMany({
+                    where: { id: { in: overdueIds } },
+                    data: { status: InterviewSessionStatus.EXPIRED }
+                });
+            }
+        } catch (err) {
+            console.error("Error expiring overdue sessions:", err);
+        }
+    }
+
+    static initAutoExpiryScheduler(
+        intervalMs: number = 60 * 1000
+    ): NodeJS.Timeout {
+        // Run immediately on start
+        InterviewSessionsServices.expireOverdueSessions().catch(err => {
+            console.error("[InterviewAutoExpiry] Initial run error:", err);
+        });
+
+        // Run periodically
+        const timer = setInterval(() => {
+            InterviewSessionsServices.expireOverdueSessions().catch(err => {
+                console.error("[InterviewAutoExpiry] Periodic check error:", err);
+            });
+        }, intervalMs);
+
+        timer.unref(); // Prevent timer from blocking server shutdown
+        return timer;
+    }
+
     static async getInterviewSessions(
         companyId: string,
         interviewId: string
     ): Promise<InterviewSessionResponse[]> {
+        await InterviewSessionsServices.expireOverdueSessions(companyId);
         const interview = await InterviewsRepositories.getInterviewById(companyId, interviewId);
         if (!interview) {
             throw new NotFoundError("Interview not found or does not belong to this company.");
@@ -614,6 +674,7 @@ export class InterviewSessionsServices {
     static async getAllCompanySessions(
         companyId: string
     ): Promise<InterviewSessionResponse[]> {
+        await InterviewSessionsServices.expireOverdueSessions(companyId);
         return InterviewSessionsRepositories.findSessionsByCompanyId(companyId);
     }
 
@@ -621,12 +682,17 @@ export class InterviewSessionsServices {
         companyId: string,
         sessionId: string
     ): Promise<InterviewSessionDetailResponse> {
+        await InterviewSessionsServices.expireOverdueSessions(companyId);
         const session = await InterviewSessionsRepositories.findSessionById(sessionId);
         if (!session) {
             throw new NotFoundError("Interview session not found.");
         }
 
-        if (session.interview.companyId !== companyId) {
+        const effectiveCompanyId = (companyId && companyId !== 'company' && companyId !== 'default')
+            ? companyId
+            : session.interview.companyId;
+
+        if (session.interview.companyId !== effectiveCompanyId) {
             throw new NotFoundError("Interview session not found or does not belong to this company.");
         }
 
@@ -643,7 +709,11 @@ export class InterviewSessionsServices {
             throw new NotFoundError("Interview session not found.");
         }
 
-        if (session.interview.companyId !== companyId) {
+        const effectiveCompanyId = (companyId && companyId !== 'company' && companyId !== 'default')
+            ? companyId
+            : session.interview.companyId;
+
+        if (session.interview.companyId !== effectiveCompanyId) {
             throw new NotFoundError("Interview session not found or does not belong to this company.");
         }
 
@@ -659,6 +729,38 @@ export class InterviewSessionsServices {
         return InterviewSessionsRepositories.updateSession(sessionId, updateData);
     }
 
+    static async cancelSession(
+        companyId: string,
+        sessionId: string,
+        userId: string
+    ): Promise<InterviewSessionResponse> {
+        const session = await InterviewSessionsRepositories.findSessionById(sessionId);
+        if (!session) {
+            throw new NotFoundError("Interview session not found.");
+        }
+
+        const effectiveCompanyId = (companyId && companyId !== 'company' && companyId !== 'default')
+            ? companyId
+            : session.interview.companyId;
+
+        if (session.interview.companyId !== effectiveCompanyId) {
+            throw new NotFoundError("Interview session not found or does not belong to this company.");
+        }
+
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, effectiveCompanyId);
+        if (!member) {
+            throw new ForbiddenError("You are not authorized to cancel this session.");
+        }
+
+        if (session.status === InterviewSessionStatus.COMPLETED) {
+            throw new BadRequestError("Cannot cancel a completed interview session.");
+        }
+
+        return InterviewSessionsRepositories.updateSession(sessionId, {
+            status: InterviewSessionStatus.CANCELLED
+        });
+    }
+
     static async startSession(
         companyId: string,
         sessionId: string,
@@ -669,11 +771,15 @@ export class InterviewSessionsServices {
             throw new NotFoundError("Interview session not found.");
         }
 
-        if (session.interview.companyId !== companyId) {
+        const effectiveCompanyId = (companyId && companyId !== 'company' && companyId !== 'default')
+            ? companyId
+            : session.interview.companyId;
+
+        if (session.interview.companyId !== effectiveCompanyId) {
             throw new NotFoundError("Interview session not found or does not belong to this company.");
         }
 
-        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, effectiveCompanyId);
         if (!member) {
             throw new ForbiddenError("You are not authorized to start this session.");
         }
@@ -698,22 +804,26 @@ export class InterviewSessionsServices {
             throw new NotFoundError("Interview session not found.");
         }
 
-        if (session.interview.companyId !== companyId) {
+        const effectiveCompanyId = (companyId && companyId !== 'company' && companyId !== 'default')
+            ? companyId
+            : session.interview.companyId;
+
+        if (session.interview.companyId !== effectiveCompanyId) {
             throw new NotFoundError("Interview session not found or does not belong to this company.");
         }
 
-        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, effectiveCompanyId);
         if (!member) {
             throw new ForbiddenError("You are not authorized to end this session.");
         }
 
-        if (session.status !== InterviewSessionStatus.IN_PROGRESS) {
-            throw new BadRequestError(`Cannot end a session with status: ${session.status}`);
+        if (session.status === InterviewSessionStatus.COMPLETED) {
+            return session;
         }
 
         return InterviewSessionsRepositories.updateSession(sessionId, {
             status: InterviewSessionStatus.COMPLETED,
-            endedAt: new Date()
+            endedAt: session.endedAt || new Date()
         });
     }
 }
@@ -730,13 +840,25 @@ export class InterviewEvaluationServices {
             throw new NotFoundError("Interview session not found.");
         }
 
-        if (session.interview.companyId !== companyId) {
+        const effectiveCompanyId = (companyId && companyId !== 'company' && companyId !== 'default')
+            ? companyId
+            : session.interview.companyId;
+
+        if (session.interview.companyId !== effectiveCompanyId) {
             throw new NotFoundError("Interview session not found or does not belong to this company.");
         }
 
-        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, effectiveCompanyId);
         if (!member) {
             throw new ForbiddenError("Only authorized company interviewers can submit evaluations.");
+        }
+
+        // Auto-complete session on evaluation submission if not already completed
+        if (session.status !== InterviewSessionStatus.COMPLETED) {
+            await InterviewSessionsRepositories.updateSession(sessionId, {
+                status: InterviewSessionStatus.COMPLETED,
+                endedAt: session.endedAt || new Date()
+            });
         }
 
         return InterviewEvaluationRepositories.upsertEvaluation(sessionId, member.id, {
@@ -763,11 +885,15 @@ export class InterviewEvaluationServices {
             throw new NotFoundError("Interview session not found.");
         }
 
-        if (session.interview.companyId !== companyId) {
+        const effectiveCompanyId = (companyId && companyId !== 'company' && companyId !== 'default')
+            ? companyId
+            : session.interview.companyId;
+
+        if (session.interview.companyId !== effectiveCompanyId) {
             throw new NotFoundError("Interview session not found or does not belong to this company.");
         }
 
-        const member = await CompanyRepository.findMemberByUserAndCompany(userId, companyId);
+        const member = await CompanyRepository.findMemberByUserAndCompany(userId, effectiveCompanyId);
         if (!member) {
             const participant = await InterviewSessionParticipantsRepositories.findParticipantForSession(userId, sessionId);
             if (!participant) {
@@ -889,6 +1015,11 @@ export class InterviewSessionParticipantsServices {
         const restrictedStatuses = ["COMPLETED", "CANCELLED", "EXPIRED"];
         if (restrictedStatuses.includes(participant.session.status)) {
             throw new BadRequestError(`Cannot join! Interview is already ${participant.session.status.toLowerCase()}`);
+        }
+
+        // Candidates can only join if the interviewer has started the interview session
+        if (participant.participantType === 'CANDIDATE' && participant.session.status !== 'IN_PROGRESS') {
+            throw new BadRequestError("Interview has not started by the interviewer");
         }
 
         await InterviewSessionParticipantsRepositories.updateParticipantJoinedStatus(participant.id);

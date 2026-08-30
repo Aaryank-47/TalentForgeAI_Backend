@@ -272,6 +272,35 @@ export const interviewSessionParticipantSelect = {
     joinedAt: true,
     createdAt: true,
     updatedAt: true,
+    companyMember: {
+        select: {
+            id: true,
+            role: true,
+            user: {
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    employer: {
+                        select: {
+                            fullName: true,
+                            profilePicture: true,
+                            designation: true,
+                            department: true
+                        }
+                    },
+                    admin: {
+                        select: {
+                            fullName: true,
+                            profilePicture: true,
+                            designation: true,
+                            department: true
+                        }
+                    }
+                }
+            }
+        }
+    },
     assignment: {
         select: {
             application: {
@@ -335,6 +364,18 @@ export const interviewSessionSelect = {
     roomId: true,
     createdAt: true,
     updatedAt: true,
+    interview: {
+        select: {
+            id: true,
+            companyId: true,
+            title: true,
+            type: true,
+            mode: true,
+            durationMinutes: true,
+            instructions: true,
+            description: true,
+        }
+    },
     participants: {
         select: interviewSessionParticipantSelect
     }
@@ -354,7 +395,10 @@ export const interviewSessionDetailSelect = {
             companyId: true,
             title: true,
             type: true,
-            mode: true
+            mode: true,
+            durationMinutes: true,
+            instructions: true,
+            description: true,
         }
     }
 } satisfies Prisma.InterviewSessionSelect;

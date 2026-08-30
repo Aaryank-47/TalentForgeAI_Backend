@@ -438,6 +438,26 @@ export class InterviewSessionsController {
             });
         }
     );
+
+    static cancelSession = asyncHandler(
+        async (req: Request, res: Response) => {
+            const companyId = req.params.companyId as string;
+            const sessionId = req.params.sessionId as string;
+            const userId = (req as any).user.id;
+
+            const session = await InterviewSessionsServices.cancelSession(
+                companyId,
+                sessionId,
+                userId
+            );
+
+            return res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: "Interview session cancelled successfully",
+                data: session
+            });
+        }
+    );
 }
 
 export class InterviewEvaluationController {

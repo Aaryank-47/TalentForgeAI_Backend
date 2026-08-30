@@ -210,22 +210,36 @@ export class InterviewAssignmentsRepositories {
             where: {
                 job: { companyId },
                 status: { notIn: ["REJECTED", "WITHDRAWN", "HIRED"] },
-                applicationWorkflow: {
-                    workflowStage: {
-                        stageLibrary: {
-                            name: {
-                                contains: "interview",
-                                mode: "insensitive"
-                            },
-                            NOT: {
-                                name: {
-                                    contains: "ai-interview",
-                                    mode: "insensitive"
+                OR: [
+                    {
+                        applicationWorkflow: {
+                            workflowStage: {
+                                interviewId: { not: null }
+                            }
+                        }
+                    },
+                    {
+                        applicationWorkflow: {
+                            workflowStage: {
+                                stageLibrary: {
+                                    name: {
+                                        contains: "interview",
+                                        mode: "insensitive"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        interviewAssignments: {
+                            some: {
+                                interview: {
+                                    companyId
                                 }
                             }
                         }
                     }
-                }
+                ]
             },
             select: {
                 id: true,
@@ -260,6 +274,9 @@ export class InterviewAssignmentsRepositories {
                         }
                     }
                 }
+            },
+            orderBy: {
+                appliedAt: "desc"
             }
         });
     }
