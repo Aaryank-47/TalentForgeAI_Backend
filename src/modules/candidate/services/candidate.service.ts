@@ -30,6 +30,7 @@ import { inferResumeMimeType } from "../../resume/utils/resume-mime.helper.js";
 import { logger } from "../../../common/logger/logger.js";
 import prisma from "../../../config/database.js";
 import { ResumeProcessingStateService } from "../../resume/services/resume-processing-state.service.js";
+import { MatchingEventsPublisher } from "../../matching/events/matching-events.publisher.js";
 
 
 export class CandidateService {
@@ -71,7 +72,16 @@ export class CandidateService {
         console.log("candidateid : ", candidateId);
         console.log("UpdatedData : ", updateData);
 
+        const candidateRecordId = candidate.profile.id;
         const updateCandidateProfile = await CandidateRepository.updateCandidateProfile(candidateId, updateData);
+
+        // Trigger matching if matching-relevant fields were updated
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(
+            candidateRecordId,
+            updateData as unknown as Record<string, any>
+        ).catch((err) => {
+            logger.warn({ err, candidateId: candidateRecordId }, "[CandidateService] Failed to trigger matching recalculation");
+        });
 
         return updateCandidateProfile;
     }
@@ -298,6 +308,7 @@ export class CandidateService {
             addedSkills.push(newSkill);
         }
 
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, ["skills"]).catch(() => {});
         return addedSkills;
     }
 
@@ -335,6 +346,7 @@ export class CandidateService {
         }
 
         const updateSkill = await CandidateRepository.updateSkill(skillId, skillName, skillExperience);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["skills"]).catch(() => {});
 
         return updateSkill
     }
@@ -390,6 +402,8 @@ export class CandidateService {
                 "Failed to delete one or more skills."
             );
         }
+
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["skills"]).catch(() => {});
     }
 
     static async addEducation(
@@ -403,6 +417,7 @@ export class CandidateService {
 
         const candidateRecordId = candidate.profile.id;
         const newEducation = await CandidateRepository.addEducation(candidateRecordId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, ["education"]).catch(() => {});
         return newEducation;
     }
 
@@ -451,6 +466,7 @@ export class CandidateService {
         }
 
         const updatedEducation = await CandidateRepository.updateEducation(educationId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["education"]).catch(() => {});
         return updatedEducation;
     }
 
@@ -469,6 +485,7 @@ export class CandidateService {
         }
 
         const deletedEducation = await CandidateRepository.deleteEducation(educationId);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["education"]).catch(() => {});
         return deletedEducation;
     }
 
@@ -488,6 +505,7 @@ export class CandidateService {
 
         const candidateRecordId = candidate.profile.id;
         const newExperience = await CandidateRepository.addExperience(candidateRecordId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, ["experience"]).catch(() => {});
         return newExperience;
     }
 
@@ -543,6 +561,7 @@ export class CandidateService {
         }
 
         const updatedExperience = await CandidateRepository.updateExperience(experienceId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["experience"]).catch(() => {});
         return updatedExperience;
     }
 
@@ -561,6 +580,7 @@ export class CandidateService {
         }
 
         const deletedExperience = await CandidateRepository.deleteExperience(experienceId);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["experience"]).catch(() => {});
         return deletedExperience;
     }
 

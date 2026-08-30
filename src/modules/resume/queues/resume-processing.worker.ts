@@ -22,6 +22,7 @@ import type { Prisma } from "@prisma/client";
 import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
 import type { StageChangeHandler } from "../interfaces/resume-pipeline.interface.js";
 import { ResumeProcessingStateService } from "../services/resume-processing-state.service.js";
+import { MatchingEventsPublisher } from "../../matching/events/matching-events.publisher.js";
 
 export class ResumeProcessingWorker {
     
@@ -150,6 +151,21 @@ export class ResumeProcessingWorker {
 
             // Clean up ephemeral Redis processing micro-stage on successful completion
             await ResumeProcessingStateService.clearCurrentStage(resumeId);
+
+            // Trigger targeted candidate matching event in background
+            try {
+                await MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateId, [
+                    "RESUME_PARSED",
+                    "skills",
+                    "experience",
+                    "education"
+                ]);
+            } catch (matchingErr) {
+                logger.warn(
+                    { err: matchingErr, candidateId, resumeId },
+                    "[ResumeProcessingWorker] Non-critical warning: Failed to publish matching event after resume completion."
+                );
+            }
 
             const result: ResumeProcessingJobResult = {
                 success: true,

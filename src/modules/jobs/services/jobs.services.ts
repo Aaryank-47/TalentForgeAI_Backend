@@ -12,6 +12,7 @@ import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { WorkflowRepository } from "../../hiring-workflow/repositories/workflow.repository.js";
+import { MatchingEventsPublisher } from "../../matching/events/matching-events.publisher.js";
 
 export class createJobService {
     static async createJob(
@@ -41,6 +42,10 @@ export class createJobService {
         }
 
         const job = await JobsRepository.createJob(companyId, jobPayload, createSlug, userId);
+
+        if (job.status === JobStatus.PUBLISHED) {
+            MatchingEventsPublisher.onJobMatchingDataChanged(job.id, ["PUBLISHED", "status"]).catch(() => {});
+        }
 
         const author = await AuthRepository.findUserById(userId);
         if (!author) {
@@ -137,6 +142,8 @@ export class createJobService {
 
         const updateJobdetails = await JobsRepository.updateJobDetails(params.jobId, jobPayload);
 
+        MatchingEventsPublisher.onJobMatchingDataChanged(params.jobId, jobPayload as unknown as Record<string, any>).catch(() => {});
+
         return updateJobdetails;
     }
 
@@ -160,6 +167,10 @@ export class createJobService {
         }
 
         const updateJobdetails = await JobsRepository.updateJobStatus(jobId, status);
+
+        if (status === JobStatus.PUBLISHED) {
+            MatchingEventsPublisher.onJobMatchingDataChanged(jobId, ["PUBLISHED", "status"]).catch(() => {});
+        }
 
         return updateJobdetails;
     }

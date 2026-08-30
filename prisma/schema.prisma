@@ -136,6 +136,12 @@ enum ResumeParsingStatus {
   FAILED
 }
 
+enum MatchStatus {
+  CURRENT
+  STALE
+  PROCESSING
+}
+
 model User {
   id                          String          @id @default(cuid())
   email                       String          @unique
@@ -212,6 +218,7 @@ model Candidate {
   websiteUrl         String?
   isOpenToWork       Boolean                  @default(true)
   profileCompletion  Int                      @default(0)
+  profileVersion     Int                      @default(1)
   createdAt          DateTime                 @default(now())
   updatedAt          DateTime                 @updatedAt
   skills             CandidateSkill[]
@@ -223,6 +230,7 @@ model Candidate {
   applications       Application[]
   assessmentAttempts AssessmentAttempt[]
   savedJobs          SavedJob[]
+  matches            CandidateJobMatch[]
 
   @@index([experienceLevel])
   @@index([currentLocation])
@@ -374,6 +382,7 @@ model Job {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  requirementsVersion Int @default(1)
 
   skills         JobSkill[]
   benefits       JobBenefit[]
@@ -384,6 +393,7 @@ model Job {
   workflow       Workflow?       @relation(fields: [workflowId], references: [id])
   jobAssessments JobAssessment[]
   jobInterviews  JobInterview[]
+  matches        CandidateJobMatch[]
 
   @@index([companyId])
   @@index([status])
@@ -1524,3 +1534,32 @@ model SkillCandidate {
   @@index([status])
   @@index([normalizedName])
 }
+
+model CandidateJobMatch {
+  id                 String      @id @default(cuid())
+  candidateId        String
+  candidate          Candidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  jobId              String
+  job                Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  matchScore         Float       
+  deterministicScore Float       
+  semanticScore      Float?      
+
+  matchingFactors    Json        
+  status             MatchStatus @default(CURRENT)
+
+  candidateVersion   Int         @default(1)
+  jobVersion         Int         @default(1)
+
+  calculatedAt       DateTime    @default(now())
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@unique([candidateId, jobId])
+  @@index([candidateId, matchScore(sort: Desc)])
+  @@index([jobId, matchScore(sort: Desc)])
+  @@index([candidateId, status])
+  @@index([jobId, status])
+}
+

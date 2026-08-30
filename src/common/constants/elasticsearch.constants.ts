@@ -1,5 +1,7 @@
 export const ES_INDICES = {
     COMPANIES: "talentforge_companies",
+    CANDIDATES: "talentforge_candidates",
+    JOBS: "talentforge_jobs",
 } as const;
 
 export const ES_COMPANY_FIELDS = {
