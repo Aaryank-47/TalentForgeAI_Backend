@@ -13,6 +13,7 @@ import type {
     TokenParamDto,
     InvitationIdParamDto
 } from "../dto/assessmentAssignment.dto.js";
+import type { AuthTokenPayload } from "../../auth/interfaces/auth.interface.js";
 
 export class JobAssessmentController {
     static attachAssessmentsToJob = asyncHandler(
@@ -89,6 +90,17 @@ export class JobAssessmentController {
 
             res.status(HTTP_STATUS.OK).json(
                 new ApiResponse(true, "Assessment invitation created successfully.", result)
+            );
+        }
+    );
+
+    static getCandidateMyInvitations = asyncHandler(
+        async (req: Request, res: Response) => {
+            const user = req.user as AuthTokenPayload;
+            const result = await JobAssessmentService.getCandidateMyInvitations(user.id);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Candidate assessment invitations retrieved successfully.", result)
             );
         }
     );

@@ -1,4 +1,5 @@
 import { JobAssessmentRepository } from "../repositories/assessmentAssignment.repository.js";
+import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
@@ -213,6 +214,56 @@ export class JobAssessmentService {
             token: invitation.token,
             expiresAt: invitation.expiresAt
         };
+    }
+
+    static async getCandidateMyInvitations(userId: string) {
+        const candidateProfile = await AuthRepository.findProfileByUserId(userId);
+        if (!candidateProfile || !candidateProfile.profile || !('isOpenToWork' in candidateProfile.profile)) {
+            return [];
+        }
+
+        const rawInvitations = await JobAssessmentRepository.findCandidateInvitations(candidateProfile.profile.id);
+
+        return rawInvitations.map((invitation) => {
+            const latestAttempt = invitation.application.assessmentAttempts[0];
+            let status = invitation.status as string;
+
+            if (latestAttempt) {
+                if (latestAttempt.status === "SUBMITTED") {
+                    status = "COMPLETED";
+                } else if (latestAttempt.status === "IN_PROGRESS") {
+                    status = "IN_PROGRESS";
+                } else if (latestAttempt.status === "EXPIRED") {
+                    status = "EXPIRED";
+                }
+            } else {
+                if (new Date(invitation.expiresAt) < new Date() && status === "PENDING") {
+                    status = "EXPIRED";
+                }
+            }
+
+            return {
+                id: invitation.id,
+                invitationId: invitation.id,
+                token: invitation.token,
+                applicationId: invitation.applicationId,
+                status,
+                expiresAt: invitation.expiresAt,
+                createdAt: invitation.createdAt,
+                assessmentId: invitation.assessmentId,
+                assessment: invitation.assessment,
+                application: invitation.application,
+                attempt: latestAttempt ? {
+                    id: latestAttempt.id,
+                    status: latestAttempt.status,
+                    score: (latestAttempt as any).score,
+                    percentage: (latestAttempt as any).percentage,
+                    passed: (latestAttempt as any).passed,
+                    startedAt: latestAttempt.startedAt,
+                    submittedAt: (latestAttempt as any).submittedAt || null
+                } : null,
+            };
+        });
     }
 
     static async getAssessmentInvitation(

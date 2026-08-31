@@ -4,6 +4,7 @@ import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { ensureActiveCompanyMember } from "../../../common/middleware/ensureActiveCompanyMember.middleware.js";
+import { ensureCandidateProfile } from "../../../common/middleware/ensureCandidateProfile.middleware.js";
 import { UserRole } from "@prisma/client";
 import {
     attachAssessmentsToJobSchema,
@@ -83,6 +84,13 @@ router.post(
     validate(createAssessmentInvitationSchema, "body"),
     ensureActiveCompanyMember,
     JobAssessmentController.createAssessmentInvitation
+);
+
+router.get(
+    "/candidate/my-invitations",
+    authMiddleware,
+    ensureCandidateProfile,
+    JobAssessmentController.getCandidateMyInvitations
 );
 
 router.get(
