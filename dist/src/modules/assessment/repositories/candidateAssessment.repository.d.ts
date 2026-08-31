@@ -27,6 +27,7 @@ export declare class AssessmentAttemptRepository {
         noticePeriod: number | null;
         isOpenToWork: boolean;
         profileCompletion: number;
+        profileVersion: number;
     } | null>;
     static findInvitationByToken(token: string): Promise<({
         application: {

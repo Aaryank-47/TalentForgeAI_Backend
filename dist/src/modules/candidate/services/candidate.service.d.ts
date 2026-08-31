@@ -105,6 +105,7 @@ export declare class CandidateService {
         noticePeriod: number | null;
         isOpenToWork: boolean;
         profileCompletion: number;
+        profileVersion: number;
     }>;
     static getCandidateResumes(candidateId: string, loggedInUser: {
         id: string;

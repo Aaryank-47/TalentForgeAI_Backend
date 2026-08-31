@@ -1,5 +1,7 @@
 export declare const ES_INDICES: {
     readonly COMPANIES: "talentforge_companies";
+    readonly CANDIDATES: "talentforge_candidates";
+    readonly JOBS: "talentforge_jobs";
 };
 export declare const ES_COMPANY_FIELDS: {
     readonly COMPANY_NAME: "companyName";

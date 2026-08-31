@@ -73,6 +73,7 @@ export declare class JobsRepository {
             hideSalary: boolean;
             applicationDeadline: Date | null;
             closedAt: Date | null;
+            requirementsVersion: number;
             workflowId: string | null;
         };
     } & {

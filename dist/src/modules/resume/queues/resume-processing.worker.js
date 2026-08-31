@@ -11,6 +11,7 @@ import { ResumeProcessingPipeline } from "../pipelines/resume-processing.pipelin
 import { RESUME_PROCESSING_QUEUE_NAME } from "./resume-processing.types.js";
 import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
 import { ResumeProcessingStateService } from "../services/resume-processing-state.service.js";
+import { MatchingEventsPublisher } from "../../matching/events/matching-events.publisher.js";
 export class ResumeProcessingWorker {
     worker = null;
     pipeline;
@@ -100,6 +101,18 @@ export class ResumeProcessingWorker {
             });
             // Clean up ephemeral Redis processing micro-stage on successful completion
             await ResumeProcessingStateService.clearCurrentStage(resumeId);
+            // Trigger targeted candidate matching event in background
+            try {
+                await MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateId, [
+                    "RESUME_PARSED",
+                    "skills",
+                    "experience",
+                    "education"
+                ]);
+            }
+            catch (matchingErr) {
+                logger.warn({ err: matchingErr, candidateId, resumeId }, "[ResumeProcessingWorker] Non-critical warning: Failed to publish matching event after resume completion.");
+            }
             const result = {
                 success: true,
                 resumeId,

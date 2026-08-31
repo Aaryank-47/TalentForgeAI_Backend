@@ -4,19 +4,26 @@ import { Server } from "socket.io";
 import { connectDatabase } from './config/database.js';
 import env from './config/env.js';
 import { ElasticsearchService } from './modules/company/services/elasticsearch.service.js';
+import { MatchingElasticsearchService } from './modules/matching/services/matching-elasticsearch.service.js';
 import { initializeInterviewSocket } from './modules/interviews/websocket/interview.socket.js';
 import { initializeResumeSocket } from './modules/resume/websocket/resume.socket.js';
 import { initResumeProcessingWorker, shutdownResumeProcessing } from './modules/resume/queues/resume-queue.manager.js';
+import { initMatchingWorker, shutdownMatchingSubsystem } from './modules/matching/queues/matching-queue.manager.js';
 import { logger } from './common/logger/logger.js';
 import prisma from './config/database.js';
+import { InterviewSessionsServices } from './modules/interviews/services/interviews.service.js';
 const port = env.port;
 // Create HTTP server using Express
 const httpServer = createServer(app);
 async function startServer() {
     await connectDatabase();
     await ElasticsearchService.ensureIndex();
-    // Initialize Resume Processing Background Worker
+    await MatchingElasticsearchService.ensureIndices();
+    // Initialize Background Workers
     initResumeProcessingWorker();
+    initMatchingWorker();
+    // Initialize Interview Auto-Expiry Background Scheduler (runs every 60s)
+    InterviewSessionsServices.initAutoExpiryScheduler();
     // Start the HTTP + Socket.IO server
     httpServer.listen(port, () => {
         console.log(`Server is running on port http://localhost:${port}`);
@@ -38,6 +45,7 @@ async function handleGracefulShutdown(signal) {
         try {
             io.close();
             await shutdownResumeProcessing();
+            await shutdownMatchingSubsystem();
             await prisma.$disconnect();
             logger.info("[Server] Graceful shutdown completed.");
             process.exit(0);

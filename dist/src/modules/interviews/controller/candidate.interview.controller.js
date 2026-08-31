@@ -4,7 +4,8 @@ import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 export class CandidateInterviewController {
     static getMyInterviews = asyncHandler(async (req, res) => {
         const user = req.user;
-        const data = await CandidateInterviewService.getMyInterviews(user.id);
+        const type = req.query.type;
+        const data = await CandidateInterviewService.getMyInterviews(user.id, type);
         return res.status(HTTP_STATUS.OK).json({
             success: true,
             message: "Candidate interviews fetched successfully",

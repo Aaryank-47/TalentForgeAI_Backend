@@ -213,6 +213,7 @@ export declare class ATSIntegrationRepository {
                 noticePeriod: number | null;
                 isOpenToWork: boolean;
                 profileCompletion: number;
+                profileVersion: number;
             };
             job: {
                 company: {
@@ -274,6 +275,7 @@ export declare class ATSIntegrationRepository {
                 hideSalary: boolean;
                 applicationDeadline: Date | null;
                 closedAt: Date | null;
+                requirementsVersion: number;
                 workflowId: string | null;
             };
         } & {

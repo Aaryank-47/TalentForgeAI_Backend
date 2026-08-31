@@ -51,6 +51,7 @@ export declare class ApplicationRepository {
             noticePeriod: number | null;
             isOpenToWork: boolean;
             profileCompletion: number;
+            profileVersion: number;
         };
         job: {
             company: {
@@ -112,6 +113,7 @@ export declare class ApplicationRepository {
             hideSalary: boolean;
             applicationDeadline: Date | null;
             closedAt: Date | null;
+            requirementsVersion: number;
             workflowId: string | null;
         };
     } & {
@@ -180,6 +182,7 @@ export declare class ApplicationRepository {
             noticePeriod: number | null;
             isOpenToWork: boolean;
             profileCompletion: number;
+            profileVersion: number;
         };
         job: {
             companyId: string;
@@ -377,6 +380,7 @@ export declare class ApplicationRepository {
         hideSalary: boolean;
         applicationDeadline: Date | null;
         closedAt: Date | null;
+        requirementsVersion: number;
         workflowId: string | null;
     } | null>;
     static getApplication(candidateId: string, jobId: string): Promise<{
@@ -636,6 +640,7 @@ export declare class ApplicationRepository {
             hideSalary: boolean;
             applicationDeadline: Date | null;
             closedAt: Date | null;
+            requirementsVersion: number;
             workflowId: string | null;
         };
         applicationResume: {
@@ -864,6 +869,7 @@ export declare class ApplicationRepository {
                 noticePeriod: number | null;
                 isOpenToWork: boolean;
                 profileCompletion: number;
+                profileVersion: number;
             };
             assessmentAttempts: {
                 id: string;
@@ -993,6 +999,7 @@ export declare class ApplicationRepository {
                 noticePeriod: number | null;
                 isOpenToWork: boolean;
                 profileCompletion: number;
+                profileVersion: number;
             };
             applicationResume: {
                 id: string;
@@ -1091,6 +1098,7 @@ export declare class ApplicationRepository {
             noticePeriod: number | null;
             isOpenToWork: boolean;
             profileCompletion: number;
+            profileVersion: number;
         };
         job: {
             company: {
@@ -1125,6 +1133,7 @@ export declare class ApplicationRepository {
             hideSalary: boolean;
             applicationDeadline: Date | null;
             closedAt: Date | null;
+            requirementsVersion: number;
             workflowId: string | null;
         };
         applicationResume: {

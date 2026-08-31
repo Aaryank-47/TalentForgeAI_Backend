@@ -275,11 +275,85 @@ export declare const interviewSessionParticipantSelect: {
     joinedAt: true;
     createdAt: true;
     updatedAt: true;
+    companyMember: {
+        select: {
+            id: true;
+            role: true;
+            user: {
+                select: {
+                    id: true;
+                    email: true;
+                    role: true;
+                    employer: {
+                        select: {
+                            fullName: true;
+                            profilePicture: true;
+                            designation: true;
+                            department: true;
+                        };
+                    };
+                    admin: {
+                        select: {
+                            fullName: true;
+                            profilePicture: true;
+                            designation: true;
+                            department: true;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    assignment: {
+        select: {
+            application: {
+                select: {
+                    id: true;
+                    jobId: true;
+                    job: {
+                        select: {
+                            title: true;
+                        };
+                    };
+                    candidate: {
+                        select: {
+                            id: true;
+                            fullName: true;
+                            profilePicture: true;
+                            user: {
+                                select: {
+                                    email: true;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
 };
 export type InterviewSessionParticipantPayload = Prisma.InterviewSessionParticipantGetPayload<{
     select: typeof interviewSessionParticipantSelect;
 }>;
-export type InterviewSessionParticipantResponse = InterviewSessionParticipantPayload;
+export type InterviewSessionParticipantResponse = Omit<InterviewSessionParticipantPayload, 'assignment'> & {
+    assignment?: {
+        application: {
+            id: string;
+            jobId: string;
+            job: {
+                title: string;
+            };
+            candidate: {
+                id: string;
+                fullName: string;
+                profilePicture: string | null;
+                user: {
+                    email: string;
+                };
+            };
+        };
+    } | null;
+};
 export declare const interviewSessionSelect: {
     id: true;
     interviewId: true;
@@ -290,6 +364,18 @@ export declare const interviewSessionSelect: {
     roomId: true;
     createdAt: true;
     updatedAt: true;
+    interview: {
+        select: {
+            id: true;
+            companyId: true;
+            title: true;
+            type: true;
+            mode: true;
+            durationMinutes: true;
+            instructions: true;
+            description: true;
+        };
+    };
     participants: {
         select: {
             id: true;
@@ -301,6 +387,62 @@ export declare const interviewSessionSelect: {
             joinedAt: true;
             createdAt: true;
             updatedAt: true;
+            companyMember: {
+                select: {
+                    id: true;
+                    role: true;
+                    user: {
+                        select: {
+                            id: true;
+                            email: true;
+                            role: true;
+                            employer: {
+                                select: {
+                                    fullName: true;
+                                    profilePicture: true;
+                                    designation: true;
+                                    department: true;
+                                };
+                            };
+                            admin: {
+                                select: {
+                                    fullName: true;
+                                    profilePicture: true;
+                                    designation: true;
+                                    department: true;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            assignment: {
+                select: {
+                    application: {
+                        select: {
+                            id: true;
+                            jobId: true;
+                            job: {
+                                select: {
+                                    title: true;
+                                };
+                            };
+                            candidate: {
+                                select: {
+                                    id: true;
+                                    fullName: true;
+                                    profilePicture: true;
+                                    user: {
+                                        select: {
+                                            email: true;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
     };
 };
@@ -316,6 +458,9 @@ export declare const interviewSessionDetailSelect: {
             title: true;
             type: true;
             mode: true;
+            durationMinutes: true;
+            instructions: true;
+            description: true;
         };
     };
     id: true;
@@ -338,6 +483,62 @@ export declare const interviewSessionDetailSelect: {
             joinedAt: true;
             createdAt: true;
             updatedAt: true;
+            companyMember: {
+                select: {
+                    id: true;
+                    role: true;
+                    user: {
+                        select: {
+                            id: true;
+                            email: true;
+                            role: true;
+                            employer: {
+                                select: {
+                                    fullName: true;
+                                    profilePicture: true;
+                                    designation: true;
+                                    department: true;
+                                };
+                            };
+                            admin: {
+                                select: {
+                                    fullName: true;
+                                    profilePicture: true;
+                                    designation: true;
+                                    department: true;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            assignment: {
+                select: {
+                    application: {
+                        select: {
+                            id: true;
+                            jobId: true;
+                            job: {
+                                select: {
+                                    title: true;
+                                };
+                            };
+                            candidate: {
+                                select: {
+                                    id: true;
+                                    fullName: true;
+                                    profilePicture: true;
+                                    user: {
+                                        select: {
+                                            email: true;
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+            };
         };
     };
 };

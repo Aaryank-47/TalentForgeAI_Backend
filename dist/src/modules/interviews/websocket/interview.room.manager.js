@@ -40,5 +40,26 @@ export class InterviewRoomManager {
         const room = this.activeRooms.get(sessionId);
         return room ? Array.from(room.values()) : [];
     }
+    static getSocketIdByUserId(sessionId, userId) {
+        const room = this.activeRooms.get(sessionId);
+        if (!room)
+            return null;
+        const participant = room.get(userId);
+        return participant ? participant.socketId : null;
+    }
+    static roomStates = new Map();
+    static setCodeState(sessionId, code) {
+        const state = this.roomStates.get(sessionId) || { code: "", language: "javascript" };
+        state.code = code;
+        this.roomStates.set(sessionId, state);
+    }
+    static setLanguageState(sessionId, language) {
+        const state = this.roomStates.get(sessionId) || { code: "", language: "javascript" };
+        state.language = language;
+        this.roomStates.set(sessionId, state);
+    }
+    static getCodeSyncState(sessionId) {
+        return this.roomStates.get(sessionId) || { code: "", language: "javascript" };
+    }
 }
 //# sourceMappingURL=interview.room.manager.js.map

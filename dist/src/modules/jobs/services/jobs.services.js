@@ -8,6 +8,7 @@ import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { WorkflowRepository } from "../../hiring-workflow/repositories/workflow.repository.js";
+import { MatchingEventsPublisher } from "../../matching/events/matching-events.publisher.js";
 export class createJobService {
     static async createJob(companyId, jobPayload, userId, companyMemberRole) {
         const company = await CompanyRepository.findCompanyById(companyId);
@@ -23,6 +24,9 @@ export class createJobService {
             throw new NotFoundError("Workflow does not belong to this company");
         }
         const job = await JobsRepository.createJob(companyId, jobPayload, createSlug, userId);
+        if (job.status === JobStatus.PUBLISHED) {
+            MatchingEventsPublisher.onJobMatchingDataChanged(job.id, ["PUBLISHED", "status"]).catch(() => { });
+        }
         const author = await AuthRepository.findUserById(userId);
         if (!author) {
             throw new NotFoundError("Author user not found");
@@ -86,6 +90,7 @@ export class createJobService {
             throw new BadRequestError("Only jobs in DRAFT status can be edited. Published jobs cannot be modified.");
         }
         const updateJobdetails = await JobsRepository.updateJobDetails(params.jobId, jobPayload);
+        MatchingEventsPublisher.onJobMatchingDataChanged(params.jobId, jobPayload).catch(() => { });
         return updateJobdetails;
     }
     static async updateJobStatus(companyId, jobId, status) {
@@ -101,6 +106,9 @@ export class createJobService {
             throw new NotFoundError("Job does not belong to this company");
         }
         const updateJobdetails = await JobsRepository.updateJobStatus(jobId, status);
+        if (status === JobStatus.PUBLISHED) {
+            MatchingEventsPublisher.onJobMatchingDataChanged(jobId, ["PUBLISHED", "status"]).catch(() => { });
+        }
         return updateJobdetails;
     }
     static async assignRecruiterToJob(jobId, recruiterId, companyId) {

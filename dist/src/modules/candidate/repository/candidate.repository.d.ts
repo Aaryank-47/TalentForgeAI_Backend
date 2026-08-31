@@ -117,6 +117,7 @@ export declare class CandidateRepository {
         noticePeriod: number | null;
         isOpenToWork: boolean;
         profileCompletion: number;
+        profileVersion: number;
     }) | null>;
     static createCandidateProfile(userId: string, data: {
         fullName: string;

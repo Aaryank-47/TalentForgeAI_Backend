@@ -210,6 +210,7 @@ export declare class ApplicationService {
             hideSalary: boolean;
             applicationDeadline: Date | null;
             closedAt: Date | null;
+            requirementsVersion: number;
             workflowId: string | null;
         };
         applicationResume: {

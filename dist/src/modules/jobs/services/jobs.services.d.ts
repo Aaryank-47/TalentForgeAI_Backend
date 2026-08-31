@@ -73,6 +73,7 @@ export declare class createJobService {
             hideSalary: boolean;
             applicationDeadline: Date | null;
             closedAt: Date | null;
+            requirementsVersion: number;
             workflowId: string | null;
         };
     } & {

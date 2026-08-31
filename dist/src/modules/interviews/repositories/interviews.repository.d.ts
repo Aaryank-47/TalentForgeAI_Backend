@@ -98,6 +98,28 @@ export declare class JobInterviewsRepositories {
     }[]>;
 }
 export declare class InterviewAssignmentsRepositories {
+    static findEligibleCandidates(companyId: string): Promise<{
+        id: string;
+        candidate: {
+            fullName: string;
+            user: {
+                email: string;
+            };
+            id: string;
+            profilePicture: string | null;
+        };
+        job: {
+            id: string;
+            title: string;
+        };
+        applicationWorkflow: {
+            workflowStage: {
+                stageLibrary: {
+                    name: string;
+                };
+            };
+        } | null;
+    }[]>;
     static createInterviewAssignments(assignments: Prisma.InterviewAssignmentCreateManyInput[]): Promise<{
         id: string;
         createdAt: Date;
@@ -144,6 +166,7 @@ export declare class InterviewAssignmentsRepositories {
 export declare class InterviewSessionsRepositories {
     static createSessionWithParticipants(sessionData: Prisma.InterviewSessionUncheckedCreateInput, participants: Prisma.InterviewSessionParticipantUncheckedCreateWithoutSessionInput[]): Promise<InterviewSessionResponse>;
     static findSessionsByInterviewId(interviewId: string): Promise<InterviewSessionResponse[]>;
+    static findSessionsByCompanyId(companyId: string): Promise<InterviewSessionResponse[]>;
     static findSessionById(sessionId: string): Promise<InterviewSessionDetailResponse | null>;
     static findSessionWithJobAndAIConfig(sessionId: string): Promise<({
         interview: {
@@ -184,6 +207,7 @@ export declare class InterviewSessionsRepositories {
                     hideSalary: boolean;
                     applicationDeadline: Date | null;
                     closedAt: Date | null;
+                    requirementsVersion: number;
                     workflowId: string | null;
                 };
             } & {
@@ -257,6 +281,7 @@ export declare class InterviewSessionsRepositories {
                         hideSalary: boolean;
                         applicationDeadline: Date | null;
                         closedAt: Date | null;
+                        requirementsVersion: number;
                         workflowId: string | null;
                     };
                 } & {
@@ -336,6 +361,70 @@ export declare class InterviewSessionParticipantsRepositories {
     static findParticipantById(participantId: string): Promise<InterviewSessionParticipantResponse | null>;
     static deleteParticipant(participantId: string): Promise<void>;
     static findParticipantForSession(userId: string, sessionId: string): Promise<({
+        companyMember: ({
+            user: {
+                employer: {
+                    fullName: string;
+                    phoneNumber: string | null;
+                    linkedinUrl: string | null;
+                    designation: string | null;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    profilePicture: string | null;
+                    department: string | null;
+                    isActive: boolean;
+                } | null;
+                admin: {
+                    fullName: string;
+                    phoneNumber: string | null;
+                    designation: string | null;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    profilePicture: string | null;
+                    department: string | null;
+                    isActive: boolean;
+                    employeeId: string | null;
+                    isSuperAdmin: boolean;
+                    lastActiveAt: Date | null;
+                } | null;
+            } & {
+                email: string;
+                password: string;
+                otp: string | null;
+                id: string;
+                otpExpiresAt: Date | null;
+                resetPasswordToken: string | null;
+                resetPasswordTokenExpiresAt: Date | null;
+                role: import("@prisma/client").$Enums.UserRole;
+                status: import("@prisma/client").$Enums.AccountStatus;
+                isEmailVerified: boolean;
+                lastLoginAt: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                deletedById: string | null;
+                suspendedAt: Date | null;
+                suspendedById: string | null;
+                suspendedReason: string | null;
+                restoredAt: Date | null;
+                restoredById: string | null;
+            };
+        } & {
+            companyId: string;
+            id: string;
+            role: import("@prisma/client").$Enums.CompanyMemberRole;
+            status: import("@prisma/client").$Enums.CompanyMemberStatus;
+            userId: string;
+            joinedAt: Date;
+            invitationToken: string | null;
+            invitedAt: Date | null;
+            expiresAt: Date | null;
+            invitedBy: string | null;
+        }) | null;
         session: {
             interview: {
                 type: import("@prisma/client").$Enums.InterviewType;
@@ -362,6 +451,61 @@ export declare class InterviewSessionParticipantsRepositories {
             endedAt: Date | null;
             roomId: string | null;
         };
+        assignment: ({
+            application: {
+                candidate: {
+                    fullName: string;
+                    phoneNumber: string | null;
+                    linkedinUrl: string | null;
+                    currentLocation: string | null;
+                    githubUrl: string | null;
+                    portfolioUrl: string | null;
+                    websiteUrl: string | null;
+                    headline: string | null;
+                    bio: string | null;
+                    currentCompany: string | null;
+                    currentDesignation: string | null;
+                    totalExperience: number | null;
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    profilePicture: string | null;
+                    dateOfBirth: Date | null;
+                    gender: import("@prisma/client").$Enums.Gender | null;
+                    experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
+                    preferredLocation: string | null;
+                    expectedSalary: number | null;
+                    currentSalary: number | null;
+                    noticePeriod: number | null;
+                    isOpenToWork: boolean;
+                    profileCompletion: number;
+                    profileVersion: number;
+                };
+            } & {
+                id: string;
+                status: import("@prisma/client").$Enums.ApplicationStatus;
+                updatedAt: Date;
+                candidateId: string;
+                jobId: string;
+                coverLetter: string | null;
+                appliedAt: Date;
+                lastStatusUpdatedAt: Date | null;
+                withdrawnAt: Date | null;
+                withdrawReason: string | null;
+                rejectedAt: Date | null;
+                rejectionReason: string | null;
+                hiredAt: Date | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            applicationId: string;
+            interviewId: string;
+            creationSource: import("@prisma/client").$Enums.InterviewAssignmentCreationSource;
+            assignedById: string | null;
+        }) | null;
     } & {
         id: string;
         createdAt: Date;
@@ -384,5 +528,96 @@ export declare class InterviewSessionParticipantsRepositories {
         assignmentId: string | null;
         hasJoined: boolean;
     }>;
+}
+export declare class InterviewEvaluationRepositories {
+    static upsertEvaluation(sessionId: string, companyMemberId: string, data: Omit<Prisma.InterviewEvaluationUncheckedCreateInput, "sessionId" | "companyMemberId">): Promise<{
+        companyMember: {
+            user: {
+                email: string;
+                id: string;
+                role: import("@prisma/client").$Enums.UserRole;
+            };
+        } & {
+            companyId: string;
+            id: string;
+            role: import("@prisma/client").$Enums.CompanyMemberRole;
+            status: import("@prisma/client").$Enums.CompanyMemberStatus;
+            userId: string;
+            joinedAt: Date;
+            invitationToken: string | null;
+            invitedAt: Date | null;
+            expiresAt: Date | null;
+            invitedBy: string | null;
+        };
+    } & {
+        comments: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        companyMemberId: string;
+        overallScore: number;
+        communicationScore: number | null;
+        technicalScore: number | null;
+        problemSolvingScore: number | null;
+        behaviourScore: number | null;
+        cultureFitScore: number | null;
+        recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+        strengths: Prisma.JsonValue | null;
+        improvements: Prisma.JsonValue | null;
+        sessionId: string;
+    }>;
+    static findSessionEvaluations(sessionId: string): Promise<({
+        companyMember: {
+            user: {
+                email: string;
+                id: string;
+                role: import("@prisma/client").$Enums.UserRole;
+            };
+        } & {
+            companyId: string;
+            id: string;
+            role: import("@prisma/client").$Enums.CompanyMemberRole;
+            status: import("@prisma/client").$Enums.CompanyMemberStatus;
+            userId: string;
+            joinedAt: Date;
+            invitationToken: string | null;
+            invitedAt: Date | null;
+            expiresAt: Date | null;
+            invitedBy: string | null;
+        };
+    } & {
+        comments: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        companyMemberId: string;
+        overallScore: number;
+        communicationScore: number | null;
+        technicalScore: number | null;
+        problemSolvingScore: number | null;
+        behaviourScore: number | null;
+        cultureFitScore: number | null;
+        recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+        strengths: Prisma.JsonValue | null;
+        improvements: Prisma.JsonValue | null;
+        sessionId: string;
+    })[]>;
+    static findEvaluationByMember(sessionId: string, companyMemberId: string): Promise<{
+        comments: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        companyMemberId: string;
+        overallScore: number;
+        communicationScore: number | null;
+        technicalScore: number | null;
+        problemSolvingScore: number | null;
+        behaviourScore: number | null;
+        cultureFitScore: number | null;
+        recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+        strengths: Prisma.JsonValue | null;
+        improvements: Prisma.JsonValue | null;
+        sessionId: string;
+    } | null>;
 }
 //# sourceMappingURL=interviews.repository.d.ts.map

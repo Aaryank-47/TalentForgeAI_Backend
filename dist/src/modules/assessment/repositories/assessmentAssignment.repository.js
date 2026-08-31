@@ -296,6 +296,64 @@ export class JobAssessmentRepository {
             where: { id: assessmentId, deletedAt: null }
         });
     }
+    static async findCandidateInvitations(candidateId) {
+        return await prisma.assessmentInvitation.findMany({
+            where: {
+                application: {
+                    candidateId
+                }
+            },
+            orderBy: {
+                createdAt: "desc"
+            },
+            include: {
+                assessment: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        instructions: true,
+                        durationMinutes: true,
+                        passingScore: true,
+                        totalMarks: true,
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                logo: true
+                            }
+                        }
+                    }
+                },
+                application: {
+                    select: {
+                        id: true,
+                        job: {
+                            select: {
+                                id: true,
+                                title: true,
+                                workplaceType: true,
+                                location: true,
+                                company: {
+                                    select: {
+                                        id: true,
+                                        companyName: true,
+                                        logo: true
+                                    }
+                                }
+                            }
+                        },
+                        assessmentAttempts: {
+                            orderBy: {
+                                createdAt: "desc"
+                            },
+                            take: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
     static async findInvitationWithAttempt(applicationId) {
         return await prisma.assessmentInvitation.findFirst({
             where: { applicationId },

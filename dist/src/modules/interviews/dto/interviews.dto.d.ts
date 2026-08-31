@@ -118,6 +118,7 @@ export type GetInterviewAssignmentsQueryDto = z.infer<typeof getInterviewAssignm
 export declare const createInterviewSessionDto: z.ZodObject<{
     scheduledAt: z.ZodString;
     assignmentIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    applicationIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
     companyMemberIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export type CreateInterviewSessionRequest = z.infer<typeof createInterviewSessionDto>;
@@ -130,4 +131,23 @@ export declare const addSessionParticipantsDto: z.ZodObject<{
     companyMemberIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export type AddSessionParticipantsRequest = z.infer<typeof addSessionParticipantsDto>;
+export declare const submitInterviewEvaluationDto: z.ZodObject<{
+    overallScore: z.ZodNumber;
+    communicationScore: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    technicalScore: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    problemSolvingScore: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    behaviourScore: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    cultureFitScore: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    recommendation: z.ZodNullable<z.ZodOptional<z.ZodEnum<{
+        STRONG_HIRE: "STRONG_HIRE";
+        HIRE: "HIRE";
+        HOLD: "HOLD";
+        REJECT: "REJECT";
+        STRONG_REJECT: "STRONG_REJECT";
+    }>>>;
+    strengths: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodString>>>;
+    improvements: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodString>>>;
+    comments: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+}, z.core.$strip>;
+export type SubmitInterviewEvaluationRequest = z.infer<typeof submitInterviewEvaluationDto>;
 //# sourceMappingURL=interviews.dto.d.ts.map

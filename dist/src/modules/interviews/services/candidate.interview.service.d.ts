@@ -1,5 +1,5 @@
 export declare class CandidateInterviewService {
-    static getMyInterviews(userId: string): Promise<{
+    static getMyInterviews(userId: string, type?: string): Promise<{
         pending: any[];
         completed: any[];
     }>;
@@ -7,6 +7,7 @@ export declare class CandidateInterviewService {
         sessionId: string;
         interviewId: string;
         role: any;
+        interviewTitle: string;
         company: any;
         companyLogo: any;
         companyColor: string;
@@ -19,12 +20,21 @@ export declare class CandidateInterviewService {
         difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
         instructions: string;
         status: import("@prisma/client").$Enums.InterviewSessionStatus;
+        scheduledAt: Date;
         startedAt: Date | null;
         endedAt: Date | null;
         aiResult: {
             overallScore: number;
             recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
         } | null;
+        interviewers: {
+            id: string;
+            name: string;
+            role: string;
+            department: string;
+            initials: string;
+            avatarColor: string;
+        }[];
     }>;
 }
 //# sourceMappingURL=candidate.interview.service.d.ts.map

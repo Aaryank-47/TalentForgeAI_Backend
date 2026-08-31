@@ -4,6 +4,7 @@ import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
 import { validate } from "../../../common/middleware/validate.middleware.js";
 import { ensureActiveCompanyMember } from "../../../common/middleware/ensureActiveCompanyMember.middleware.js";
+import { ensureCandidateProfile } from "../../../common/middleware/ensureCandidateProfile.middleware.js";
 import { UserRole } from "@prisma/client";
 import { attachAssessmentsToJobSchema, jobIdParamSchema, jobAssessmentIdParamSchema, reorderJobAssessmentsSchema, applicationIdParamSchema, createAssessmentInvitationSchema, tokenParamSchema, invitationIdParamSchema } from "../dto/assessmentAssignment.dto.js";
 const router = Router();
@@ -22,6 +23,7 @@ router.delete("/job/:jobAssessmentId", authMiddleware, authorize(UserRole.EMPLOY
 }, ensureActiveCompanyMember, JobAssessmentController.removeJobAssessment);
 router.patch("/job/reorder", authMiddleware, authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(reorderJobAssessmentsSchema, "body"), ensureActiveCompanyMember, JobAssessmentController.reorderJobAssessments);
 router.post("/applications/:applicationId/assessment-invitation", authMiddleware, authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(applicationIdParamSchema, "params"), validate(createAssessmentInvitationSchema, "body"), ensureActiveCompanyMember, JobAssessmentController.createAssessmentInvitation);
+router.get("/candidate/my-invitations", authMiddleware, ensureCandidateProfile, JobAssessmentController.getCandidateMyInvitations);
 router.get("/applications/:applicationId/assessment-invitation", authMiddleware, authorize(UserRole.CANDIDATE, UserRole.EMPLOYER, UserRole.ADMIN), validate(applicationIdParamSchema, "params"), JobAssessmentController.getAssessmentInvitation);
 router.get("/invitation/:token", validate(tokenParamSchema, "params"), JobAssessmentController.validateInvitation);
 router.patch("/invitation/:invitationId/resend", authMiddleware, authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(invitationIdParamSchema, "params"), ensureActiveCompanyMember, JobAssessmentController.resendInvitation);

@@ -992,4 +992,33 @@ export const aiInterviewResultOverallFeedbackValidator = z
 export const aiInterviewResultStrengthsValidator = z.any().optional();
 export const aiInterviewResultWeaknessesValidator = z.any().optional();
 export const aiInterviewResultRecommendationValidator = z.nativeEnum(AIRecommendation).optional();
+// Interview Evaluation
+export const interviewEvaluationOverallScoreValidator = z
+    .number()
+    .min(0, "Overall score cannot be negative")
+    .max(100, "Overall score cannot exceed 100");
+export const interviewEvaluationScoreValidator = z
+    .number()
+    .min(0, "Score cannot be negative")
+    .max(100, "Score cannot exceed 100")
+    .optional()
+    .nullable();
+export const interviewEvaluationRecommendationValidator = z
+    .nativeEnum(AIRecommendation)
+    .optional()
+    .nullable();
+export const interviewEvaluationStrengthsValidator = z
+    .array(z.string().trim().min(1))
+    .optional()
+    .nullable();
+export const interviewEvaluationImprovementsValidator = z
+    .array(z.string().trim().min(1))
+    .optional()
+    .nullable();
+export const interviewEvaluationCommentsValidator = z
+    .string()
+    .trim()
+    .max(3000, "Comments must be at most 3000 characters long")
+    .optional()
+    .nullable();
 //# sourceMappingURL=validators.js.map

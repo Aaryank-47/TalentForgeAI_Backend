@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { interviewTitleValidator, interviewDescriptionValidator, interviewInstructionsValidator, interviewTypeValidator, interviewModeValidator, interviewDurationMinutesValidator, aiInterviewSystemPromptValidator, aiInterviewEvaluationMetricsValidator, aiInterviewQuestionCountValidator, aiInterviewDifficultyValidator, aiInterviewAllowFollowUpsValidator, interviewStatusValidator } from "../../../common/validators/validators.js";
+import { interviewTitleValidator, interviewDescriptionValidator, interviewInstructionsValidator, interviewTypeValidator, interviewModeValidator, interviewDurationMinutesValidator, aiInterviewSystemPromptValidator, aiInterviewEvaluationMetricsValidator, aiInterviewQuestionCountValidator, aiInterviewDifficultyValidator, aiInterviewAllowFollowUpsValidator, interviewStatusValidator, interviewEvaluationOverallScoreValidator, interviewEvaluationScoreValidator, interviewEvaluationRecommendationValidator, interviewEvaluationStrengthsValidator, interviewEvaluationImprovementsValidator, interviewEvaluationCommentsValidator } from "../../../common/validators/validators.js";
 export const createInterviewDto = z.object({
     title: interviewTitleValidator,
     description: interviewDescriptionValidator.optional(),
@@ -70,6 +70,7 @@ export const getInterviewAssignmentsQueryDto = z.object({
 export const createInterviewSessionDto = z.object({
     scheduledAt: z.string().datetime({ message: "Invalid ISO datetime string" }).refine(val => new Date(val) > new Date(), { message: "scheduledAt must be in the future" }),
     assignmentIds: z.array(z.string().cuid({ message: "Invalid assignment ID" })).optional(),
+    applicationIds: z.array(z.string().cuid({ message: "Invalid application ID" })).optional(),
     companyMemberIds: z.array(z.string().cuid({ message: "Invalid company member ID" })).optional()
 });
 export const updateInterviewSessionDto = z.object({
@@ -83,4 +84,16 @@ export const addSessionParticipantsDto = z.object({
     const hasMembers = data.companyMemberIds && data.companyMemberIds.length > 0;
     return hasAssignments || hasMembers;
 }, { message: "At least one assignmentId or companyMemberId must be provided" });
+export const submitInterviewEvaluationDto = z.object({
+    overallScore: interviewEvaluationOverallScoreValidator,
+    communicationScore: interviewEvaluationScoreValidator,
+    technicalScore: interviewEvaluationScoreValidator,
+    problemSolvingScore: interviewEvaluationScoreValidator,
+    behaviourScore: interviewEvaluationScoreValidator,
+    cultureFitScore: interviewEvaluationScoreValidator,
+    recommendation: interviewEvaluationRecommendationValidator,
+    strengths: interviewEvaluationStrengthsValidator,
+    improvements: interviewEvaluationImprovementsValidator,
+    comments: interviewEvaluationCommentsValidator
+});
 //# sourceMappingURL=interviews.dto.js.map

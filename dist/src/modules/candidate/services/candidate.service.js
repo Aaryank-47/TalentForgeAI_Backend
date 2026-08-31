@@ -12,6 +12,7 @@ import { inferResumeMimeType } from "../../resume/utils/resume-mime.helper.js";
 import { logger } from "../../../common/logger/logger.js";
 import prisma from "../../../config/database.js";
 import { ResumeProcessingStateService } from "../../resume/services/resume-processing-state.service.js";
+import { MatchingEventsPublisher } from "../../matching/events/matching-events.publisher.js";
 export class CandidateService {
     static async createCandidateProfile(userId, data) {
         const existing = await prisma.candidate.findUnique({
@@ -36,7 +37,12 @@ export class CandidateService {
         }
         console.log("candidateid : ", candidateId);
         console.log("UpdatedData : ", updateData);
+        const candidateRecordId = candidate.profile.id;
         const updateCandidateProfile = await CandidateRepository.updateCandidateProfile(candidateId, updateData);
+        // Trigger matching if matching-relevant fields were updated
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, updateData).catch((err) => {
+            logger.warn({ err, candidateId: candidateRecordId }, "[CandidateService] Failed to trigger matching recalculation");
+        });
         return updateCandidateProfile;
     }
     static async calculateProfileCompletion(candidateId) {
@@ -200,6 +206,7 @@ export class CandidateService {
             const newSkill = await CandidateRepository.addSkills(candidateRecordId, skillItem.skillName, skillItem.skillExperience ?? null);
             addedSkills.push(newSkill);
         }
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, ["skills"]).catch(() => { });
         return addedSkills;
     }
     static async getAllSkills(candidateId) {
@@ -224,6 +231,7 @@ export class CandidateService {
             throw new ConflictError("Skill doesn't belong to this user");
         }
         const updateSkill = await CandidateRepository.updateSkill(skillId, skillName, skillExperience);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["skills"]).catch(() => { });
         return updateSkill;
     }
     static async deleteSkills(candidateId, skillIds) {
@@ -250,6 +258,7 @@ export class CandidateService {
         if (deletedCount !== uniqueSkillIds.size) {
             throw new ConflictError("Failed to delete one or more skills.");
         }
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["skills"]).catch(() => { });
     }
     static async addEducation(candidateId, data) {
         const candidate = await AuthRepository.findProfileByUserId(candidateId);
@@ -258,6 +267,7 @@ export class CandidateService {
         }
         const candidateRecordId = candidate.profile.id;
         const newEducation = await CandidateRepository.addEducation(candidateRecordId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, ["education"]).catch(() => { });
         return newEducation;
     }
     static async getEducations(candidateId) {
@@ -289,6 +299,7 @@ export class CandidateService {
             throw new NotFoundError('Education record not found or does not belong to candidate');
         }
         const updatedEducation = await CandidateRepository.updateEducation(educationId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["education"]).catch(() => { });
         return updatedEducation;
     }
     static async deleteEducation(candidateId, educationId) {
@@ -301,6 +312,7 @@ export class CandidateService {
             throw new NotFoundError('Education record not found or does not belong to candidate');
         }
         const deletedEducation = await CandidateRepository.deleteEducation(educationId);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["education"]).catch(() => { });
         return deletedEducation;
     }
     static async addExperience(candidateId, data) {
@@ -314,6 +326,7 @@ export class CandidateService {
         }
         const candidateRecordId = candidate.profile.id;
         const newExperience = await CandidateRepository.addExperience(candidateRecordId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, ["experience"]).catch(() => { });
         return newExperience;
     }
     static async getExperiences(candidateId) {
@@ -351,6 +364,7 @@ export class CandidateService {
             }
         }
         const updatedExperience = await CandidateRepository.updateExperience(experienceId, data);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["experience"]).catch(() => { });
         return updatedExperience;
     }
     static async deleteExperience(candidateId, experienceId) {
@@ -363,6 +377,7 @@ export class CandidateService {
             throw new NotFoundError('Experience record not found or does not belong to candidate');
         }
         const deletedExperience = await CandidateRepository.deleteExperience(experienceId);
+        MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["experience"]).catch(() => { });
         return deletedExperience;
     }
     static async getPublicProfile(candidateId) {

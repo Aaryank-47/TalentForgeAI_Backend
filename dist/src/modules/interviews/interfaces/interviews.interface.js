@@ -147,7 +147,63 @@ export const interviewSessionParticipantSelect = {
     hasJoined: true,
     joinedAt: true,
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
+    companyMember: {
+        select: {
+            id: true,
+            role: true,
+            user: {
+                select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    employer: {
+                        select: {
+                            fullName: true,
+                            profilePicture: true,
+                            designation: true,
+                            department: true
+                        }
+                    },
+                    admin: {
+                        select: {
+                            fullName: true,
+                            profilePicture: true,
+                            designation: true,
+                            department: true
+                        }
+                    }
+                }
+            }
+        }
+    },
+    assignment: {
+        select: {
+            application: {
+                select: {
+                    id: true,
+                    jobId: true,
+                    job: {
+                        select: {
+                            title: true
+                        }
+                    },
+                    candidate: {
+                        select: {
+                            id: true,
+                            fullName: true,
+                            profilePicture: true,
+                            user: {
+                                select: {
+                                    email: true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 };
 export const interviewSessionSelect = {
     id: true,
@@ -159,6 +215,18 @@ export const interviewSessionSelect = {
     roomId: true,
     createdAt: true,
     updatedAt: true,
+    interview: {
+        select: {
+            id: true,
+            companyId: true,
+            title: true,
+            type: true,
+            mode: true,
+            durationMinutes: true,
+            instructions: true,
+            description: true,
+        }
+    },
     participants: {
         select: interviewSessionParticipantSelect
     }
@@ -171,7 +239,10 @@ export const interviewSessionDetailSelect = {
             companyId: true,
             title: true,
             type: true,
-            mode: true
+            mode: true,
+            durationMinutes: true,
+            instructions: true,
+            description: true,
         }
     }
 };

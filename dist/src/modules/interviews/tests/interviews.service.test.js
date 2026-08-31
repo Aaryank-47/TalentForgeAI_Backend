@@ -372,7 +372,7 @@ describe("InterviewSessionsServices & ParticipantsServices tests", () => {
     test("should create an interview session with participants", async () => {
         const scheduledAt = new Date(Date.now() + 86400000).toISOString(); // Tomorrow
         const { InterviewSessionsServices } = await import("../services/interviews.service.js");
-        session = await InterviewSessionsServices.createSession(company.id, interview.id, {
+        session = await InterviewSessionsServices.createSession(company.id, companyMember.id, interview.id, {
             scheduledAt,
             assignmentIds: [assignment.id],
             companyMemberIds: [companyMember.id]

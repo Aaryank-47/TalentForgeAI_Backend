@@ -158,28 +158,28 @@ export declare class AIInterviewEvaluationRepository {
         createdAt: Date;
         updatedAt: Date;
         overallScore: number;
-        sessionId: string;
-        technicalScore: number | null;
         communicationScore: number | null;
+        technicalScore: number | null;
         problemSolvingScore: number | null;
-        overallFeedback: string | null;
-        strengths: import("@prisma/client/runtime/client").JsonValue | null;
-        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+        strengths: import("@prisma/client/runtime/client").JsonValue | null;
+        sessionId: string;
+        overallFeedback: string | null;
+        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
     } | null>;
     static upsertResult(data: CreateAIInterviewResultInput): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         overallScore: number;
-        sessionId: string;
-        technicalScore: number | null;
         communicationScore: number | null;
+        technicalScore: number | null;
         problemSolvingScore: number | null;
-        overallFeedback: string | null;
-        strengths: import("@prisma/client/runtime/client").JsonValue | null;
-        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+        strengths: import("@prisma/client/runtime/client").JsonValue | null;
+        sessionId: string;
+        overallFeedback: string | null;
+        weaknesses: import("@prisma/client/runtime/client").JsonValue | null;
     }>;
 }
 //# sourceMappingURL=ai.interview.repository.d.ts.map

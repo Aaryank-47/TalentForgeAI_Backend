@@ -5,28 +5,28 @@ export declare class AIInterviewFinalEvaluationService {
         createdAt: Date;
         updatedAt: Date;
         overallScore: number;
-        sessionId: string;
-        technicalScore: number | null;
         communicationScore: number | null;
+        technicalScore: number | null;
         problemSolvingScore: number | null;
-        overallFeedback: string | null;
-        strengths: Prisma.JsonValue | null;
-        weaknesses: Prisma.JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+        strengths: Prisma.JsonValue | null;
+        sessionId: string;
+        overallFeedback: string | null;
+        weaknesses: Prisma.JsonValue | null;
     }>;
     static getFinalEvaluation(sessionId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
         overallScore: number;
-        sessionId: string;
-        technicalScore: number | null;
         communicationScore: number | null;
+        technicalScore: number | null;
         problemSolvingScore: number | null;
-        overallFeedback: string | null;
-        strengths: Prisma.JsonValue | null;
-        weaknesses: Prisma.JsonValue | null;
         recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+        strengths: Prisma.JsonValue | null;
+        sessionId: string;
+        overallFeedback: string | null;
+        weaknesses: Prisma.JsonValue | null;
     }>;
     static getFinalReport(sessionId: string): Promise<{
         session: {
@@ -74,14 +74,14 @@ export declare class AIInterviewFinalEvaluationService {
             createdAt: Date;
             updatedAt: Date;
             overallScore: number;
-            sessionId: string;
-            technicalScore: number | null;
             communicationScore: number | null;
+            technicalScore: number | null;
             problemSolvingScore: number | null;
-            overallFeedback: string | null;
-            strengths: Prisma.JsonValue | null;
-            weaknesses: Prisma.JsonValue | null;
             recommendation: import("@prisma/client").$Enums.AIRecommendation | null;
+            strengths: Prisma.JsonValue | null;
+            sessionId: string;
+            overallFeedback: string | null;
+            weaknesses: Prisma.JsonValue | null;
         } | null;
     }>;
     static getCompanyAIInterviews(companyId: string, search?: string): Promise<{

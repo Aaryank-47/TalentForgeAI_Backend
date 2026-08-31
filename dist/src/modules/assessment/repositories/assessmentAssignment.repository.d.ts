@@ -163,6 +163,67 @@ export declare class JobAssessmentRepository {
         publishedAt: Date | null;
         archivedAt: Date | null;
     } | null>;
+    static findCandidateInvitations(candidateId: string): Promise<({
+        application: {
+            id: string;
+            assessmentAttempts: {
+                id: string;
+                status: import("@prisma/client").$Enums.AttemptStatus;
+                createdAt: Date;
+                updatedAt: Date;
+                candidateId: string;
+                assessmentId: string;
+                applicationId: string;
+                currentSectionId: string | null;
+                startedAt: Date | null;
+                submittedAt: Date | null;
+                lastActivityAt: Date | null;
+                attemptNumber: number;
+                timeTakenInSeconds: number | null;
+                completedDurationSeconds: number | null;
+                overallScore: number | null;
+                percentage: number | null;
+                passed: boolean | null;
+                evaluationStatus: import("@prisma/client").$Enums.EvaluationStatus;
+                reviewStatus: import("@prisma/client").$Enums.ReviewStatus;
+            }[];
+            job: {
+                company: {
+                    companyName: string;
+                    logo: string | null;
+                    id: string;
+                };
+                location: string | null;
+                id: string;
+                title: string;
+                workplaceType: import("@prisma/client").$Enums.WorkplaceType;
+            };
+        };
+        assessment: {
+            description: string | null;
+            company: {
+                companyName: string;
+                logo: string | null;
+                id: string;
+            };
+            id: string;
+            title: string;
+            instructions: string | null;
+            durationMinutes: number | null;
+            passingScore: number | null;
+            totalMarks: number | null;
+        };
+    } & {
+        token: string;
+        id: string;
+        status: import("@prisma/client").$Enums.InvitationStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        expiresAt: Date;
+        assessmentId: string;
+        applicationId: string;
+        idempotencyKey: string | null;
+    })[]>;
     static findInvitationWithAttempt(applicationId: string): Promise<({
         application: {
             id: string;

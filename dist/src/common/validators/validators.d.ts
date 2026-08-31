@@ -535,4 +535,16 @@ export declare const aiInterviewResultRecommendationValidator: z.ZodOptional<z.Z
     REJECT: "REJECT";
     STRONG_REJECT: "STRONG_REJECT";
 }>>;
+export declare const interviewEvaluationOverallScoreValidator: z.ZodNumber;
+export declare const interviewEvaluationScoreValidator: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+export declare const interviewEvaluationRecommendationValidator: z.ZodNullable<z.ZodOptional<z.ZodEnum<{
+    STRONG_HIRE: "STRONG_HIRE";
+    HIRE: "HIRE";
+    HOLD: "HOLD";
+    REJECT: "REJECT";
+    STRONG_REJECT: "STRONG_REJECT";
+}>>>;
+export declare const interviewEvaluationStrengthsValidator: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodString>>>;
+export declare const interviewEvaluationImprovementsValidator: z.ZodNullable<z.ZodOptional<z.ZodArray<z.ZodString>>>;
+export declare const interviewEvaluationCommentsValidator: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 //# sourceMappingURL=validators.d.ts.map
