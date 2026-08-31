@@ -1,5 +1,5 @@
 import { logger } from "../../../common/logger/logger.js";
-import { SkillNormalizationService } from "../../skill/services/skill-normalization.service.js";
+import { SkillNormalizationService } from "./skill-normalization.service.js";
 import type {
     PersonalInfoResult,
     ProfessionalInfoResult,

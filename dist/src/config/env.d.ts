@@ -37,6 +37,7 @@ export declare const env: {
         readonly timeoutMs: number;
     };
     readonly redis: {
+        readonly url: string | undefined;
         readonly host: string;
         readonly port: number;
     };

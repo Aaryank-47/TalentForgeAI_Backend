@@ -326,7 +326,7 @@ export class AssessmentAttemptService {
                 const supportedLangIds = (question.dsaDetail.supportedLanguages || []).map(sl => sl.programmingLanguageId);
                 const selectedLangId = validatedData.meta?.languageId || validatedData.meta?.language;
                 if (supportedLangIds.length > 0 && selectedLangId && !supportedLangIds.includes(selectedLangId)) {
-                    logger.warn({ selectedLangId, supportedLangIds }, "Language not in explicit supportedLanguages list, proceeding with candidate language.");
+                    throw new ValidationError(`Selected language '${selectedLangId}' is not supported for this question.`);
                 }
             }
             else if (qType === "PROJECT" || qType === "MACHINE_CODING") {

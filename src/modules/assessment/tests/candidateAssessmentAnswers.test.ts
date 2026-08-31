@@ -32,6 +32,9 @@ describe("Candidate Assessment Answers Get and Delete API tests", () => {
     let expiredAttempt: any;
     let expiredTimerAttempt: any;
     let emptyAttempt: any;
+    let job: any;
+    let resume: any;
+    let application: any;
 
     let savedMcqAnswer: any;
     let savedDsaAnswer: any;
@@ -173,29 +176,40 @@ describe("Candidate Assessment Answers Get and Delete API tests", () => {
         });
 
         // Create Application for Candidate 1
-        const application = await prisma.application.create({
+        job = await prisma.job.create({
+            data: {
+                companyId: company.id,
+                title: "Software Engineer",
+                slug: `se-${testId}`,
+                description: "Job description",
+                employmentType: "FULL_TIME",
+                workplaceType: "REMOTE",
+                createdById: candidateUser.id
+            }
+        });
+
+        resume = await prisma.resume.create({
             data: {
                 candidateId: candidateProfile.id,
-                jobId: (await prisma.job.create({
-                    data: {
-                        companyId: company.id,
-                        title: "Software Engineer",
-                        slug: `se-${testId}`,
-                        description: "Job description",
-                        employmentType: "FULL_TIME",
-                        workplaceType: "REMOTE",
-                        createdById: candidateUser.id
+                resumeName: "My Resume",
+                resumeUrl: "http://example.com/resume.pdf",
+                fileSize: 1024
+            }
+        });
+
+        application = await prisma.application.create({
+            data: {
+                candidateId: candidateProfile.id,
+                jobId: job.id,
+                status: "APPLIED",
+                applicationResume: {
+                    create: {
+                        sourceResumeId: resume.id,
+                        fileName: resume.resumeName,
+                        fileUrl: resume.resumeUrl,
+                        fileSize: resume.fileSize
                     }
-                })).id,
-                resumeId: (await prisma.resume.create({
-                    data: {
-                        candidateId: candidateProfile.id,
-                        resumeName: "My Resume",
-                        resumeUrl: "http://example.com/resume.pdf",
-                        fileSize: 1024
-                    }
-                })).id,
-                status: "APPLIED"
+                }
             }
         });
 
@@ -350,6 +364,15 @@ describe("Candidate Assessment Answers Get and Delete API tests", () => {
             }),
             prisma.company.deleteMany({
                 where: { id: company.id }
+            }),
+            prisma.application.deleteMany({
+                where: { id: application?.id }
+            }),
+            prisma.job.deleteMany({
+                where: { id: job?.id }
+            }),
+            prisma.resume.deleteMany({
+                where: { id: resume?.id }
             }),
             prisma.candidate.deleteMany({
                 where: { id: { in: [candidateProfile.id, candidate2Profile.id] } }

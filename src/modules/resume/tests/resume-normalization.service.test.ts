@@ -1,11 +1,20 @@
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { EmploymentType, GradingSystem } from "@prisma/client";
 import type { ResumeParsingResult } from "../interfaces/resume-parser.interface.js";
 import { ResumeNormalizationService } from "../services/resume-normalization.service.js";
-import { SkillRepository } from "../../skill/repositories/skill.repository.js";
+import { SkillRepository } from "../repositories/skill.repository.js";
 
 describe("ResumeNormalizationService & Skill Taxonomy Integration Tests", () => {
   const normalizationService = new ResumeNormalizationService();
+
+  beforeEach(() => {
+    jest
+      .spyOn(SkillRepository.prototype, "findSkillsByNormalizedAliases")
+      .mockResolvedValue(new Map());
+    jest
+      .spyOn(SkillRepository.prototype, "recordSkillCandidates")
+      .mockResolvedValue();
+  });
 
   afterEach(() => {
     jest.restoreAllMocks();

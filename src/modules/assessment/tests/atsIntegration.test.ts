@@ -8,10 +8,8 @@ import {
 import prisma, { closeDatabase } from "../../../config/database.js";
 import { AssessmentATSIntegrationService, AssessmentOutcomeService } from "../services/atsIntegration.service.js";
 import { AttemptStatus, EvaluationStatus, QuestionType, UserRole } from "@prisma/client";
-import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
-import { ApplicationStatus } from "../../../common/enums/all_enums.js";
 
 describe("Assessment ATS Integration Unit Tests", () => {
     let candidateUser: any;
@@ -144,8 +142,15 @@ describe("Assessment ATS Integration Unit Tests", () => {
             data: {
                 candidateId: candidateProfile.id,
                 jobId: job.id,
-                resumeId: resume.id,
-                status: "APPLIED"
+                status: "APPLIED",
+                applicationResume: {
+                    create: {
+                        sourceResumeId: resume.id,
+                        fileName: resume.resumeName,
+                        fileUrl: resume.resumeUrl,
+                        fileSize: resume.fileSize
+                    }
+                }
             }
         });
 

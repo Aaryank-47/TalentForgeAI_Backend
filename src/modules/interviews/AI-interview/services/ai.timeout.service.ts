@@ -1,17 +1,11 @@
 import type { Server } from "socket.io";
 import { Queue, Worker } from "bullmq";
-import env from "../../../../config/env.js";
+import { redisConnectionConfig } from "../../../../common/queue/redis.config.js";
 import { AIInterviewQuestionsRepository } from "../repositories/ai.interview.repository.js";
 import { AIInterviewFinalEvaluationService } from "./ai.final.evaluation.service.js";
 
-const redisConnection = {
-    host: env.redis.host,
-    port: env.redis.port,
-    maxRetriesPerRequest: null
-};
-
 export const interviewTimeoutQueue = new Queue("ai-interview-timeout", {
-    connection: redisConnection
+    connection: redisConnectionConfig
 });
 
 export class AIInterviewTimeoutWorker {
@@ -91,7 +85,7 @@ export class AIInterviewTimeoutWorker {
                             await this.processSessionTimeout(sessionId, this.socketIoInstance || undefined);
                         }
                     },
-                    { connection: redisConnection }
+                    { connection: redisConnectionConfig }
                 );
 
                 this.worker.on("failed", (job, err) => {

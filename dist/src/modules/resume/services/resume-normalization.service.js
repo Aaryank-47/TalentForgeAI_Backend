@@ -1,5 +1,5 @@
 import { logger } from "../../../common/logger/logger.js";
-import { SkillNormalizationService } from "../../skill/services/skill-normalization.service.js";
+import { SkillNormalizationService } from "./skill-normalization.service.js";
 import { normalizeDateString, normalizeEmail, normalizeEmploymentType, normalizeLookupKey, normalizePhone, normalizeString, normalizeText, normalizeUrl } from "../utils/resume-normalization.utils.js";
 export class ResumeNormalizationService {
     skillNormalizationService = new SkillNormalizationService();

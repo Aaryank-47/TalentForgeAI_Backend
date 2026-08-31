@@ -573,8 +573,8 @@ export class InterviewSessionsServices {
         if (!member) {
             throw new ForbiddenError("You are not authorized to end this session.");
         }
-        if (session.status === InterviewSessionStatus.COMPLETED) {
-            return session;
+        if (session.status !== InterviewSessionStatus.IN_PROGRESS) {
+            throw new BadRequestError(`Cannot end a session with status: ${session.status}`);
         }
         return InterviewSessionsRepositories.updateSession(sessionId, {
             status: InterviewSessionStatus.COMPLETED,

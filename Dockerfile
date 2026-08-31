@@ -47,4 +47,4 @@ COPY --chown=node:node --from=builder /app/prisma ./prisma
 EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/src/server.js"]

@@ -3,22 +3,42 @@ import { Redis } from "ioredis";
 import env from "../../config/env.js";
 
 // Note: BullMQ requires `maxRetriesPerRequest: null`.
-export const redisConnectionConfig: ConnectionOptions = {
-    host: env.redis.host,
-    port: env.redis.port,
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-    retryStrategy(times: number) {
-        // Exponential backoff with jitter, up to 5 seconds
-        const delay = Math.min(times * 200, 5000);
-        return delay;
+export const redisConnectionConfig: ConnectionOptions = env.redis.url
+    ? {
+        url: env.redis.url,
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+        tls: env.redis.url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined,
+        retryStrategy(times: number) {
+            // Exponential backoff with jitter, up to 5 seconds
+            const delay = Math.min(times * 200, 5000);
+            return delay;
+        }
     }
-};
+    : {
+        host: env.redis.host,
+        port: env.redis.port,
+        maxRetriesPerRequest: null,
+        enableReadyCheck: false,
+        retryStrategy(times: number) {
+            // Exponential backoff with jitter, up to 5 seconds
+            const delay = Math.min(times * 200, 5000);
+            return delay;
+        }
+    };
 
 // Factory for creating dedicated Redis instances when needed.
 export const createRedisConnection = (
     customOptions?: Partial<ConnectionOptions>
 ): Redis => {
+    if (env.redis.url) {
+        return new Redis(env.redis.url, {
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false,
+            tls: env.redis.url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined,
+            ...customOptions
+        } as any);
+    }
     return new Redis({
         ...redisConnectionConfig,
         ...customOptions

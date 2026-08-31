@@ -1,10 +1,10 @@
 import { logger } from "../../../common/logger/logger.js";
 import type { Skill } from "@prisma/client";
-import type { ResumeSkillResult } from "../../resume/interfaces/resume-parser.interface.js";
+import type { ResumeSkillResult } from "../interfaces/resume-parser.interface.js";
 import {
     normalizeSkillLookupKey,
     normalizeSkillName
-} from "../../resume/utils/resume-normalization.utils.js";
+} from "../utils/resume-normalization.utils.js";
 import { SkillRepository } from "../repositories/skill.repository.js";
 
 export class SkillNormalizationService {
