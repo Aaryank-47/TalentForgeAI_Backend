@@ -17,6 +17,31 @@ jobs:
     name: Continuous Integration
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: talentforge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,6 +58,11 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Run Database Migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/talentforge_test?schema=public
+
       - name: TypeScript Type-Check
         run: npm run typecheck
 
@@ -40,7 +70,35 @@ jobs:
         run: npm run lint
 
       - name: Run Tests
-        run: npm test
+        run: npm test -- --runInBand
+        env:
+          NODE_ENV: test
+          PORT: "3000"
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/talentforge_test?schema=public
+          JWT_ACCESS_SECRET: test_jwt_access_secret_1234567890
+          JWT_REFRESH_SECRET: test_jwt_refresh_secret_1234567890
+          JWT_ACCESS_EXPIRES_IN: 15m
+          JWT_REFRESH_EXPIRES_IN: 7d
+          GMAIL_USER: ci-test@talentforge.ai
+          GMAIL_PASS: ci-test-password-1234
+          RESET_PASSWORD_SECRET: test_reset_password_secret_1234
+          RESET_PASSWORD_EXPIRES_IN: 1h
+          CLOUDINARY_API_KEY: "111111111111111"
+          CLOUDINARY_API_SECRET: test_cloudinary_api_secret_1234
+          CLOUDINARY_CLOUD_NAME: test_cloudinary_cloud
+          INVITATION_TOKEN_SECRET: test_invitation_token_secret_123
+          INVITATION_TOKEN_EXPIRES_IN: 7d
+          FRONTEND_URL: http://localhost:5173
+          ELASTICSEARCH_URL: http://localhost:9200
+          OPENROUTER_API_KEY: sk-or-v1-test-ci-key-0000000000000000
+          OPENROUTER_BASE_URL: https://openrouter.ai/api/v1
+          OPENROUTER_MODEL: test/model
+          OPENROUTER_TIMEOUT_MS: "30000"
+          REDIS_HOST: localhost
+          REDIS_PORT: "6379"
+          RESUME_WORKER_CONCURRENCY: "2"
+          RESUME_JOB_ATTEMPTS: "3"
+          RESUME_JOB_BACKOFF_DELAY_MS: "5000"
 
       - name: Build TypeScript Application
         run: npm run build
