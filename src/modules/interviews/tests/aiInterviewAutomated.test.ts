@@ -56,6 +56,7 @@ describe("AI Interview Automated Test Suite", () => {
         if (openRouterSpy) {
             openRouterSpy.mockRestore();
         }
+        await AIInterviewTimeoutWorker.stopWorker();
         if (ioServer) {
             await ioServer.close();
         }

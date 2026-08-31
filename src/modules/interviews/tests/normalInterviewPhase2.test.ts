@@ -5,6 +5,7 @@ import { io as ioc, Socket as ClientSocket } from "socket.io-client";
 import prisma from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { initializeInterviewSocket } from "../websocket/interview.socket.js";
+import { AIInterviewTimeoutWorker } from "../AI-interview/services/ai.timeout.service.js";
 import { UserRole, InterviewType, InterviewMode, InterviewSessionStatus } from "@prisma/client";
 
 describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
@@ -171,6 +172,7 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
     });
 
     afterAll(async () => {
+        await AIInterviewTimeoutWorker.stopWorker();
         if (ioServer) {
             await ioServer.close();
         }

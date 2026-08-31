@@ -4,9 +4,18 @@ import { redisConnectionConfig } from "../../../../common/queue/redis.config.js"
 import { AIInterviewQuestionsRepository } from "../repositories/ai.interview.repository.js";
 import { AIInterviewFinalEvaluationService } from "./ai.final.evaluation.service.js";
 
-export const interviewTimeoutQueue = new Queue("ai-interview-timeout", {
+export let interviewTimeoutQueue = new Queue("ai-interview-timeout", {
     connection: redisConnectionConfig
 });
+
+function getOrCreateQueue(): Queue {
+    if (!interviewTimeoutQueue || (interviewTimeoutQueue as any).closing) {
+        interviewTimeoutQueue = new Queue("ai-interview-timeout", {
+            connection: redisConnectionConfig
+        });
+    }
+    return interviewTimeoutQueue;
+}
 
 export class AIInterviewTimeoutWorker {
     private static intervalTimer: NodeJS.Timeout | null = null;
@@ -16,7 +25,8 @@ export class AIInterviewTimeoutWorker {
     static async scheduleTimeoutJob(sessionId: string, durationMinutes: number) {
         const delayMs = durationMinutes * 60 * 1000;
         try {
-            await interviewTimeoutQueue.add(
+            const queue = getOrCreateQueue();
+            await queue.add(
                 "expire-session",
                 { sessionId },
                 {
@@ -74,6 +84,7 @@ export class AIInterviewTimeoutWorker {
 
     static startWorker(io: Server, intervalMs = 30000) {
         this.socketIoInstance = io;
+        getOrCreateQueue();
 
         if (!this.worker) {
             try {
@@ -105,14 +116,26 @@ export class AIInterviewTimeoutWorker {
         }
     }
 
-    static stopWorker() {
+    static async stopWorker() {
         if (this.intervalTimer) {
             clearInterval(this.intervalTimer);
             this.intervalTimer = null;
         }
         if (this.worker) {
-            this.worker.close();
+            try {
+                await this.worker.close();
+            } catch (err: any) {
+                console.warn(`[AIInterviewTimeoutWorker] Error closing BullMQ worker: ${err?.message}`);
+            }
             this.worker = null;
         }
+        if (interviewTimeoutQueue) {
+            try {
+                await interviewTimeoutQueue.close();
+            } catch (err: any) {
+                console.warn(`[AIInterviewTimeoutWorker] Error closing timeout queue: ${err?.message}`);
+            }
+        }
+        this.socketIoInstance = null;
     }
 }
