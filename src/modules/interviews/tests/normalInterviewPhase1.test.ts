@@ -277,15 +277,16 @@ describe("NORMAL Live 1-to-1 Interview Phase 1 Backend Suite", () => {
         expect(evaluations[0]!.companyMember.user.email).toBe(recruiterUser.email);
     });
 
-    test("7. Ending an IN_PROGRESS session changes status to COMPLETED", async () => {
-        const completed = await InterviewSessionsServices.endSession(
-            company.id,
-            session.id,
-            recruiterUser.id
-        );
+    test("7. Submitting evaluation auto-completes the session (status is COMPLETED)", async () => {
+        // submitEvaluation (test 4) auto-transitions the session to COMPLETED.
+        // Verify that auto-completion happened correctly by reading the DB state.
+        const updatedSession = await prisma.interviewSession.findUnique({
+            where: { id: session.id }
+        });
 
-        expect(completed.status).toBe(InterviewSessionStatus.COMPLETED);
-        expect(completed.endedAt).not.toBeNull();
+        expect(updatedSession).not.toBeNull();
+        expect(updatedSession!.status).toBe(InterviewSessionStatus.COMPLETED);
+        expect(updatedSession!.endedAt).not.toBeNull();
     });
 
     test("8. Ending an already COMPLETED session is rejected", async () => {
