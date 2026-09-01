@@ -66,7 +66,16 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
         });
     });
 
+    const connectedSockets: ClientSocket[] = [];
+
     afterAll(async () => {
+        for (const socket of connectedSockets) {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+        }
+        connectedSockets.length = 0;
+
         if (ioServer) {
             await ioServer.close();
         }
@@ -76,6 +85,12 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
     });
 
     afterEach(() => {
+        for (const socket of connectedSockets) {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+        }
+        connectedSockets.length = 0;
         jest.restoreAllMocks();
     });
 
@@ -119,6 +134,7 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 auth: { token: tokenCandidateA },
                 transports: ["websocket"]
             });
+            connectedSockets.push(client);
 
             const connectPromise = new Promise<boolean>((resolve) => {
                 client.on("connect", () => {
@@ -138,6 +154,7 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 auth: { token: tokenCandidateA },
                 transports: ["websocket"]
             });
+            connectedSockets.push(client);
 
             await new Promise<void>((res) => {
                 client.on("connect", () => res());
@@ -162,6 +179,7 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 auth: { token: tokenCandidateA },
                 transports: ["websocket"]
             });
+            connectedSockets.push(client);
 
             await new Promise<void>((res) => {
                 client.on("connect", () => res());

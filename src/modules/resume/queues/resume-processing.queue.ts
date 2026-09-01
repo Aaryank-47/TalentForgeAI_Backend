@@ -85,29 +85,24 @@ export async function addResumeProcessingJob(
         jobId
     });
 
-    // Diagnostic runtime inspection
-    try {
-        const jobState = await job.getState();
-        const counts = await queue.getJobCounts('waiting', 'active', 'delayed', 'failed', 'completed');
-        const retrievedJob = await queue.getJob(job.id as string);
-
-        logger.info(
-            {
-                event: "JOB_ENQUEUED_DIAGNOSTIC",
-                jobId: job.id,
-                queueName: queue.name,
-                redisHost: env.redis.host,
-                redisPort: env.redis.port,
-                jobState,
-                attemptsMade: job.attemptsMade,
-                delay: job.opts.delay ?? 0,
-                existsInQueue: Boolean(retrievedJob),
-                queueCounts: counts
-            },
-            `[ResumeProcessingQueue] Job "${job.id}" enqueued in queue "${queue.name}" (State: "${jobState}")`
-        );
-    } catch (diagError) {
-        logger.warn({ err: diagError }, "[ResumeProcessingQueue] Diagnostic logging failed (non-fatal)");
+    // Diagnostic runtime inspection (safely guarded against mocks/non-function properties)
+    if (job && typeof job.getState === "function") {
+        try {
+            const jobState = await job.getState();
+            logger.info(
+                {
+                    event: "JOB_ENQUEUED_DIAGNOSTIC",
+                    jobId: job.id,
+                    queueName: queue.name,
+                    jobState,
+                    attemptsMade: job.attemptsMade ?? 0,
+                    delay: job.opts?.delay ?? 0
+                },
+                `[ResumeProcessingQueue] Job "${job.id}" enqueued in queue "${queue.name}" (State: "${jobState}")`
+            );
+        } catch (diagError) {
+            logger.warn({ err: diagError }, "[ResumeProcessingQueue] Diagnostic logging failed (non-fatal)");
+        }
     }
 
     return job;

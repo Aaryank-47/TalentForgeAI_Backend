@@ -9,7 +9,7 @@ import {
 } from "@jest/globals";
 import { createServer, Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
-import { io as ioc} from "socket.io-client";
+import { io as ioc, Socket as ClientSocket } from "socket.io-client";
 import prisma from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { initializeResumeSocket } from "../websocket/resume.socket.js";
@@ -28,6 +28,7 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
     let httpServer: HttpServer;
     let ioServer: SocketIOServer;
     let serverAddress: string;
+    const connectedSockets: ClientSocket[] = [];
 
     const mockCandidate = {
         id: "candidate-e2e-realtime-1",
@@ -58,15 +59,32 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
     });
 
     afterAll(async () => {
+        for (const socket of connectedSockets) {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+        }
+        connectedSockets.length = 0;
+
         if (ioServer) {
             await ioServer.close();
         }
         if (httpServer) {
             await new Promise<void>((resolve) => httpServer.close(() => resolve()));
         }
+        const { closeResumeProcessingQueue } = await import("../queues/resume-processing.queue.js");
+        const { closeMatchingQueue } = await import("../../matching/queues/matching.queue.js");
+        await closeResumeProcessingQueue();
+        await closeMatchingQueue();
     });
 
     afterEach(() => {
+        for (const socket of connectedSockets) {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+        }
+        connectedSockets.length = 0;
         jest.restoreAllMocks();
     });
 
@@ -165,6 +183,7 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
             auth: { token: candidateToken },
             transports: ["websocket"]
         });
+        connectedSockets.push(candidateClient);
 
         await new Promise<void>((res) => {
             candidateClient.on("connect", () => res());

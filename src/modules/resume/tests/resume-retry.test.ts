@@ -13,6 +13,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import prisma from "../../../config/database.js";
 import { inferResumeMimeType } from "../utils/resume-mime.helper.js";
 import { RESUME_MIME_TYPES } from "../constants/resume.constants.js";
+import { closeMatchingQueue } from "../../matching/queues/matching.queue.js";
 
 describe("Resume Processing - Manual Retry Mechanism", () => {
     const candidateId = "candidate-test-123";
@@ -20,6 +21,7 @@ describe("Resume Processing - Manual Retry Mechanism", () => {
 
     afterAll(async () => {
         await closeResumeProcessingQueue();
+        await closeMatchingQueue();
     });
 
     beforeEach(() => {

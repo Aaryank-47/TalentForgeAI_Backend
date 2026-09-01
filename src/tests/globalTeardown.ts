@@ -37,5 +37,15 @@ export default async function globalTeardown(): Promise<void> {
     } catch {
         // May not have been started in this run – that is fine.
     }
+
+    // 3. Belt-and-braces: close the BullMQ Matching Queue singleton.
+    try {
+        const { closeMatchingQueue } = await import(
+            "../modules/matching/queues/matching.queue.js"
+        );
+        await closeMatchingQueue();
+    } catch {
+        // Queue may not have been initialised in this run – that is fine.
+    }
 }
 
