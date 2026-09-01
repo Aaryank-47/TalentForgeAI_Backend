@@ -35,9 +35,6 @@ const config: Config = {
 
     // Runs after the test framework is set up in each test file to log open handles
     setupFilesAfterEnv: ["<rootDir>/src/tests/jest.setup.ts"],
-
-    // Give open-handle detection a 10-second grace window before Jest force-kills.
-    openHandlesTimeout: 10000,
 };
 
 export default config;

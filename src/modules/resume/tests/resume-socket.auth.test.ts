@@ -68,36 +68,49 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
 
     const connectedSockets: ClientSocket[] = [];
 
-    afterAll(async () => {
+    const createTestClient = (options: any = {}): ClientSocket => {
+        const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
+            transports: ["websocket"],
+            reconnection: false,
+            forceNew: true,
+            ...options
+        });
+        connectedSockets.push(client);
+        return client;
+    };
+
+    const cleanupSockets = () => {
         for (const socket of connectedSockets) {
-            if (socket.connected) {
+            try {
+                socket.removeAllListeners();
                 socket.disconnect();
+            } catch {
+                // ignore
             }
         }
         connectedSockets.length = 0;
+    };
+
+    afterAll(async () => {
+        cleanupSockets();
 
         if (ioServer) {
-            await ioServer.close();
+            await new Promise<void>((resolve) => ioServer.close(() => resolve()));
         }
-        if (httpServer) {
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise<void>((resolve) => httpServer.close(() => resolve()));
         }
     });
 
     afterEach(() => {
-        for (const socket of connectedSockets) {
-            if (socket.connected) {
-                socket.disconnect();
-            }
-        }
-        connectedSockets.length = 0;
+        cleanupSockets();
         jest.restoreAllMocks();
     });
 
     describe("Socket Authentication", () => {
         test("rejects connection when no JWT token is provided", async () => {
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                transports: ["websocket"],
+            const client = createTestClient({
                 autoConnect: true
             });
 
@@ -113,9 +126,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
         });
 
         test("rejects connection when invalid JWT token is provided", async () => {
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: "invalid-expired-jwt-token" },
-                transports: ["websocket"]
+            const client = createTestClient({
+                auth: { token: "invalid-expired-jwt-token" }
             });
 
             const errorPromise = new Promise<string>((resolve) => {
@@ -130,11 +142,9 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
         });
 
         test("successfully authenticates and connects with valid JWT token", async () => {
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const client = createTestClient({
+                auth: { token: tokenCandidateA }
             });
-            connectedSockets.push(client);
 
             const connectPromise = new Promise<boolean>((resolve) => {
                 client.on("connect", () => {
@@ -175,11 +185,9 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             jest.spyOn(prisma.resume, "findUnique").mockResolvedValue(null as any);
             jest.spyOn(prisma.candidate, "findUnique").mockResolvedValue(null as any);
 
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const client = createTestClient({
+                auth: { token: tokenCandidateA }
             });
-            connectedSockets.push(client);
 
             await new Promise<void>((res) => {
                 client.on("connect", () => res());
@@ -211,9 +219,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             } as any);
 
             // Client connects as candidate A
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
 
             await new Promise<void>((res) => {
@@ -247,9 +254,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 id: mockCandidateA.id
             } as any);
 
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
 
             await new Promise<void>((res) => {
@@ -356,9 +362,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 id: mockCandidateA.id
             } as any);
 
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
 
             await new Promise<void>((res) => {
@@ -404,13 +409,11 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 return null;
             });
 
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
-            const clientB = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateB },
-                transports: ["websocket"]
+            const clientB = createTestClient({
+                auth: { token: tokenCandidateB }
             });
 
             await Promise.all([
@@ -466,9 +469,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 id: mockCandidateA.id
             } as any);
 
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
 
             await new Promise<void>((res) => {

@@ -85,26 +85,6 @@ export async function addResumeProcessingJob(
         jobId
     });
 
-    // Diagnostic runtime inspection (safely guarded against mocks/non-function properties)
-    if (job && typeof job.getState === "function") {
-        try {
-            const jobState = await job.getState();
-            logger.info(
-                {
-                    event: "JOB_ENQUEUED_DIAGNOSTIC",
-                    jobId: job.id,
-                    queueName: queue.name,
-                    jobState,
-                    attemptsMade: job.attemptsMade ?? 0,
-                    delay: job.opts?.delay ?? 0
-                },
-                `[ResumeProcessingQueue] Job "${job.id}" enqueued in queue "${queue.name}" (State: "${jobState}")`
-            );
-        } catch (diagError) {
-            logger.warn({ err: diagError }, "[ResumeProcessingQueue] Diagnostic logging failed (non-fatal)");
-        }
-    }
-
     return job;
 }
 

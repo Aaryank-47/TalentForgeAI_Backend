@@ -12,7 +12,9 @@ export const redisConnectionConfig: ConnectionOptions = env.redis.url
         family: 4,
         tls: env.redis.url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined,
         retryStrategy(times: number) {
-            // Exponential backoff with jitter, up to 5 seconds
+            if (process.env.NODE_ENV === "test" && times > 1) {
+                return null;
+            }
             const delay = Math.min(times * 200, 5000);
             return delay;
         }
@@ -25,7 +27,9 @@ export const redisConnectionConfig: ConnectionOptions = env.redis.url
         keepAlive: 10000,
         family: 4,
         retryStrategy(times: number) {
-            // Exponential backoff with jitter, up to 5 seconds
+            if (process.env.NODE_ENV === "test" && times > 1) {
+                return null;
+            }
             const delay = Math.min(times * 200, 5000);
             return delay;
         }

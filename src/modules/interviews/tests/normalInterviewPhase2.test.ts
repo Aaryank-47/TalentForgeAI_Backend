@@ -201,9 +201,10 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         await Promise.all(sockets.map(disconnectSocket));
 
         if (ioServer) {
-            await ioServer.close();
+            await new Promise<void>((res) => ioServer.close(() => res()));
         }
-        if (httpServer) {
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise<void>((res) => httpServer.close(() => res()));
         }
         await closeDatabase();
@@ -213,7 +214,9 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         return new Promise((resolve, reject) => {
             const socket = ioc(`${serverAddress}/interviews`, {
                 auth: { token },
-                transports: ["websocket"]
+                transports: ["websocket"],
+                reconnection: false,
+                forceNew: true
             });
             connectedSockets.push(socket);
             socket.on("connect", () => resolve(socket));

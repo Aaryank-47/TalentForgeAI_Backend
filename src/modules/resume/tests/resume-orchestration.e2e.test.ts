@@ -37,7 +37,9 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
     const connectClient = (token: string): ClientSocket => {
         const socket = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
             auth: { token },
-            transports: ["websocket"]
+            transports: ["websocket"],
+            reconnection: false,
+            forceNew: true
         });
         connectedSockets.push(socket);
         return socket;
@@ -80,16 +82,20 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
 
     afterAll(async () => {
         for (const socket of connectedSockets) {
-            if (socket.connected) {
+            try {
+                socket.removeAllListeners();
                 socket.disconnect();
+            } catch {
+                // ignore
             }
         }
         connectedSockets.length = 0;
 
         if (ioServer) {
-            await ioServer.close();
+            await new Promise<void>((resolve) => ioServer.close(() => resolve()));
         }
-        if (httpServer) {
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise<void>((resolve) => httpServer.close(() => resolve()));
         }
         const { closeResumeProcessingQueue } = await import("../queues/resume-processing.queue.js");

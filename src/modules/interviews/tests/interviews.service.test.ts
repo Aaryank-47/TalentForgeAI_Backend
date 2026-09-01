@@ -336,9 +336,32 @@ describe("InterviewSessionsServices & ParticipantsServices tests", () => {
     let interview: any;
     let assignment: any;
     let session: any;
+    // In CI, under --runInBand, Prisma's default interactive transaction timeout
+    // (5s) is frequently exceeded because the test runner has warmed up many
+    // suites by the time it reaches this describe block.  Patch $transaction so
+    // every interactive (async-function) call uses a 30 s timeout.
+    let txSpy: any;
 
     beforeAll(async () => {
         const testId = `test_sess_${Date.now()}`;
+
+        // Extend Prisma's interactive-transaction timeout to 30 s for this suite.
+        // We only intercept calls whose first arg is a function (interactive
+        // transactions); batched array calls are passed through unchanged.
+        // Capture the real implementation BEFORE spying so the mock can delegate.
+        const realTx = prisma.$transaction.bind(prisma);
+        txSpy = jest.spyOn(prisma, "$transaction").mockImplementation(
+            async (fnOrOps: any, options?: any) => {
+                if (typeof fnOrOps === "function") {
+                    return realTx(fnOrOps, {
+                        timeout: 30000,
+                        maxWait: 10000,
+                        ...options
+                    });
+                }
+                return realTx(fnOrOps, options);
+            }
+        );
 
         // Create Employer User
         employerUser = await prisma.user.create({
@@ -448,6 +471,13 @@ describe("InterviewSessionsServices & ParticipantsServices tests", () => {
         });
     });
 
+    afterAll(async () => {
+        // Restore the $transaction spy so subsequent suites use the real implementation.
+        if (txSpy) {
+            txSpy.mockRestore();
+        }
+    });
+
     test("should create an interview session with participants", async () => {
         const scheduledAt = new Date(Date.now() + 86400000).toISOString(); // Tomorrow
         
@@ -509,5 +539,15 @@ describe("InterviewSessionsServices & ParticipantsServices tests", () => {
 
 afterAll(async () => {
     await closeDatabase();
+    // Explicitly disconnect Prisma so the pg.Pool releases its TCP connections
+    // and Jest can exit without open handles. closeDatabase() is a no-op in test
+    // mode (to avoid destroying the shared pool mid-run), so we call $disconnect
+    // directly here at the very end of this file's lifecycle.
+    try {
+        await prisma.$disconnect();
+    } catch {
+        // ignore – already disconnected
+    }
 });
+
 

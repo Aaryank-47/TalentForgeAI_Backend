@@ -60,16 +60,20 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
 
     afterAll(async () => {
         for (const socket of connectedSockets) {
-            if (socket.connected) {
+            try {
+                socket.removeAllListeners();
                 socket.disconnect();
+            } catch {
+                // ignore
             }
         }
         connectedSockets.length = 0;
 
         if (ioServer) {
-            await ioServer.close();
+            await new Promise<void>((resolve) => ioServer.close(() => resolve()));
         }
-        if (httpServer) {
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise<void>((resolve) => httpServer.close(() => resolve()));
         }
         const { closeResumeProcessingQueue } = await import("../queues/resume-processing.queue.js");
@@ -181,7 +185,9 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
         // 3. Connect Candidate Client over Socket.IO
         const candidateClient = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
             auth: { token: candidateToken },
-            transports: ["websocket"]
+            transports: ["websocket"],
+            reconnection: false,
+            forceNew: true
         });
         connectedSockets.push(candidateClient);
 

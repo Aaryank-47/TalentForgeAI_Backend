@@ -109,4 +109,10 @@ export class ResumeProcessingStateService {
             );
         }
     }
+    public static async closeConnection(): Promise<void> {
+        if (this.redisClient) {
+            await this.redisClient.quit();
+            this.redisClient = null;
+        }
+    }
 }
