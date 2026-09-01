@@ -27,8 +27,12 @@ export async function connectDatabase() {
 }
 
 export async function closeDatabase() {
-    await prisma.$disconnect();
-    await pool.end();
+    // In test mode, pool has allowExitOnIdle: true so it gracefully unref's idle clients.
+    // Calling pool.end() mid-run would destroy the shared pool for subsequent test suites running in-band.
+    if (process.env.NODE_ENV !== "test") {
+        await prisma.$disconnect();
+        await pool.end();
+    }
 }
 
 export default prisma;

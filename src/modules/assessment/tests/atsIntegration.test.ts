@@ -248,13 +248,8 @@ describe("Assessment ATS Integration Unit Tests", () => {
                 ...(workflow?.id ? [
                     prisma.workflow.deleteMany({ where: { id: workflow.id } })
                 ] : []),
-                ...(companyMember?.id ? [
-                    prisma.companyMember.deleteMany({ where: { id: companyMember.id } })
-                ] : []),
-                ...(employerUser?.id ? [
-                    prisma.employer.deleteMany({ where: { userId: employerUser.id } })
-                ] : []),
                 ...(company?.id ? [
+                    prisma.companyMember.deleteMany({ where: { companyId: company.id } }),
                     prisma.company.deleteMany({ where: { id: company.id } })
                 ] : []),
                 ...(candidateIds.length > 0 ? [
@@ -263,7 +258,7 @@ describe("Assessment ATS Integration Unit Tests", () => {
                 ...(userIds.length > 0 ? [
                     prisma.user.deleteMany({ where: { id: { in: userIds } } })
                 ] : [])
-            ]);
+            ], { timeout: 30000, maxWait: 10000 });
         }
         await closeDatabase();
     });
