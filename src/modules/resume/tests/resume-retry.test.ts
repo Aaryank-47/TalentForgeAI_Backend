@@ -1,10 +1,11 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { describe, expect, it, jest, beforeEach, afterEach, afterAll } from "@jest/globals";
 import { CandidateService } from "../../candidate/services/candidate.service.js";
 import { CandidateRepository } from "../../candidate/repository/candidate.repository.js";
 import { AuthRepository } from "../../auth/repositories/auth.repository.js";
 import {
     addResumeProcessingJob,
-    getResumeProcessingQueue
+    getResumeProcessingQueue,
+    closeResumeProcessingQueue
 } from "../queues/resume-processing.queue.js";
 import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
@@ -16,6 +17,10 @@ import { RESUME_MIME_TYPES } from "../constants/resume.constants.js";
 describe("Resume Processing - Manual Retry Mechanism", () => {
     const candidateId = "candidate-test-123";
     const resumeId = "resume-test-456";
+
+    afterAll(async () => {
+        await closeResumeProcessingQueue();
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();

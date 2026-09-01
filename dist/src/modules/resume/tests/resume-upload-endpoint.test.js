@@ -1,14 +1,17 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { describe, expect, it, jest, beforeEach, afterEach, afterAll } from "@jest/globals";
 import { HTTP_STATUS } from "../../../common/constants/httpStatus.js";
 import { CandidateController } from "../../candidate/controllers/candidate.controller.js";
 import { CandidateService } from "../../candidate/services/candidate.service.js";
 import cloudinary from "../../../common/uploads/cloudinary.js";
-import { getResumeProcessingQueue } from "../queues/resume-processing.queue.js";
+import { getResumeProcessingQueue, closeResumeProcessingQueue } from "../queues/resume-processing.queue.js";
 describe("CandidateController.uploadResume", () => {
     let mockReq;
     let mockRes;
     let jsonMock;
     let statusMock;
+    afterAll(async () => {
+        await closeResumeProcessingQueue();
+    });
     beforeEach(() => {
         jsonMock = jest.fn();
         statusMock = jest.fn().mockReturnValue({ json: jsonMock });

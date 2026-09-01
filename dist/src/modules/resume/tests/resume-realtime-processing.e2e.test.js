@@ -1,11 +1,10 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach, jest } from "@jest/globals";
 import { createServer, Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
-import { io as ioc, Socket as ClientSocket } from "socket.io-client";
+import { io as ioc } from "socket.io-client";
 import prisma from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { initializeResumeSocket } from "../websocket/resume.socket.js";
-import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
 import { ResumeProcessingWorker } from "../queues/resume-processing.worker.js";
 import { ResumeProcessingPipeline } from "../pipelines/resume-processing.pipeline.js";
 import { RESUME_SOCKET_EVENTS, RESUME_SOCKET_NAMESPACE } from "../websocket/resume-socket.constants.js";

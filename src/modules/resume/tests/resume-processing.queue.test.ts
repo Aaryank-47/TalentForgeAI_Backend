@@ -1,12 +1,17 @@
-import { describe, expect, it, jest, beforeEach } from "@jest/globals";
+import { describe, expect, it, jest, beforeEach, afterAll } from "@jest/globals";
 import {
     DEFAULT_RESUME_JOB_OPTIONS,
     addResumeProcessingJob,
-    getResumeProcessingQueue
+    getResumeProcessingQueue,
+    closeResumeProcessingQueue
 } from "../queues/resume-processing.queue.js";
 import type { ResumeProcessingJobData } from "../queues/resume-processing.types.js";
 
 describe("ResumeProcessingQueue", () => {
+    afterAll(async () => {
+        await closeResumeProcessingQueue();
+    });
+
     it("defines sensible default job options with exponential backoff", () => {
         expect(DEFAULT_RESUME_JOB_OPTIONS.attempts).toBeGreaterThanOrEqual(1);
         expect(DEFAULT_RESUME_JOB_OPTIONS.backoff).toEqual({

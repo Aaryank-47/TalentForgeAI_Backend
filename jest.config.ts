@@ -28,6 +28,13 @@ const config: Config = {
     moduleNameMapper: {
         "^(\\.{1,2}/.*)\\.js$": "$1",
     },
+
+    // Closes all singleton async handles (BullMQ queues, Prisma pool) after
+    // every test suite finishes so Jest can exit cleanly.
+    globalTeardown: "<rootDir>/src/tests/globalTeardown.ts",
+
+    // Give open-handle detection a 10-second grace window before Jest force-kills.
+    openHandlesTimeout: 10000,
 };
 
 export default config;
