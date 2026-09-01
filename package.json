@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/src/server.js",
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --testMatch=\"<rootDir>/src/**/tests/**/!(*RealDb).test.ts\"",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --testMatch=\"<rootDir>/src/**/tests/**/!(*RealDb).test.ts\" --forceExit",
     "test:save-answer:real": "cross-env NODE_OPTIONS=--experimental-vm-modules jest src/modules/assessment/tests/candidateAssessmentRealDb.test.ts --testMatch=\"<rootDir>/src/**/tests/**/*RealDb.test.ts\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
