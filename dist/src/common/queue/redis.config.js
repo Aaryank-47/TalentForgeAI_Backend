@@ -6,6 +6,8 @@ export const redisConnectionConfig = env.redis.url
         url: env.redis.url,
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
+        keepAlive: 10000,
+        family: 4,
         tls: env.redis.url.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined,
         retryStrategy(times) {
             // Exponential backoff with jitter, up to 5 seconds
@@ -18,6 +20,8 @@ export const redisConnectionConfig = env.redis.url
         port: env.redis.port,
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
+        keepAlive: 10000,
+        family: 4,
         retryStrategy(times) {
             // Exponential backoff with jitter, up to 5 seconds
             const delay = Math.min(times * 200, 5000);

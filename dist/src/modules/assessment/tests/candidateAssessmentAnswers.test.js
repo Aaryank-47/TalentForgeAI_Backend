@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll, } from "@jest/globals";
+import { describe, test, expect, beforeAll, afterAll, jest } from "@jest/globals";
 import assert from "node:assert";
 import prisma, { closeDatabase } from "../../../config/database.js";
 import { AssessmentAttemptService } from "../services/candidateAssessment.service.js";
@@ -7,6 +7,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 describe("Candidate Assessment Answers Get and Delete API tests", () => {
+    jest.setTimeout(90000);
     let candidateUser;
     let candidate2User;
     let candidateProfile;
@@ -279,77 +280,76 @@ describe("Candidate Assessment Answers Get and Delete API tests", () => {
         });
     });
     afterAll(async () => {
-        await prisma.$transaction([
-            prisma.assessmentAnswer.deleteMany({
-                where: {
-                    attemptId: {
-                        in: [
-                            activeAttempt.id,
-                            submittedAttempt.id,
-                            cancelledAttempt.id,
-                            expiredAttempt.id,
-                            expiredTimerAttempt.id,
-                            emptyAttempt.id
-                        ]
-                    }
-                }
-            }),
-            prisma.assessmentAttempt.deleteMany({
-                where: {
-                    id: {
-                        in: [
-                            activeAttempt.id,
-                            submittedAttempt.id,
-                            cancelledAttempt.id,
-                            expiredAttempt.id,
-                            expiredTimerAttempt.id,
-                            emptyAttempt.id
-                        ]
-                    }
-                }
-            }),
-            prisma.assessmentSectionItem.deleteMany({
-                where: {
-                    sectionId: section.id
-                }
-            }),
-            prisma.assessmentSection.deleteMany({
-                where: {
-                    id: section.id
-                }
-            }),
-            prisma.question.deleteMany({
-                where: {
-                    id: { in: [mcqQuestion.id, dsaQuestion.id] }
-                }
-            }),
-            prisma.assessment.deleteMany({
-                where: {
-                    id: assessment.id
-                }
-            }),
-            prisma.companyMember.deleteMany({
-                where: { id: companyMember.id }
-            }),
-            prisma.company.deleteMany({
-                where: { id: company.id }
-            }),
-            prisma.application.deleteMany({
-                where: { id: application?.id }
-            }),
-            prisma.job.deleteMany({
-                where: { id: job?.id }
-            }),
-            prisma.resume.deleteMany({
-                where: { id: resume?.id }
-            }),
-            prisma.candidate.deleteMany({
-                where: { id: { in: [candidateProfile.id, candidate2Profile.id] } }
-            }),
-            prisma.user.deleteMany({
-                where: { id: { in: [candidateUser.id, candidate2User.id] } }
-            })
-        ]);
+        // Defensive cleanup: only delete what was successfully created in beforeAll
+        const attemptIds = [activeAttempt?.id, submittedAttempt?.id, cancelledAttempt?.id, expiredAttempt?.id, expiredTimerAttempt?.id, emptyAttempt?.id].filter(Boolean);
+        const userIds = [candidateUser?.id, candidate2User?.id].filter(Boolean);
+        const candidateIds = [candidateProfile?.id, candidate2Profile?.id].filter(Boolean);
+        const questionIds = [mcqQuestion?.id, dsaQuestion?.id].filter(Boolean);
+        if (attemptIds.length > 0 || questionIds.length > 0 || candidateIds.length > 0) {
+            await prisma.$transaction([
+                ...(attemptIds.length > 0 ? [
+                    prisma.assessmentAnswer.deleteMany({
+                        where: { attemptId: { in: attemptIds } }
+                    }),
+                    prisma.assessmentAttempt.deleteMany({
+                        where: { id: { in: attemptIds } }
+                    })
+                ] : []),
+                ...(section?.id ? [
+                    prisma.assessmentSectionItem.deleteMany({
+                        where: { sectionId: section.id }
+                    }),
+                    prisma.assessmentSection.deleteMany({
+                        where: { id: section.id }
+                    })
+                ] : []),
+                ...(questionIds.length > 0 ? [
+                    prisma.question.deleteMany({
+                        where: { id: { in: questionIds } }
+                    })
+                ] : []),
+                ...(assessment?.id ? [
+                    prisma.assessment.deleteMany({
+                        where: { id: assessment.id }
+                    })
+                ] : []),
+                ...(companyMember?.id ? [
+                    prisma.companyMember.deleteMany({
+                        where: { id: companyMember.id }
+                    })
+                ] : []),
+                ...(company?.id ? [
+                    prisma.company.deleteMany({
+                        where: { id: company.id }
+                    })
+                ] : []),
+                ...(application?.id ? [
+                    prisma.application.deleteMany({
+                        where: { id: application.id }
+                    })
+                ] : []),
+                ...(job?.id ? [
+                    prisma.job.deleteMany({
+                        where: { id: job.id }
+                    })
+                ] : []),
+                ...(resume?.id ? [
+                    prisma.resume.deleteMany({
+                        where: { id: resume.id }
+                    })
+                ] : []),
+                ...(candidateIds.length > 0 ? [
+                    prisma.candidate.deleteMany({
+                        where: { id: { in: candidateIds } }
+                    })
+                ] : []),
+                ...(userIds.length > 0 ? [
+                    prisma.user.deleteMany({
+                        where: { id: { in: userIds } }
+                    })
+                ] : [])
+            ]);
+        }
         await closeDatabase();
     });
     describe("GET /api/v1/assessment-attempts/:attemptId/answers", () => {

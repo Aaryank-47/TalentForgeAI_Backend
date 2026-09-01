@@ -1,10 +1,11 @@
-import { describe, test, expect, beforeAll, afterAll, } from "@jest/globals";
+import { describe, test, expect, beforeAll, afterAll, jest } from "@jest/globals";
 import prisma, { closeDatabase } from "../../../config/database.js";
 import { AssessmentATSIntegrationService, AssessmentOutcomeService } from "../services/atsIntegration.service.js";
 import { AttemptStatus, EvaluationStatus, QuestionType, UserRole } from "@prisma/client";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 describe("Assessment ATS Integration Unit Tests", () => {
+    jest.setTimeout(30000); // beforeAll creates complex test data (~5-6s locally, can be longer in CI)
     let candidateUser;
     let candidate2User;
     let employerUser;
@@ -186,21 +187,52 @@ describe("Assessment ATS Integration Unit Tests", () => {
         });
     });
     afterAll(async () => {
-        await prisma.$transaction([
-            prisma.workflowHistory.deleteMany({ where: { applicationWorkflowId: appWorkflow.id } }),
-            prisma.applicationWorkflow.deleteMany({ where: { id: appWorkflow.id } }),
-            prisma.assessmentAttempt.deleteMany({ where: { id: { in: [passedAttempt.id, failedAttempt.id, inProgressAttempt.id] } } }),
-            prisma.assessment.deleteMany({ where: { id: assessment.id } }),
-            prisma.application.deleteMany({ where: { id: application.id } }),
-            prisma.job.deleteMany({ where: { id: job.id } }),
-            prisma.workflowStage.deleteMany({ where: { id: { in: [stage1.id, stage2.id] } } }),
-            prisma.workflow.deleteMany({ where: { id: workflow.id } }),
-            prisma.companyMember.deleteMany({ where: { id: companyMember.id } }),
-            prisma.employer.deleteMany({ where: { userId: employerUser.id } }),
-            prisma.company.deleteMany({ where: { id: company.id } }),
-            prisma.candidate.deleteMany({ where: { id: candidateProfile.id } }),
-            prisma.user.deleteMany({ where: { id: { in: [candidateUser.id, candidate2User.id, employerUser.id] } } })
-        ]);
+        // Defensive cleanup: only delete what was successfully created in beforeAll
+        const attemptIds = [passedAttempt?.id, failedAttempt?.id, inProgressAttempt?.id].filter(Boolean);
+        const stageIds = [stage1?.id, stage2?.id].filter(Boolean);
+        const userIds = [candidateUser?.id, candidate2User?.id, employerUser?.id].filter(Boolean);
+        const candidateIds = [candidateProfile?.id].filter(Boolean);
+        if (attemptIds.length > 0 || stageIds.length > 0) {
+            await prisma.$transaction([
+                ...(appWorkflow?.id ? [
+                    prisma.workflowHistory.deleteMany({ where: { applicationWorkflowId: appWorkflow.id } }),
+                    prisma.applicationWorkflow.deleteMany({ where: { id: appWorkflow.id } })
+                ] : []),
+                ...(attemptIds.length > 0 ? [
+                    prisma.assessmentAttempt.deleteMany({ where: { id: { in: attemptIds } } })
+                ] : []),
+                ...(assessment?.id ? [
+                    prisma.assessment.deleteMany({ where: { id: assessment.id } })
+                ] : []),
+                ...(application?.id ? [
+                    prisma.application.deleteMany({ where: { id: application.id } })
+                ] : []),
+                ...(job?.id ? [
+                    prisma.job.deleteMany({ where: { id: job.id } })
+                ] : []),
+                ...(stageIds.length > 0 ? [
+                    prisma.workflowStage.deleteMany({ where: { id: { in: stageIds } } })
+                ] : []),
+                ...(workflow?.id ? [
+                    prisma.workflow.deleteMany({ where: { id: workflow.id } })
+                ] : []),
+                ...(companyMember?.id ? [
+                    prisma.companyMember.deleteMany({ where: { id: companyMember.id } })
+                ] : []),
+                ...(employerUser?.id ? [
+                    prisma.employer.deleteMany({ where: { userId: employerUser.id } })
+                ] : []),
+                ...(company?.id ? [
+                    prisma.company.deleteMany({ where: { id: company.id } })
+                ] : []),
+                ...(candidateIds.length > 0 ? [
+                    prisma.candidate.deleteMany({ where: { id: { in: candidateIds } } })
+                ] : []),
+                ...(userIds.length > 0 ? [
+                    prisma.user.deleteMany({ where: { id: { in: userIds } } })
+                ] : [])
+            ]);
+        }
         await closeDatabase();
     });
     describe("GET /api/v1/applications/:applicationId/assessment-result", () => {

@@ -142,8 +142,8 @@ describe("NORMAL Live 1-to-1 Interview Phase 1 Backend Suite", () => {
             if (sessionIds.length > 0 || interviewIds.length > 0) {
                 await prisma.$transaction([
                     ...(sessionIds.length > 0 ? [
-                        prisma.interviewParticipant.deleteMany({
-                            where: { interviewSessionId: { in: sessionIds } }
+                        prisma.interviewSessionParticipant.deleteMany({
+                            where: { sessionId: { in: sessionIds } }
                         }),
                         prisma.interviewSession.deleteMany({
                             where: { id: { in: sessionIds } }

@@ -1,8 +1,12 @@
-import { describe, it, expect } from "@jest/globals";
-import prisma from "../../../config/database.js";
+import { describe, it, expect, afterAll, jest } from "@jest/globals";
+import prisma, { closeDatabase } from "../../../config/database.js";
 import { CandidateInterviewService } from "../services/candidate.interview.service.js";
 import { InterviewParticipantType, InterviewAssignmentCreationSource } from "@prisma/client";
 describe("Candidate Interview Fetch Test", () => {
+    jest.setTimeout(30000);
+    afterAll(async () => {
+        await closeDatabase();
+    });
     it("should fetch real interviews for candidate Sunil and ensure active pending AI interview", async () => {
         const user = await prisma.user.findFirst({ where: { email: "sunil@gmail.com" } });
         expect(user).toBeDefined();

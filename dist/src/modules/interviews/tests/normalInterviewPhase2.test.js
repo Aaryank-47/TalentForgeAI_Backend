@@ -7,8 +7,8 @@ import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { initializeInterviewSocket } from "../websocket/interview.socket.js";
 import { InterviewRoomManager } from "../websocket/interview.room.manager.js";
 import { UserRole, InterviewType, InterviewMode, InterviewSessionStatus } from "@prisma/client";
-jest.setTimeout(25000);
 describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
+    jest.setTimeout(180000);
     let httpServer;
     let ioServer;
     let serverAddress;

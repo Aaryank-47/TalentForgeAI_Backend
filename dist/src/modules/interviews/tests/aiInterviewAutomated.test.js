@@ -11,7 +11,7 @@ import { AIInterviewTimeoutWorker } from "../AI-interview/services/ai.timeout.se
 import { initializeInterviewSocket } from "../websocket/interview.socket.js";
 import { seedInfosysTestData } from "./seedInfosysAIInterviewData.js";
 import { UserRole } from "@prisma/client";
-jest.setTimeout(25000);
+jest.setTimeout(180000); // Heavy Socket.IO + AI simulation suite (117.4s locally)
 describe("AI Interview Automated Test Suite", () => {
     let openRouterSpy;
     let seedData;

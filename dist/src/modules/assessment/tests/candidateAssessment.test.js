@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll, afterAll, } from "@jest/globals";
+import { describe, test, expect, beforeAll, afterAll, jest } from "@jest/globals";
 import assert from "node:assert";
 import prisma, { closeDatabase } from "../../../config/database.js";
 import { AssessmentAttemptService } from "../services/candidateAssessment.service.js";
@@ -8,6 +8,7 @@ import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
 describe("Candidate Assessment Answer Save/Autosave API tests", () => {
+    jest.setTimeout(30000); // beforeAll creates complex nested test data (~5-6s locally, can be longer in CI)
     let candidateUser;
     let candidate2User;
     let candidateProfile;
@@ -325,84 +326,92 @@ describe("Candidate Assessment Answer Save/Autosave API tests", () => {
         });
     });
     afterAll(async () => {
-        await prisma.$transaction([
-            prisma.assessmentAnswer.deleteMany({
-                where: {
-                    attemptId: {
-                        in: [
-                            activeAttempt.id,
-                            submittedAttempt.id,
-                            cancelledAttempt.id,
-                            expiredAttempt.id,
-                            expiredTimerAttempt.id,
-                            mixedAttempt.id,
-                            validationAttempt.id,
-                            notStartedAttempt.id
-                        ]
-                    }
-                }
-            }),
-            prisma.assessmentAttempt.deleteMany({
-                where: {
-                    id: {
-                        in: [
-                            activeAttempt.id,
-                            submittedAttempt.id,
-                            cancelledAttempt.id,
-                            expiredAttempt.id,
-                            expiredTimerAttempt.id,
-                            mixedAttempt.id,
-                            validationAttempt.id,
-                            notStartedAttempt.id
-                        ]
-                    }
-                }
-            }),
-            prisma.assessmentSectionItem.deleteMany({
-                where: {
-                    sectionId: { in: [section.id, mixedSection.id] }
-                }
-            }),
-            prisma.assessmentSection.deleteMany({
-                where: {
-                    id: { in: [section.id, mixedSection.id] }
-                }
-            }),
-            prisma.question.deleteMany({
-                where: {
-                    id: { in: [mcqQuestion.id, dsaQuestion.id, projectQuestion.id] }
-                }
-            }),
-            prisma.assessment.deleteMany({
-                where: {
-                    id: { in: [assessment.id, mixedAssessment.id] }
-                }
-            }),
-            prisma.programmingLanguage.deleteMany({
-                where: { id: progLanguage.id }
-            }),
-            prisma.companyMember.deleteMany({
-                where: { id: companyMember.id }
-            }),
-            prisma.company.deleteMany({
-                where: { id: company.id }
-            }),
-            prisma.application.deleteMany({
-                where: { id: application?.id }
-            }),
-            prisma.job.deleteMany({
-                where: { id: job?.id }
-            }),
-            prisma.resume.deleteMany({
-                where: { id: resume?.id }
-            }),
-            prisma.candidate.deleteMany({
-                where: { id: { in: [candidateProfile.id, candidate2Profile.id] } }
-            }),
-            prisma.user.deleteMany({
-                where: { id: { in: [candidateUser.id, candidate2User.id] } }
-            })
-        ]);
+        // Defensive cleanup: only delete what was successfully created in beforeAll
+        const attemptIds = [
+            activeAttempt?.id,
+            submittedAttempt?.id,
+            cancelledAttempt?.id,
+            expiredAttempt?.id,
+            expiredTimerAttempt?.id,
+            mixedAttempt?.id,
+            validationAttempt?.id,
+            notStartedAttempt?.id
+        ].filter(Boolean);
+        const sectionIds = [section?.id, mixedSection?.id].filter(Boolean);
+        const questionIds = [mcqQuestion?.id, dsaQuestion?.id, projectQuestion?.id].filter(Boolean);
+        const assessmentIds = [assessment?.id, mixedAssessment?.id].filter(Boolean);
+        const userIds = [candidateUser?.id, candidate2User?.id].filter(Boolean);
+        const candidateIds = [candidateProfile?.id, candidate2Profile?.id].filter(Boolean);
+        if (attemptIds.length > 0 || sectionIds.length > 0 || questionIds.length > 0 || assessmentIds.length > 0) {
+            await prisma.$transaction([
+                ...(attemptIds.length > 0 ? [
+                    prisma.assessmentAnswer.deleteMany({
+                        where: { attemptId: { in: attemptIds } }
+                    }),
+                    prisma.assessmentAttempt.deleteMany({
+                        where: { id: { in: attemptIds } }
+                    })
+                ] : []),
+                ...(sectionIds.length > 0 ? [
+                    prisma.assessmentSectionItem.deleteMany({
+                        where: { sectionId: { in: sectionIds } }
+                    }),
+                    prisma.assessmentSection.deleteMany({
+                        where: { id: { in: sectionIds } }
+                    })
+                ] : []),
+                ...(questionIds.length > 0 ? [
+                    prisma.question.deleteMany({
+                        where: { id: { in: questionIds } }
+                    })
+                ] : []),
+                ...(assessmentIds.length > 0 ? [
+                    prisma.assessment.deleteMany({
+                        where: { id: { in: assessmentIds } }
+                    })
+                ] : []),
+                ...(progLanguage?.id ? [
+                    prisma.programmingLanguage.deleteMany({
+                        where: { id: progLanguage.id }
+                    })
+                ] : []),
+                ...(companyMember?.id ? [
+                    prisma.companyMember.deleteMany({
+                        where: { id: companyMember.id }
+                    })
+                ] : []),
+                ...(company?.id ? [
+                    prisma.company.deleteMany({
+                        where: { id: company.id }
+                    })
+                ] : []),
+                ...(application?.id ? [
+                    prisma.application.deleteMany({
+                        where: { id: application.id }
+                    })
+                ] : []),
+                ...(job?.id ? [
+                    prisma.job.deleteMany({
+                        where: { id: job.id }
+                    })
+                ] : []),
+                ...(resume?.id ? [
+                    prisma.resume.deleteMany({
+                        where: { id: resume.id }
+                    })
+                ] : []),
+                ...(candidateIds.length > 0 ? [
+                    prisma.candidate.deleteMany({
+                        where: { id: { in: candidateIds } }
+                    })
+                ] : []),
+                ...(userIds.length > 0 ? [
+                    prisma.user.deleteMany({
+                        where: { id: { in: userIds } }
+                    })
+                ] : [])
+            ]);
+        }
         await closeDatabase();
     });
     test("1. First MCQ answer creates AssessmentAnswer", async () => {

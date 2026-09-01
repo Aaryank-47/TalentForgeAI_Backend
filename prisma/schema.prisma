@@ -380,9 +380,9 @@ model Job {
   createdById String
   updatedById String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  requirementsVersion Int @default(1)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  requirementsVersion Int      @default(1)
 
   skills         JobSkill[]
   benefits       JobBenefit[]
@@ -390,7 +390,7 @@ model Job {
   applications   Application[]
   savedJobs      SavedJob[]
   workflowId     String?
-  workflow       Workflow?       @relation(fields: [workflowId], references: [id])
+  workflow       Workflow?           @relation(fields: [workflowId], references: [id])
   jobAssessments JobAssessment[]
   jobInterviews  JobInterview[]
   matches        CandidateJobMatch[]
@@ -403,13 +403,13 @@ model Job {
 }
 
 model SavedJob {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   candidateId String
   jobId       String
-  savedAt     DateTime  @default(now())
+  savedAt     DateTime @default(now())
 
-  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@unique([candidateId, jobId])
   @@index([candidateId])
@@ -1536,25 +1536,25 @@ model SkillCandidate {
 }
 
 model CandidateJobMatch {
-  id                 String      @id @default(cuid())
-  candidateId        String
-  candidate          Candidate   @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  jobId              String
-  job                Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
-  matchScore         Float       
-  deterministicScore Float       
-  semanticScore      Float?      
+  matchScore         Float
+  deterministicScore Float
+  semanticScore      Float?
 
-  matchingFactors    Json        
-  status             MatchStatus @default(CURRENT)
+  matchingFactors Json
+  status          MatchStatus @default(CURRENT)
 
-  candidateVersion   Int         @default(1)
-  jobVersion         Int         @default(1)
+  candidateVersion Int @default(1)
+  jobVersion       Int @default(1)
 
-  calculatedAt       DateTime    @default(now())
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
+  calculatedAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@unique([candidateId, jobId])
   @@index([candidateId, matchScore(sort: Desc)])
@@ -1562,4 +1562,3 @@ model CandidateJobMatch {
   @@index([candidateId, status])
   @@index([jobId, status])
 }
-
