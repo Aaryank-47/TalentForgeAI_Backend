@@ -1,7 +1,6 @@
 import { socketAuthMiddleware } from "./interview.socket.auth.js";
 import { registerInterviewHandlers } from "./interview.socket.handler.js";
 import { registerAIIinterviewSocketHandlers } from "./ai/ai.interview.socket.handler.js";
-import { AIInterviewTimeoutWorker } from "../AI-interview/services/ai.timeout.service.js";
 export function initializeInterviewSocket(io) {
     const interviewNamespace = io.of("/interviews");
     interviewNamespace.use(socketAuthMiddleware);
@@ -21,6 +20,5 @@ export function initializeInterviewSocket(io) {
             console.log(`Interview socket disconnected : ${socket.id}`);
         });
     });
-    AIInterviewTimeoutWorker.startWorker(aiInterviewNamespace);
 }
 //# sourceMappingURL=interview.socket.js.map

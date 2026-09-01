@@ -2,9 +2,15 @@ import { Queue, Worker } from "bullmq";
 import { redisConnectionConfig } from "../../../../common/queue/redis.config.js";
 import { AIInterviewQuestionsRepository } from "../repositories/ai.interview.repository.js";
 import { AIInterviewFinalEvaluationService } from "./ai.final.evaluation.service.js";
-export const interviewTimeoutQueue = new Queue("ai-interview-timeout", {
-    connection: redisConnectionConfig
-});
+let timeoutQueueInstance = null;
+export function getInterviewTimeoutQueue() {
+    if (!timeoutQueueInstance || timeoutQueueInstance.closing) {
+        timeoutQueueInstance = new Queue("ai-interview-timeout", {
+            connection: redisConnectionConfig
+        });
+    }
+    return timeoutQueueInstance;
+}
 export class AIInterviewTimeoutWorker {
     static intervalTimer = null;
     static worker = null;
@@ -12,7 +18,8 @@ export class AIInterviewTimeoutWorker {
     static async scheduleTimeoutJob(sessionId, durationMinutes) {
         const delayMs = durationMinutes * 60 * 1000;
         try {
-            await interviewTimeoutQueue.add("expire-session", { sessionId }, {
+            const queue = getInterviewTimeoutQueue();
+            await queue.add("expire-session", { sessionId }, {
                 jobId: `timeout-${sessionId}`,
                 delay: Math.max(0, delayMs),
                 removeOnComplete: true,
@@ -87,15 +94,30 @@ export class AIInterviewTimeoutWorker {
             }, intervalMs);
         }
     }
-    static stopWorker() {
+    static async stopWorker() {
         if (this.intervalTimer) {
             clearInterval(this.intervalTimer);
             this.intervalTimer = null;
         }
         if (this.worker) {
-            this.worker.close();
+            try {
+                await this.worker.close();
+            }
+            catch (err) {
+                console.warn(`[AIInterviewTimeoutWorker] Error closing BullMQ worker: ${err?.message}`);
+            }
             this.worker = null;
         }
+        if (timeoutQueueInstance) {
+            try {
+                await timeoutQueueInstance.close();
+            }
+            catch (err) {
+                console.warn(`[AIInterviewTimeoutWorker] Error closing timeout queue: ${err?.message}`);
+            }
+            timeoutQueueInstance = null;
+        }
+        this.socketIoInstance = null;
     }
 }
 //# sourceMappingURL=ai.timeout.service.js.map

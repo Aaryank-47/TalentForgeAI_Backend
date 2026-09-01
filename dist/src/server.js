@@ -7,6 +7,7 @@ import { ElasticsearchService } from './modules/company/services/elasticsearch.s
 import { MatchingElasticsearchService } from './modules/matching/services/matching-elasticsearch.service.js';
 import { initializeInterviewSocket } from './modules/interviews/websocket/interview.socket.js';
 import { initializeResumeSocket } from './modules/resume/websocket/resume.socket.js';
+import { AIInterviewTimeoutWorker } from './modules/interviews/AI-interview/services/ai.timeout.service.js';
 import { initResumeProcessingWorker, shutdownResumeProcessing } from './modules/resume/queues/resume-queue.manager.js';
 import { initMatchingWorker, shutdownMatchingSubsystem } from './modules/matching/queues/matching-queue.manager.js';
 import { logger } from './common/logger/logger.js';
@@ -15,20 +16,6 @@ import { InterviewSessionsServices } from './modules/interviews/services/intervi
 const port = env.port;
 // Create HTTP server using Express
 const httpServer = createServer(app);
-async function startServer() {
-    await connectDatabase();
-    await ElasticsearchService.ensureIndex();
-    await MatchingElasticsearchService.ensureIndices();
-    // Initialize Background Workers
-    initResumeProcessingWorker();
-    initMatchingWorker();
-    // Initialize Interview Auto-Expiry Background Scheduler (runs every 60s)
-    InterviewSessionsServices.initAutoExpiryScheduler();
-    // Start the HTTP + Socket.IO server
-    httpServer.listen(port, () => {
-        console.log(`Server is running on port http://localhost:${port}`);
-    });
-}
 const io = new Server(httpServer, {
     cors: {
         origin: env.app.frontendUrl,
@@ -37,12 +24,30 @@ const io = new Server(httpServer, {
 });
 initializeInterviewSocket(io);
 initializeResumeSocket(io);
+async function startServer() {
+    await connectDatabase();
+    await ElasticsearchService.ensureIndex();
+    await MatchingElasticsearchService.ensureIndices();
+    // Initialize Background Workers
+    initResumeProcessingWorker();
+    initMatchingWorker();
+    // Explicitly initialize AI Interview Timeout Worker with AI Socket.IO namespace
+    const aiNamespace = io.of("/interviews/ai");
+    AIInterviewTimeoutWorker.startWorker(aiNamespace);
+    // Initialize Interview Auto-Expiry Background Scheduler (runs every 60s)
+    InterviewSessionsServices.initAutoExpiryScheduler();
+    // Start the HTTP + Socket.IO server
+    httpServer.listen(port, () => {
+        console.log(`Server is running on port http://localhost:${port}`);
+    });
+}
 // Graceful shutdown handling
 async function handleGracefulShutdown(signal) {
     logger.info(`[Server] Received ${signal}. Starting graceful shutdown...`);
     httpServer.close(async () => {
         logger.info("[Server] HTTP server closed.");
         try {
+            await AIInterviewTimeoutWorker.stopWorker();
             io.close();
             await shutdownResumeProcessing();
             await shutdownMatchingSubsystem();

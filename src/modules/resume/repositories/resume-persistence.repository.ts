@@ -21,7 +21,7 @@ const fingerprint = (...parts: Array<string | null>): string =>
 export class ResumePersistenceRepository {
     async persist(candidateId: string, data: ResumeParsingResult): Promise<ResumePersistenceResult> {
         return prisma.$transaction(async (tx) => this.persistInTransaction(tx, candidateId, data));
-    }
+    }   
 
     private async persistInTransaction(
         tx: TransactionClient,

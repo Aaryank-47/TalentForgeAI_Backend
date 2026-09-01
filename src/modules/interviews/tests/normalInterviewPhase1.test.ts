@@ -1,11 +1,12 @@
-import { describe, test, expect, beforeAll } from "@jest/globals";
-import prisma from "../../../config/database.js";
+import { describe, test, expect, beforeAll, afterAll, jest } from "@jest/globals";
+import prisma, { closeDatabase } from "../../../config/database.js";
 import { InterviewSessionsServices, InterviewEvaluationServices } from "../services/interviews.service.js";
 import { UserRole, InterviewType, InterviewMode, InterviewSessionStatus } from "@prisma/client";
 import { BadRequestError } from "../../../common/errors/BadRequestError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 
 describe("NORMAL Live 1-to-1 Interview Phase 1 Backend Suite", () => {
+    jest.setTimeout(30000); // beforeAll creates interview infrastructure (~5-6s locally, can be longer in CI)
     let company: any;
     let recruiterUser: any;
     let recruiterMember: any;
@@ -125,6 +126,65 @@ describe("NORMAL Live 1-to-1 Interview Phase 1 Backend Suite", () => {
                 }
             }
         });
+    });
+
+    afterAll(async () => {
+        // Clean up created test data
+        const sessionIds = session?.id ? [session.id] : [];
+        const interviewIds = interview?.id ? [interview.id] : [];
+        const assignmentIds = assignment?.id ? [assignment.id] : [];
+        const memberIds = recruiterMember?.id ? [recruiterMember.id] : [];
+        const candidateIds = candidate?.id ? [candidate.id] : [];
+        const userIds = [recruiterUser?.id, candidateUser?.id].filter(Boolean);
+        const companyIds = company?.id ? [company.id] : [];
+
+        try {
+            if (sessionIds.length > 0 || interviewIds.length > 0) {
+                await prisma.$transaction([
+                    ...(sessionIds.length > 0 ? [
+                        prisma.interviewParticipant.deleteMany({
+                            where: { interviewSessionId: { in: sessionIds } }
+                        }),
+                        prisma.interviewSession.deleteMany({
+                            where: { id: { in: sessionIds } }
+                        })
+                    ] : []),
+                    ...(assignmentIds.length > 0 ? [
+                        prisma.interviewAssignment.deleteMany({
+                            where: { id: { in: assignmentIds } }
+                        })
+                    ] : []),
+                    ...(interviewIds.length > 0 ? [
+                        prisma.interview.deleteMany({
+                            where: { id: { in: interviewIds } }
+                        })
+                    ] : []),
+                    ...(memberIds.length > 0 ? [
+                        prisma.companyMember.deleteMany({
+                            where: { id: { in: memberIds } }
+                        })
+                    ] : []),
+                    ...(companyIds.length > 0 ? [
+                        prisma.company.deleteMany({
+                            where: { id: { in: companyIds } }
+                        })
+                    ] : []),
+                    ...(candidateIds.length > 0 ? [
+                        prisma.candidate.deleteMany({
+                            where: { id: { in: candidateIds } }
+                        })
+                    ] : []),
+                    ...(userIds.length > 0 ? [
+                        prisma.user.deleteMany({
+                            where: { id: { in: userIds } }
+                        })
+                    ] : [])
+                ]);
+            }
+        } catch (error) {
+            console.error("Error during afterAll cleanup:", error);
+        }
+        await closeDatabase();
     });
 
     test("1. Starting a valid SCHEDULED session changes status to IN_PROGRESS", async () => {

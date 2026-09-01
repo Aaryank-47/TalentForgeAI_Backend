@@ -18,6 +18,7 @@ describe("AI Interview Automated Test Suite", () => {
     let httpServer;
     let ioServer;
     let serverAddress;
+    const connectedSockets = [];
     beforeAll(async () => {
         // 1. Seed fresh test database records for Infosys AI Interview
         seedData = await seedInfosysTestData();
@@ -27,6 +28,8 @@ describe("AI Interview Automated Test Suite", () => {
             cors: { origin: "*" }
         });
         initializeInterviewSocket(ioServer);
+        const aiNamespace = ioServer.of("/interviews/ai");
+        AIInterviewTimeoutWorker.startWorker(aiNamespace);
         await new Promise((resolve) => {
             httpServer.listen(0, () => {
                 const addr = httpServer.address();
@@ -35,10 +38,26 @@ describe("AI Interview Automated Test Suite", () => {
             });
         });
     });
+    const disconnectSocket = (socket) => {
+        return new Promise((resolve) => {
+            if (!socket.connected) {
+                resolve();
+                return;
+            }
+            const onDisconnect = () => {
+                socket.off("disconnect", onDisconnect);
+                resolve();
+            };
+            socket.once("disconnect", onDisconnect);
+            socket.disconnect();
+        });
+    };
     afterAll(async () => {
         if (openRouterSpy) {
             openRouterSpy.mockRestore();
         }
+        await Promise.all(connectedSockets.map(disconnectSocket));
+        await AIInterviewTimeoutWorker.stopWorker();
         if (ioServer) {
             await ioServer.close();
         }
@@ -281,9 +300,16 @@ describe("AI Interview Automated Test Suite", () => {
     // =========================================================================
     describe("3. Socket.IO Client-Server Event Flow Tests", () => {
         let clientSocket;
-        afterEach(() => {
+        afterEach(async () => {
             if (clientSocket && clientSocket.connected) {
-                clientSocket.disconnect();
+                await new Promise((resolve) => {
+                    const onDisconnect = () => {
+                        clientSocket.off("disconnect", onDisconnect);
+                        resolve();
+                    };
+                    clientSocket.once("disconnect", onDisconnect);
+                    clientSocket.disconnect();
+                });
             }
         });
         test("ai-interview-start -> returns initial question via ai-question event", async () => {
@@ -291,6 +317,7 @@ describe("AI Interview Automated Test Suite", () => {
                 auth: { token: seedData.candidateToken },
                 transports: ["websocket"]
             });
+            connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {
                 clientSocket.on("connect", () => resolve());
                 clientSocket.on("connect_error", (err) => reject(err));
@@ -326,6 +353,7 @@ describe("AI Interview Automated Test Suite", () => {
                 auth: { token: seedData.candidateToken },
                 transports: ["websocket"]
             });
+            connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {
                 clientSocket.on("connect", () => resolve());
                 clientSocket.on("connect_error", (err) => reject(err));
@@ -360,6 +388,7 @@ describe("AI Interview Automated Test Suite", () => {
                 auth: { token: seedData.candidateToken },
                 transports: ["websocket"]
             });
+            connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {
                 clientSocket.on("connect", () => resolve());
                 clientSocket.on("connect_error", (err) => reject(err));
@@ -391,6 +420,7 @@ describe("AI Interview Automated Test Suite", () => {
                 auth: { token: unassignedToken },
                 transports: ["websocket"]
             });
+            connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {
                 clientSocket.on("connect", () => resolve());
                 clientSocket.on("connect_error", (err) => reject(err));

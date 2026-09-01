@@ -4,12 +4,14 @@ import {
     expect,
     beforeAll,
     afterAll,
+    jest
 } from "@jest/globals";
 import prisma, { closeDatabase } from "../../../config/database.js";
 import { InterviewsServices, JobInterviewsServices } from "../services/interviews.service.js";
 import { UserRole, CompanyStatus, InterviewType, InterviewMode } from "@prisma/client";
 
 describe("Interviews API Service tests", () => {
+    jest.setTimeout(90000); // Complex suite with heavy beforeAll and nested test operations (~54.5s locally, longer in CI)
     let employerUser: any;
     let company: any;
     let companyMember: any;

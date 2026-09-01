@@ -4,28 +4,32 @@ import { redisConnectionConfig } from "../../../../common/queue/redis.config.js"
 import { AIInterviewQuestionsRepository } from "../repositories/ai.interview.repository.js";
 import { AIInterviewFinalEvaluationService } from "./ai.final.evaluation.service.js";
 
-export let interviewTimeoutQueue = new Queue("ai-interview-timeout", {
-    connection: redisConnectionConfig
-});
+let timeoutQueueInstance: Queue | null = null;
 
-function getOrCreateQueue(): Queue {
-    if (!interviewTimeoutQueue || (interviewTimeoutQueue as any).closing) {
-        interviewTimeoutQueue = new Queue("ai-interview-timeout", {
+export function getInterviewTimeoutQueue(): Queue {
+    if (!timeoutQueueInstance || (timeoutQueueInstance as any).closing) {
+        timeoutQueueInstance = new Queue("ai-interview-timeout", {
             connection: redisConnectionConfig
         });
     }
-    return interviewTimeoutQueue;
+    return timeoutQueueInstance;
 }
 
 export class AIInterviewTimeoutWorker {
     private static intervalTimer: NodeJS.Timeout | null = null;
     private static worker: Worker | null = null;
     private static socketIoInstance: Server | null = null;
+    /**
+     * Tracks every in-flight checkAndExpireSessions() promise so that
+     * stopWorker() can await all of them before returning, preventing
+     * post-teardown Prisma/Socket operations in Jest.
+     */
+    private static readonly activeScans: Set<Promise<void>> = new Set();
 
     static async scheduleTimeoutJob(sessionId: string, durationMinutes: number) {
         const delayMs = durationMinutes * 60 * 1000;
         try {
-            const queue = getOrCreateQueue();
+            const queue = getInterviewTimeoutQueue();
             await queue.add(
                 "expire-session",
                 { sessionId },
@@ -58,7 +62,7 @@ export class AIInterviewTimeoutWorker {
                 console.error(`[AIInterviewTimeoutWorker] Final evaluation generation failed for session "${sessionId}":`, error.message);
             }
 
-            if (targetIo) {
+            if (targetIo && typeof targetIo.to === "function") {
                 targetIo.to(sessionId).emit("ai-interview-timeout", {
                     sessionId,
                     completed: true,
@@ -82,9 +86,20 @@ export class AIInterviewTimeoutWorker {
         }
     }
 
+    /**
+     * Runs a DB expiry scan and registers its promise in activeScans so that
+     * stopWorker() can await it. The promise removes itself from the Set when
+     * it settles (whether it resolves or throws).
+     */
+    private static runTrackedScan(io?: Server): void {
+        const scan = this.checkAndExpireSessions(io).finally(() => {
+            this.activeScans.delete(scan);
+        });
+        this.activeScans.add(scan);
+    }
+
     static startWorker(io: Server, intervalMs = 30000) {
         this.socketIoInstance = io;
-        getOrCreateQueue();
 
         if (!this.worker) {
             try {
@@ -109,18 +124,30 @@ export class AIInterviewTimeoutWorker {
 
         if (!this.intervalTimer) {
             console.log(`[AIInterviewTimeoutWorker] Background expiration worker started (BullMQ + DB scan interval: ${intervalMs}ms)`);
-            this.checkAndExpireSessions(io);
+            // Initial immediate scan — tracked so stopWorker() can await it.
+            this.runTrackedScan(io);
             this.intervalTimer = setInterval(() => {
-                this.checkAndExpireSessions(io);
+                // Each periodic scan is also tracked.
+                this.runTrackedScan(io);
             }, intervalMs);
         }
     }
 
     static async stopWorker() {
+        // Stop the interval so no new scans are dispatched.
         if (this.intervalTimer) {
             clearInterval(this.intervalTimer);
             this.intervalTimer = null;
         }
+
+        // Wait for every in-flight DB scan to finish before tearing down
+        // connections. This prevents post-teardown Prisma/Socket errors.
+        if (this.activeScans.size > 0) {
+            await Promise.allSettled([...this.activeScans]);
+            this.activeScans.clear();
+        }
+
+        // Close the BullMQ worker (waits for in-flight BullMQ jobs internally).
         if (this.worker) {
             try {
                 await this.worker.close();
@@ -129,13 +156,17 @@ export class AIInterviewTimeoutWorker {
             }
             this.worker = null;
         }
-        if (interviewTimeoutQueue) {
+
+        // Close the queue connection.
+        if (timeoutQueueInstance) {
             try {
-                await interviewTimeoutQueue.close();
+                await timeoutQueueInstance.close();
             } catch (err: any) {
                 console.warn(`[AIInterviewTimeoutWorker] Error closing timeout queue: ${err?.message}`);
             }
+            timeoutQueueInstance = null;
         }
+
         this.socketIoInstance = null;
     }
 }

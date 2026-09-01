@@ -7,6 +7,7 @@ import { ElasticsearchService } from './modules/company/services/elasticsearch.s
 import { MatchingElasticsearchService } from './modules/matching/services/matching-elasticsearch.service.js';
 import { initializeInterviewSocket } from './modules/interviews/websocket/interview.socket.js';
 import { initializeResumeSocket } from './modules/resume/websocket/resume.socket.js';
+import { AIInterviewTimeoutWorker } from './modules/interviews/AI-interview/services/ai.timeout.service.js';
 import {
   initResumeProcessingWorker,
   shutdownResumeProcessing
@@ -25,6 +26,15 @@ const port = env.port;
 // Create HTTP server using Express
 const httpServer = createServer(app);
 
+const io = new Server(httpServer, {
+  cors: {
+    origin: env.app.frontendUrl,
+    credentials: true
+  }
+});
+initializeInterviewSocket(io);
+initializeResumeSocket(io);
+
 async function startServer() {
   await connectDatabase();
 
@@ -35,6 +45,10 @@ async function startServer() {
   initResumeProcessingWorker();
   initMatchingWorker();
 
+  // Explicitly initialize AI Interview Timeout Worker with AI Socket.IO namespace
+  const aiNamespace = io.of("/interviews/ai") as unknown as Server;
+  AIInterviewTimeoutWorker.startWorker(aiNamespace);
+
   // Initialize Interview Auto-Expiry Background Scheduler (runs every 60s)
   InterviewSessionsServices.initAutoExpiryScheduler();
 
@@ -43,14 +57,6 @@ async function startServer() {
     console.log(`Server is running on port http://localhost:${port}`);
   });
 }
-const io = new Server(httpServer, {
-  cors: {
-    origin: env.app.frontendUrl,
-    credentials: true
-  }
-})
-initializeInterviewSocket(io);
-initializeResumeSocket(io);
 
 // Graceful shutdown handling
 async function handleGracefulShutdown(signal: string) {
@@ -60,6 +66,7 @@ async function handleGracefulShutdown(signal: string) {
     logger.info("[Server] HTTP server closed.");
 
     try {
+      await AIInterviewTimeoutWorker.stopWorker();
       io.close();
       await shutdownResumeProcessing();
       await shutdownMatchingSubsystem();

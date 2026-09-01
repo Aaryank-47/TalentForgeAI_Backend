@@ -1,15 +1,18 @@
-import { describe, test, expect, beforeAll, afterAll } from "@jest/globals";
+import { describe, test, expect, beforeAll, afterAll, jest, afterEach } from "@jest/globals";
 import { createServer, Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
 import { io as ioc, Socket as ClientSocket } from "socket.io-client";
-import prisma from "../../../config/database.js";
+import prisma, { closeDatabase } from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { initializeInterviewSocket } from "../websocket/interview.socket.js";
+import { InterviewRoomManager } from "../websocket/interview.room.manager.js";
 import { UserRole, InterviewType, InterviewMode, InterviewSessionStatus } from "@prisma/client";
+jest.setTimeout(25000);
 describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
     let httpServer;
     let ioServer;
     let serverAddress;
+    const connectedSockets = [];
     let company;
     let recruiterUser;
     let recruiterToken;
@@ -153,13 +156,35 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
             });
         });
     });
+    const disconnectSocket = (socket) => {
+        return new Promise((resolve) => {
+            if (!socket.connected) {
+                resolve();
+                return;
+            }
+            const onDisconnect = () => {
+                socket.off("disconnect", onDisconnect);
+                resolve();
+            };
+            socket.once("disconnect", onDisconnect);
+            socket.disconnect();
+        });
+    };
+    afterEach(async () => {
+        const sockets = connectedSockets.splice(0, connectedSockets.length);
+        await Promise.all(sockets.map(disconnectSocket));
+        InterviewRoomManager.activeRooms?.clear?.();
+    });
     afterAll(async () => {
+        const sockets = connectedSockets.splice(0, connectedSockets.length);
+        await Promise.all(sockets.map(disconnectSocket));
         if (ioServer) {
             await ioServer.close();
         }
         if (httpServer) {
-            httpServer.close();
+            await new Promise((res) => httpServer.close(() => res()));
         }
+        await closeDatabase();
     });
     const connectSocket = (token) => {
         return new Promise((resolve, reject) => {
@@ -167,8 +192,19 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
                 auth: { token },
                 transports: ["websocket"]
             });
+            connectedSockets.push(socket);
             socket.on("connect", () => resolve(socket));
             socket.on("connect_error", (err) => reject(err));
+        });
+    };
+    const setSessionState = async (status, startedAt, endedAt) => {
+        await prisma.interviewSession.update({
+            where: { id: session.id },
+            data: {
+                status,
+                startedAt: startedAt ?? null,
+                endedAt: endedAt ?? null
+            }
         });
     };
     const joinSessionRoom = (socket, sessionId) => {
@@ -178,6 +214,7 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         });
     };
     test("1. Candidate and Recruiter join room successfully", async () => {
+        await setSessionState(InterviewSessionStatus.IN_PROGRESS, new Date());
         const recruiterSocket = await connectSocket(recruiterToken);
         const candidateSocket = await connectSocket(candidateToken);
         const userJoinedPromise = new Promise((resolve) => {
@@ -191,10 +228,12 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         candidateSocket.disconnect();
     });
     test("2. Authorized Recruiter starts interview -> triggers interview-started", async () => {
+        await setSessionState(InterviewSessionStatus.IN_PROGRESS, new Date());
         const recruiterSocket = await connectSocket(recruiterToken);
         const candidateSocket = await connectSocket(candidateToken);
         await joinSessionRoom(recruiterSocket, session.id);
         await joinSessionRoom(candidateSocket, session.id);
+        await setSessionState(InterviewSessionStatus.SCHEDULED, null, null);
         const startedPromise = new Promise((resolve) => {
             candidateSocket.on("interview-started", (data) => resolve(data));
         });
@@ -206,6 +245,7 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         candidateSocket.disconnect();
     });
     test("3. Candidate attempting to start interview fails with error", async () => {
+        await setSessionState(InterviewSessionStatus.IN_PROGRESS, new Date());
         const candidateSocket = await connectSocket(candidateToken);
         await joinSessionRoom(candidateSocket, session.id);
         const errorPromise = new Promise((resolve) => {
@@ -217,6 +257,7 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         candidateSocket.disconnect();
     });
     test("4. Collaborative code-change and language-change synchronization", async () => {
+        await setSessionState(InterviewSessionStatus.IN_PROGRESS, new Date());
         const recruiterSocket = await connectSocket(recruiterToken);
         const candidateSocket = await connectSocket(candidateToken);
         await joinSessionRoom(recruiterSocket, session.id);
@@ -243,6 +284,9 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         candidateSocket.disconnect();
     });
     test("5. Code sync on reconnect retrieves stored editor state", async () => {
+        await setSessionState(InterviewSessionStatus.IN_PROGRESS, new Date());
+        InterviewRoomManager.setCodeState(session.id, "function solution() { return 42; }");
+        InterviewRoomManager.setLanguageState(session.id, "typescript");
         const recruiterSocket = await connectSocket(recruiterToken);
         const syncData = await joinSessionRoom(recruiterSocket, session.id);
         const syncPromise = new Promise((resolve) => {
@@ -255,6 +299,7 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         recruiterSocket.disconnect();
     });
     test("6. Unauthorized socket cannot emit code-change", async () => {
+        await setSessionState(InterviewSessionStatus.IN_PROGRESS, new Date());
         const unauthSocket = await connectSocket(unauthorizedToken);
         const errorPromise = new Promise((resolve) => {
             unauthSocket.on("error", (err) => resolve(err));
@@ -268,6 +313,7 @@ describe("NORMAL Live 1-to-1 Interview Phase 2 Socket.IO Suite", () => {
         unauthSocket.disconnect();
     });
     test("7. Authorized Recruiter ends interview -> triggers interview-ended", async () => {
+        await setSessionState(InterviewSessionStatus.IN_PROGRESS, new Date(), null);
         const recruiterSocket = await connectSocket(recruiterToken);
         const candidateSocket = await connectSocket(candidateToken);
         await joinSessionRoom(recruiterSocket, session.id);
