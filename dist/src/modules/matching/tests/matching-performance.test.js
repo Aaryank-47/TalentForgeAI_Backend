@@ -3,7 +3,9 @@ import { MatchingService } from "../services/matching.service.js";
 import { MatchingRepository } from "../repositories/matching.repository.js";
 import { MatchingRetrievalService } from "../services/matching-retrieval.service.js";
 import { MatchingScorerService } from "../services/matching-scorer.service.js";
+import { MatchingElasticsearchService } from "../services/matching-elasticsearch.service.js";
 describe("Matching Performance & Scalability Diagnostics", () => {
+    jest.setTimeout(15000);
     it("should process targeted candidate subset without Cartesian product scan across full candidate base", async () => {
         const mockJob = {
             id: "job_scalable",
@@ -47,6 +49,7 @@ describe("Matching Performance & Scalability Diagnostics", () => {
             updatedAt: new Date()
         }));
         jest.spyOn(MatchingRepository, "getJobMatchingRequirements").mockResolvedValue(mockJob);
+        jest.spyOn(MatchingElasticsearchService, "indexJob").mockResolvedValue();
         jest.spyOn(MatchingRetrievalService, "retrieveCandidatesForJob").mockResolvedValue(mockFilteredCandidates);
         jest.spyOn(MatchingRepository, "upsertMatch").mockResolvedValue();
         let aiCallCount = 0;

@@ -15,11 +15,14 @@
  *
  * The caller is responsible for teardown; no cleanup is performed here.
  */
+
 import prisma from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { UserRole, InterviewType, InterviewMode, InterviewSessionStatus } from "@prisma/client";
+
 export async function seedInfosysTestData() {
     const timestamp = Date.now();
+
     // 1. Company
     const company = await prisma.company.create({
         data: {
@@ -28,6 +31,7 @@ export async function seedInfosysTestData() {
             status: "ACTIVE"
         }
     });
+
     // 2. Recruiter user + company member
     const recruiterUser = await prisma.user.create({
         data: {
@@ -37,6 +41,7 @@ export async function seedInfosysTestData() {
             status: "ACTIVE"
         }
     });
+
     const recruiterMember = await prisma.companyMember.create({
         data: {
             userId: recruiterUser.id,
@@ -45,6 +50,7 @@ export async function seedInfosysTestData() {
             status: "ACTIVE"
         }
     });
+
     // 3. Candidate user + Candidate profile
     const candidateUser = await prisma.user.create({
         data: {
@@ -54,12 +60,14 @@ export async function seedInfosysTestData() {
             status: "ACTIVE"
         }
     });
+
     const candidate = await prisma.candidate.create({
         data: {
             userId: candidateUser.id,
             fullName: "Arjun Sharma"
         }
     });
+
     // 4. Job listing
     const job = await prisma.job.create({
         data: {
@@ -72,6 +80,7 @@ export async function seedInfosysTestData() {
             createdById: recruiterUser.id
         }
     });
+
     // 5. Candidate application
     const application = await prisma.application.create({
         data: {
@@ -80,6 +89,7 @@ export async function seedInfosysTestData() {
             status: "APPLIED"
         }
     });
+
     // 6. AI Interview + configuration
     const interview = await prisma.interview.create({
         data: {
@@ -95,11 +105,13 @@ export async function seedInfosysTestData() {
                     questionCount: 5,
                     difficulty: "MEDIUM",
                     allowFollowUps: true,
-                    systemPrompt: "You are a senior technical interviewer at Infosys assessing Node.js and PostgreSQL skills."
+                    systemPrompt:
+                        "You are a senior technical interviewer at Infosys assessing Node.js and PostgreSQL skills."
                 }
             }
         }
     });
+
     // 7. Interview assignment
     const assignment = await prisma.interviewAssignment.create({
         data: {
@@ -109,6 +121,7 @@ export async function seedInfosysTestData() {
             assignedById: recruiterMember.id
         }
     });
+
     // 8. Interview session (SCHEDULED) with CANDIDATE participant
     const session = await prisma.interviewSession.create({
         data: {
@@ -123,12 +136,14 @@ export async function seedInfosysTestData() {
             }
         }
     });
+
     // 9. JWT access token for socket auth
     const candidateToken = JwtHelper.generateAccessToken({
         id: candidateUser.id,
         email: candidateUser.email,
         role: candidateUser.role
     });
+
     return {
         /** The primary SCHEDULED session used by unit and socket tests */
         normalSessionId: session.id,
@@ -140,4 +155,3 @@ export async function seedInfosysTestData() {
         interviewId: interview.id
     };
 }
-//# sourceMappingURL=seedInfosysAIInterviewData.js.map
