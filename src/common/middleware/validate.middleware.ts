@@ -15,7 +15,6 @@ export const validate = (
 
         try {
             const parsed = schema.parse(req[target]);
-            console.log("parsed : ", parsed );
             Object.defineProperty(req, target, {
                 value: { ...req[target], ...parsed },
                 writable: true,

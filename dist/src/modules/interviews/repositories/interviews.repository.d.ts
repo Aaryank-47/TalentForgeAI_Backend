@@ -347,9 +347,9 @@ export declare class InterviewSessionsRepositories {
         status: import("@prisma/client").$Enums.InterviewSessionStatus;
         createdAt: Date;
         updatedAt: Date;
+        scheduledAt: Date;
         interviewId: string;
         startedAt: Date | null;
-        scheduledAt: Date;
         endedAt: Date | null;
         roomId: string | null;
     }) | null>;
@@ -445,9 +445,9 @@ export declare class InterviewSessionParticipantsRepositories {
             status: import("@prisma/client").$Enums.InterviewSessionStatus;
             createdAt: Date;
             updatedAt: Date;
+            scheduledAt: Date;
             interviewId: string;
             startedAt: Date | null;
-            scheduledAt: Date;
             endedAt: Date | null;
             roomId: string | null;
         };

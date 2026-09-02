@@ -342,7 +342,7 @@ describe("Assessment Evaluation API tests", () => {
                         where: { id: { in: userIds } }
                     })
                 ] : [])
-            ]);
+            ], { timeout: 30000, maxWait: 10000 });
         }
         await closeDatabase();
     });

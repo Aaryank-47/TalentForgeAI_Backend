@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach, jest } from "@jest/globals";
 import { createServer, Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
-import { io as ioc } from "socket.io-client";
+import { io as ioc, Socket as ClientSocket } from "socket.io-client";
 import prisma from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { initializeResumeSocket } from "../websocket/resume.socket.js";
@@ -15,6 +15,17 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
     let httpServer;
     let ioServer;
     let serverAddress;
+    const connectedSockets = [];
+    const connectClient = (token) => {
+        const socket = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
+            auth: { token },
+            transports: ["websocket"],
+            reconnection: false,
+            forceNew: true
+        });
+        connectedSockets.push(socket);
+        return socket;
+    };
     const mockCandidateA = {
         id: "candidate-orch-user-a",
         email: "candidate.orch.a@talentforge.ai",
@@ -44,14 +55,35 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
         });
     });
     afterAll(async () => {
-        if (ioServer) {
-            await ioServer.close();
+        for (const socket of connectedSockets) {
+            try {
+                socket.removeAllListeners();
+                socket.disconnect();
+            }
+            catch {
+                // ignore
+            }
         }
-        if (httpServer) {
+        connectedSockets.length = 0;
+        if (ioServer) {
+            await new Promise((resolve) => ioServer.close(() => resolve()));
+        }
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise((resolve) => httpServer.close(() => resolve()));
         }
+        const { closeResumeProcessingQueue } = await import("../queues/resume-processing.queue.js");
+        const { closeMatchingQueue } = await import("../../matching/queues/matching.queue.js");
+        await closeResumeProcessingQueue();
+        await closeMatchingQueue();
     });
     afterEach(() => {
+        for (const socket of connectedSockets) {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+        }
+        connectedSockets.length = 0;
         jest.restoreAllMocks();
     });
     // =========================================================================
@@ -127,10 +159,7 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
         };
         const pipeline = new ResumeProcessingPipeline(mockDocExtractor, mockParserService, mockNormalizationService, mockPersistenceService, mockFileFetcher);
         const worker = new ResumeProcessingWorker(pipeline);
-        const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-            auth: { token: tokenCandidateA },
-            transports: ["websocket"]
-        });
+        const client = connectClient(tokenCandidateA);
         await new Promise((res) => client.on("connect", () => res()));
         client.emit(RESUME_SOCKET_EVENTS.SUBSCRIBE, { resumeId });
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -237,10 +266,7 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
         };
         const pipeline = new ResumeProcessingPipeline(mockDocExtractor, mockParserService, mockNormalizationService, mockPersistenceService, mockFileFetcher);
         const worker = new ResumeProcessingWorker(pipeline);
-        const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-            auth: { token: tokenCandidateA },
-            transports: ["websocket"]
-        });
+        const client = connectClient(tokenCandidateA);
         await new Promise((res) => client.on("connect", () => res()));
         client.emit(RESUME_SOCKET_EVENTS.SUBSCRIBE, { resumeId });
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -347,10 +373,7 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
         };
         const pipeline = new ResumeProcessingPipeline(mockDocExtractor, mockParserService, mockNormalizationService, mockPersistenceService, mockFileFetcher);
         const worker = new ResumeProcessingWorker(pipeline);
-        const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-            auth: { token: tokenCandidateA },
-            transports: ["websocket"]
-        });
+        const client = connectClient(tokenCandidateA);
         await new Promise((res) => client.on("connect", () => res()));
         client.emit(RESUME_SOCKET_EVENTS.SUBSCRIBE, { resumeId });
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -430,10 +453,7 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
         };
         const pipeline = new ResumeProcessingPipeline(mockDocExtractor, mockParserService, {}, {}, mockFileFetcher);
         const worker = new ResumeProcessingWorker(pipeline);
-        const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-            auth: { token: tokenCandidateA },
-            transports: ["websocket"]
-        });
+        const client = connectClient(tokenCandidateA);
         await new Promise((res) => client.on("connect", () => res()));
         client.emit(RESUME_SOCKET_EVENTS.SUBSCRIBE, { resumeId });
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -694,10 +714,7 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
             parsingCompletedAt: null
         });
         jest.spyOn(prisma.candidate, "findUnique").mockResolvedValue({ id: mockCandidateA.id });
-        const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-            auth: { token: tokenCandidateA },
-            transports: ["websocket"]
-        });
+        const client = connectClient(tokenCandidateA);
         await new Promise((res) => client.on("connect", () => res()));
         client.emit(RESUME_SOCKET_EVENTS.SUBSCRIBE, { resumeId });
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -740,10 +757,7 @@ describe("Resume Processing Module — Complete Orchestration & E2E Scenarios (A
             return null;
         });
         // Client B tries to subscribe to Resume A
-        const clientB = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-            auth: { token: tokenCandidateB },
-            transports: ["websocket"]
-        });
+        const clientB = connectClient(tokenCandidateB);
         await new Promise((res) => clientB.on("connect", () => res()));
         const errorPromise = new Promise((resolve) => {
             clientB.on(RESUME_SOCKET_EVENTS.ERROR, resolve);

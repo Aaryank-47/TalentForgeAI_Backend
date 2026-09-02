@@ -1,4 +1,4 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from "@jest/globals";
+import { describe, expect, it, jest, beforeEach, afterEach, afterAll } from "@jest/globals";
 import { UnrecoverableError } from "bullmq";
 import prisma from "../../../config/database.js";
 import { OpenRouterError } from "../../../common/integrations/openRouter/errors/openrouter.error.js";
@@ -6,7 +6,13 @@ import { EmptyDocumentTextError, ScannedPdfDetectedError, UnsupportedFileTypeErr
 import { ResumeProcessingPipeline } from "../pipelines/resume-processing.pipeline.js";
 import { ResumeProcessingWorker } from "../queues/resume-processing.worker.js";
 import { ResumeProgressPublisher } from "../websocket/resume-progress.publisher.js";
+import { closeResumeProcessingQueue } from "../queues/resume-processing.queue.js";
+import { closeMatchingQueue } from "../../matching/queues/matching.queue.js";
 describe("ResumeProcessingWorker", () => {
+    afterAll(async () => {
+        await closeResumeProcessingQueue();
+        await closeMatchingQueue();
+    });
     let mockPipeline;
     let worker;
     let publishCompletedSpy;

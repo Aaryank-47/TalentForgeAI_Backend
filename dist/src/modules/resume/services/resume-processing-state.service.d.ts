@@ -8,5 +8,6 @@ export declare class ResumeProcessingStateService {
     static getCurrentStage(resumeId: string): Promise<ResumeProcessingProgressState | null>;
     static clearCurrentStage(resumeId: string): Promise<void>;
     static markFailed(resumeId: string, errorMessage?: string): Promise<void>;
+    static closeConnection(): Promise<void>;
 }
 //# sourceMappingURL=resume-processing-state.service.d.ts.map

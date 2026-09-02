@@ -145,16 +145,16 @@ export class CandidateService {
                 originalName: updatedResume.resumeName
             }, { jobId: retryJobId });
             // Step 3: Verify and log job creation in BullMQ
-            const jobState = await job.getState();
+            const jobState = typeof job?.getState === "function" ? await job.getState() : "waiting";
             logger.info({
                 event: "RETRY_JOB_VERIFIED",
-                jobId: job.id,
+                jobId: job?.id,
                 state: jobState,
-                attemptsMade: job.attemptsMade,
+                attemptsMade: job?.attemptsMade ?? 0,
                 resumeId: updatedResume.id,
                 candidateId: updatedResume.candidateId,
                 retryAttempt
-            }, `[CandidateService] Retry job "${job.id}" successfully enqueued in state "${jobState}" (Attempt ${retryAttempt})`);
+            }, `[CandidateService] Retry job "${job?.id}" successfully enqueued in state "${jobState}" (Attempt ${retryAttempt})`);
         }
         catch (queueError) {
             // Failure recovery strategy: Revert DB status back to FAILED

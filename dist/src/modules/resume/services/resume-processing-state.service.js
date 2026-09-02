@@ -78,5 +78,11 @@ export class ResumeProcessingStateService {
             logger.warn({ err: error, resumeId }, "[ResumeProcessingStateService] Failed to record failure state in Redis");
         }
     }
+    static async closeConnection() {
+        if (this.redisClient) {
+            await this.redisClient.quit();
+            this.redisClient = null;
+        }
+    }
 }
 //# sourceMappingURL=resume-processing-state.service.js.map

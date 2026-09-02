@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll, afterEach, jest } from "@jest/globals";
 import { createServer, Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
-import { io as ioc } from "socket.io-client";
+import { io as ioc, Socket as ClientSocket } from "socket.io-client";
 import prisma from "../../../config/database.js";
 import { JwtHelper } from "../../../common/helper/jwt.helper.js";
 import { initializeResumeSocket } from "../websocket/resume.socket.js";
@@ -12,6 +12,7 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
     let httpServer;
     let ioServer;
     let serverAddress;
+    const connectedSockets = [];
     const mockCandidate = {
         id: "candidate-e2e-realtime-1",
         email: "candidate.e2e@talentforge.ai",
@@ -35,14 +36,35 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
         });
     });
     afterAll(async () => {
-        if (ioServer) {
-            await ioServer.close();
+        for (const socket of connectedSockets) {
+            try {
+                socket.removeAllListeners();
+                socket.disconnect();
+            }
+            catch {
+                // ignore
+            }
         }
-        if (httpServer) {
+        connectedSockets.length = 0;
+        if (ioServer) {
+            await new Promise((resolve) => ioServer.close(() => resolve()));
+        }
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise((resolve) => httpServer.close(() => resolve()));
         }
+        const { closeResumeProcessingQueue } = await import("../queues/resume-processing.queue.js");
+        const { closeMatchingQueue } = await import("../../matching/queues/matching.queue.js");
+        await closeResumeProcessingQueue();
+        await closeMatchingQueue();
     });
     afterEach(() => {
+        for (const socket of connectedSockets) {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+        }
+        connectedSockets.length = 0;
         jest.restoreAllMocks();
     });
     test("End-to-End flow: Candidate connects -> Subscribes -> Worker processes job -> Pipeline executes stages -> Client receives all stage events -> Completion event -> REST state is authoritative", async () => {
@@ -124,8 +146,11 @@ describe("Resume Real-Time Processing End-to-End Pipeline & Socket Test", () => 
         // 3. Connect Candidate Client over Socket.IO
         const candidateClient = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
             auth: { token: candidateToken },
-            transports: ["websocket"]
+            transports: ["websocket"],
+            reconnection: false,
+            forceNew: true
         });
+        connectedSockets.push(candidateClient);
         await new Promise((res) => {
             candidateClient.on("connect", () => res());
         });

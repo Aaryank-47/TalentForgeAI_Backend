@@ -43,7 +43,6 @@ export declare class AssessmentBuilderRepository {
                     updatedAt: Date;
                     deletedAt: Date | null;
                     deletedById: string | null;
-                    version: number;
                     title: string;
                     createdById: string | null;
                     updatedById: string | null;
@@ -57,6 +56,7 @@ export declare class AssessmentBuilderRepository {
                     createdByCompanyMemberId: string | null;
                     publishedById: string | null;
                     categoryId: string | null;
+                    version: number;
                     usageCount: number;
                     successRate: number | null;
                 };

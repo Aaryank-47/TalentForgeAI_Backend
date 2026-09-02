@@ -87,8 +87,8 @@ export declare class AnalyticsRepository {
         sessions: {
             id: string;
             status: import("@prisma/client").$Enums.InterviewSessionStatus;
-            startedAt: Date | null;
             scheduledAt: Date;
+            startedAt: Date | null;
             endedAt: Date | null;
             participants: {
                 participantType: import("@prisma/client").$Enums.InterviewParticipantType;

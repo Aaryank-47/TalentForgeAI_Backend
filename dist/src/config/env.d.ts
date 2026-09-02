@@ -46,6 +46,9 @@ export declare const env: {
         readonly resumeJobAttempts: number;
         readonly resumeJobBackoffDelayMs: number;
     };
+    readonly resend: {
+        readonly apiKey: string;
+    };
 };
 export default env;
 //# sourceMappingURL=env.d.ts.map

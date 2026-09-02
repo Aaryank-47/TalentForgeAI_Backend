@@ -59,9 +59,10 @@ describe("AI Interview Automated Test Suite", () => {
         await Promise.all(connectedSockets.map(disconnectSocket));
         await AIInterviewTimeoutWorker.stopWorker();
         if (ioServer) {
-            await ioServer.close();
+            await new Promise((res) => ioServer.close(() => res()));
         }
-        if (httpServer) {
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise((res) => httpServer.close(() => res()));
         }
     });
@@ -315,7 +316,9 @@ describe("AI Interview Automated Test Suite", () => {
         test("ai-interview-start -> returns initial question via ai-question event", async () => {
             clientSocket = ioc(`${serverAddress}/interviews/ai`, {
                 auth: { token: seedData.candidateToken },
-                transports: ["websocket"]
+                transports: ["websocket"],
+                reconnection: false,
+                forceNew: true
             });
             connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {
@@ -351,7 +354,9 @@ describe("AI Interview Automated Test Suite", () => {
             });
             clientSocket = ioc(`${serverAddress}/interviews/ai`, {
                 auth: { token: seedData.candidateToken },
-                transports: ["websocket"]
+                transports: ["websocket"],
+                reconnection: false,
+                forceNew: true
             });
             connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {
@@ -386,7 +391,9 @@ describe("AI Interview Automated Test Suite", () => {
         test("ai-interview-end -> returns ai-interview-completed event", async () => {
             clientSocket = ioc(`${serverAddress}/interviews/ai`, {
                 auth: { token: seedData.candidateToken },
-                transports: ["websocket"]
+                transports: ["websocket"],
+                reconnection: false,
+                forceNew: true
             });
             connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {
@@ -418,7 +425,9 @@ describe("AI Interview Automated Test Suite", () => {
             });
             clientSocket = ioc(`${serverAddress}/interviews/ai`, {
                 auth: { token: unassignedToken },
-                transports: ["websocket"]
+                transports: ["websocket"],
+                reconnection: false,
+                forceNew: true
             });
             connectedSockets.push(clientSocket);
             await new Promise((resolve, reject) => {

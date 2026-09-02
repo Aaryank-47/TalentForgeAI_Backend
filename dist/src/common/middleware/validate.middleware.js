@@ -3,7 +3,6 @@ import { ValidationError } from '../errors/ValidationError.js';
 export const validate = (schema, target) => (req, res, next) => {
     try {
         const parsed = schema.parse(req[target]);
-        console.log("parsed : ", parsed);
         Object.defineProperty(req, target, {
             value: { ...req[target], ...parsed },
             writable: true,

@@ -39,21 +39,46 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             });
         });
     });
-    afterAll(async () => {
-        if (ioServer) {
-            await ioServer.close();
+    const connectedSockets = [];
+    const createTestClient = (options = {}) => {
+        const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
+            transports: ["websocket"],
+            reconnection: false,
+            forceNew: true,
+            ...options
+        });
+        connectedSockets.push(client);
+        return client;
+    };
+    const cleanupSockets = () => {
+        for (const socket of connectedSockets) {
+            try {
+                socket.removeAllListeners();
+                socket.disconnect();
+            }
+            catch {
+                // ignore
+            }
         }
-        if (httpServer) {
+        connectedSockets.length = 0;
+    };
+    afterAll(async () => {
+        cleanupSockets();
+        if (ioServer) {
+            await new Promise((resolve) => ioServer.close(() => resolve()));
+        }
+        if (httpServer && httpServer.listening) {
+            httpServer.closeAllConnections();
             await new Promise((resolve) => httpServer.close(() => resolve()));
         }
     });
     afterEach(() => {
+        cleanupSockets();
         jest.restoreAllMocks();
     });
     describe("Socket Authentication", () => {
         test("rejects connection when no JWT token is provided", async () => {
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                transports: ["websocket"],
+            const client = createTestClient({
                 autoConnect: true
             });
             const errorPromise = new Promise((resolve) => {
@@ -66,9 +91,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             client.disconnect();
         });
         test("rejects connection when invalid JWT token is provided", async () => {
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: "invalid-expired-jwt-token" },
-                transports: ["websocket"]
+            const client = createTestClient({
+                auth: { token: "invalid-expired-jwt-token" }
             });
             const errorPromise = new Promise((resolve) => {
                 client.on("connect_error", (err) => {
@@ -80,9 +104,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             client.disconnect();
         });
         test("successfully authenticates and connects with valid JWT token", async () => {
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const client = createTestClient({
+                auth: { token: tokenCandidateA }
             });
             const connectPromise = new Promise((resolve) => {
                 client.on("connect", () => {
@@ -100,6 +123,7 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 auth: { token: tokenCandidateA },
                 transports: ["websocket"]
             });
+            connectedSockets.push(client);
             await new Promise((res) => {
                 client.on("connect", () => res());
             });
@@ -114,9 +138,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
         test("rejects subscription when resume does not exist in DB", async () => {
             jest.spyOn(prisma.resume, "findUnique").mockResolvedValue(null);
             jest.spyOn(prisma.candidate, "findUnique").mockResolvedValue(null);
-            const client = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const client = createTestClient({
+                auth: { token: tokenCandidateA }
             });
             await new Promise((res) => {
                 client.on("connect", () => res());
@@ -142,9 +165,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 id: mockCandidateA.id
             });
             // Client connects as candidate A
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
             await new Promise((res) => {
                 clientA.on("connect", () => res());
@@ -170,9 +192,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             jest.spyOn(prisma.candidate, "findUnique").mockResolvedValue({
                 id: mockCandidateA.id
             });
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
             await new Promise((res) => {
                 clientA.on("connect", () => res());
@@ -259,9 +280,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             jest.spyOn(prisma.candidate, "findUnique").mockResolvedValue({
                 id: mockCandidateA.id
             });
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
             await new Promise((res) => {
                 clientA.on("connect", () => res());
@@ -298,13 +318,11 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
                 }
                 return null;
             });
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
-            const clientB = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateB },
-                transports: ["websocket"]
+            const clientB = createTestClient({
+                auth: { token: tokenCandidateB }
             });
             await Promise.all([
                 new Promise((res) => clientA.on("connect", () => res())),
@@ -347,9 +365,8 @@ describe("Resume Processing Socket.IO - Unit & Authorization Suite", () => {
             jest.spyOn(prisma.candidate, "findUnique").mockResolvedValue({
                 id: mockCandidateA.id
             });
-            const clientA = ioc(`${serverAddress}${RESUME_SOCKET_NAMESPACE}`, {
-                auth: { token: tokenCandidateA },
-                transports: ["websocket"]
+            const clientA = createTestClient({
+                auth: { token: tokenCandidateA }
             });
             await new Promise((res) => {
                 clientA.on("connect", () => res());

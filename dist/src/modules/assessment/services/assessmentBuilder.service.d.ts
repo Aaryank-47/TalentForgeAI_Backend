@@ -89,7 +89,6 @@ export declare class AssessmentBuilderService {
                         updatedAt: Date;
                         deletedAt: Date | null;
                         deletedById: string | null;
-                        version: number;
                         title: string;
                         createdById: string | null;
                         updatedById: string | null;
@@ -103,6 +102,7 @@ export declare class AssessmentBuilderService {
                         createdByCompanyMemberId: string | null;
                         publishedById: string | null;
                         categoryId: string | null;
+                        version: number;
                         usageCount: number;
                         successRate: number | null;
                     };

@@ -62,27 +62,6 @@ export async function addResumeProcessingJob(data, options) {
         ...DEFAULT_RESUME_JOB_OPTIONS,
         jobId
     });
-    // Diagnostic runtime inspection
-    try {
-        const jobState = await job.getState();
-        const counts = await queue.getJobCounts('waiting', 'active', 'delayed', 'failed', 'completed');
-        const retrievedJob = await queue.getJob(job.id);
-        logger.info({
-            event: "JOB_ENQUEUED_DIAGNOSTIC",
-            jobId: job.id,
-            queueName: queue.name,
-            redisHost: env.redis.host,
-            redisPort: env.redis.port,
-            jobState,
-            attemptsMade: job.attemptsMade,
-            delay: job.opts.delay ?? 0,
-            existsInQueue: Boolean(retrievedJob),
-            queueCounts: counts
-        }, `[ResumeProcessingQueue] Job "${job.id}" enqueued in queue "${queue.name}" (State: "${jobState}")`);
-    }
-    catch (diagError) {
-        logger.warn({ err: diagError }, "[ResumeProcessingQueue] Diagnostic logging failed (non-fatal)");
-    }
     return job;
 }
 // Closes the Resume Processing Queue connection cleanly.

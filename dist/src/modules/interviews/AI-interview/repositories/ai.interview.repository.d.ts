@@ -120,9 +120,9 @@ export declare class AIInterviewQuestionsRepository {
         status: import("@prisma/client").$Enums.InterviewSessionStatus;
         createdAt: Date;
         updatedAt: Date;
+        scheduledAt: Date;
         interviewId: string;
         startedAt: Date | null;
-        scheduledAt: Date;
         endedAt: Date | null;
         roomId: string | null;
     })[]>;
@@ -131,9 +131,9 @@ export declare class AIInterviewQuestionsRepository {
         status: import("@prisma/client").$Enums.InterviewSessionStatus;
         createdAt: Date;
         updatedAt: Date;
+        scheduledAt: Date;
         interviewId: string;
         startedAt: Date | null;
-        scheduledAt: Date;
         endedAt: Date | null;
         roomId: string | null;
     }>;
