@@ -1,9 +1,12 @@
 import { Resend } from 'resend';
+import { AgentMailClient } from 'agentmail';
 import { env } from "../../config/env.js";
 import type { EmailOptions } from "./email.types.js";
 
 export class EmailService {
     private static resend = new Resend(env.resend.apiKey);
+    private static agentMailClient = new AgentMailClient({ apiKey: env.agentMail.apiKey });
+    private static agentMailInboxId: string | null = null;
 
     static async sendEmail(
         options: EmailOptions
@@ -15,6 +18,23 @@ export class EmailService {
             headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
         }
 
+        if (!this.agentMailInboxId) {
+            const response = await this.agentMailClient.inboxes.list();
+            const inboxes = response.inboxes || [];
+            if (inboxes.length > 0 && inboxes[0]) {
+                this.agentMailInboxId = inboxes[0].inboxId;
+            } else {
+                throw new Error("No agentmail inbox found for this account.");
+            }
+        }
+
+        await this.agentMailClient.inboxes.messages.send(this.agentMailInboxId, {
+            to: Array.isArray(options.to) ? options.to : [options.to],
+            subject: options.subject,
+            text: options.text || options.html || '', // AgentMail requires text if html is not supported, we'll try just passing text or html
+        });
+
+        /*
         await this.resend.emails.send({
             from: options.from || 'TalentForge <onboarding@resend.dev>',
             replyTo: options.replyTo || 'TalentForge Support <onboarding@resend.dev>',
@@ -24,5 +44,6 @@ export class EmailService {
             ...(options.text && { text: options.text }),
             headers: headers
         });
+        */
     }
 }

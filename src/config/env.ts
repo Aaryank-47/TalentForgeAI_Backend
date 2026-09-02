@@ -38,6 +38,7 @@ const envSchema = z.object({
     RESUME_JOB_ATTEMPTS: z.coerce.number().default(3),
     RESUME_JOB_BACKOFF_DELAY_MS: z.coerce.number().default(5000),
     RESEND_API_KEY: z.string().min(1),
+    AGENT_MAIL_API_KEY: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -102,6 +103,9 @@ export const env = {
     },
     resend: {
         apiKey: parsedEnv.data.RESEND_API_KEY,
+    },
+    agentMail: {
+        apiKey: parsedEnv.data.AGENT_MAIL_API_KEY,
     }
 } as const;
 
