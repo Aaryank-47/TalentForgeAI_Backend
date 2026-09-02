@@ -1,21 +1,13 @@
-import nodemailer from "nodemailer";
+import { Resend } from 'resend';
 import { env } from "../../config/env.js";
 import type { EmailOptions } from "./email.types.js";
 
 export class EmailService {
-    private static transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: env.gmail.user,
-            pass: env.gmail.pass
-        }
-    })
+    private static resend = new Resend(env.resend.apiKey);
 
     static async sendEmail(
         options: EmailOptions
     ): Promise<void> {
-        const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@talentforge.com>`;
-        
         const headers: Record<string, string> = {};
         
         if (options.unsubscribeLink) {
@@ -23,16 +15,14 @@ export class EmailService {
             headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
         }
 
-        await this.transporter.sendMail({
-            from: options.from || `"TalentForge" <${env.gmail.user}>`,
-            replyTo: options.replyTo || `"TalentForge Support" <${env.gmail.user}>`,
-            to: options.to,
+        await this.resend.emails.send({
+            from: options.from || 'TalentForge <onboarding@resend.dev>',
+            replyTo: options.replyTo || 'TalentForge Support <onboarding@resend.dev>',
+            to: Array.isArray(options.to) ? options.to : [options.to],
             subject: options.subject,
-            html: options.html,
-            text: options.text,
-            messageId: messageId,
-            date: new Date(),
+            html: options.html || '',
+            ...(options.text && { text: options.text }),
             headers: headers
-        })
+        });
     }
 }
