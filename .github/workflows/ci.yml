@@ -99,6 +99,7 @@ jobs:
           RESUME_WORKER_CONCURRENCY: "2"
           RESUME_JOB_ATTEMPTS: "3"
           RESUME_JOB_BACKOFF_DELAY_MS: "5000"
+          RESEND_API_KEY: "test_resend_api_key_12345"
 
       - name: Build TypeScript Application
         run: npm run build
