@@ -7,6 +7,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
+import { buildAuthTokens, getRefreshTokenExpiresAt } from "../../auth/utils/auth.utils.js";
 import { calculateProfileCompletion, omitUndefined } from "../utils/company.utils.js";
 import { CompanyMemberRole, UserRole, CompanyMemberStatus, CompanyStatus } from "@prisma/client";
 import { emailTemplates } from "../../../common/email/email.templates.js"
@@ -39,7 +40,9 @@ export class CompanyService {
     static async createCompany(
         dto: CreateCompanyDto,
         userId: string
-    ): Promise<CompanyView> {
+    ): Promise<{ company: CompanyView, tokens?: any }> {
+        console.log("dto :-----------------", dto);
+        console.log("userId :-----------------", userId);
         const user = await AuthRepository.findUserById(userId);
         if (!user) {
             throw new NotFoundError("Authenticated user not found.");
@@ -79,7 +82,21 @@ export class CompanyService {
             logger.error({ err, companyId: newCompany.id }, "[ES] Failed to index new company.");
         });
 
-        return newCompany;
+        let tokens = undefined;
+        if (user.role === UserRole.CANDIDATE) {
+            tokens = buildAuthTokens({
+                id: user.id,
+                email: user.email,
+                role: UserRole.EMPLOYER,
+            });
+            await AuthRepository.saveRefreshToken({
+                token: tokens.refreshToken,
+                userId: user.id,
+                expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+            });
+        }
+
+        return { company: newCompany, tokens };
     }
 
     static async getCompanyMetadata() {

@@ -25,12 +25,13 @@ export class CompanyController {
             const dto = req.body as CreateCompanyDto;
             const userId = req.user.id;
 
-            const company = await CompanyService.createCompany(dto, userId);
+            const result = await CompanyService.createCompany(dto, userId);
 
             res.status(HTTP_STATUS.CREATED).json({
                 success: true,
                 message: MESSAGE.COMPANY_CREATED,
-                data: company,
+                data: result.company,
+                tokens: result.tokens,
             });
         }
     );

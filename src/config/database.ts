@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import env from "./env.js";
+console.log("DB URL :----------------- ",env.databaseUrl);
 
 const pool = new Pool({
     connectionString: env.databaseUrl,
