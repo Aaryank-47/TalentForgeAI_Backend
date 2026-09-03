@@ -438,12 +438,20 @@ export class CandidateRepository {
         userId: string,
         data: { fullName: string; phoneNumber?: string; headline?: string }
     ): Promise<CandidateProfileView> {
-        return prisma.candidate.create({
-            data: {
+        return prisma.candidate.upsert({
+            where: { userId },
+            update: {
+                fullName: data.fullName,
+                phoneNumber: data.phoneNumber ?? null,
+                headline: data.headline ?? null,
+                profileCompletion: 10,
+            },
+            create: {
                 userId,
                 fullName: data.fullName,
                 phoneNumber: data.phoneNumber ?? null,
                 headline: data.headline ?? null,
+                profileCompletion: 10,
             },
             select: candidateProfileSelect,
         });
