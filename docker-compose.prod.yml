@@ -12,6 +12,8 @@ services:
       - "3000:3000"
     env_file:
       - .env.production
+    environment:
+      - REDIS_FALLBACK_URLS=${REDIS_FALLBACK_URLS}
     networks:
       - talentforge-network
 

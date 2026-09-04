@@ -96,6 +96,7 @@ jobs:
           OPENROUTER_TIMEOUT_MS: "30000"
           REDIS_HOST: localhost
           REDIS_PORT: "6379"
+          REDIS_FALLBACK_URLS: ${{ secrets.REDIS_FALLBACK_URLS }}
           RESUME_WORKER_CONCURRENCY: "2"
           RESUME_JOB_ATTEMPTS: "3"
           RESUME_JOB_BACKOFF_DELAY_MS: "5000"
