@@ -536,7 +536,7 @@ export class QuestionRepository {
                     data: {
                         questionId: question.id,
                         starterCode: dto.dsaDetail.starterCode,
-                        referenceSolution: dto.dsaDetail.referenceSolution,
+                        referenceSolution: dto.dsaDetail.referenceSolution || "",
                         memoryLimit: dto.dsaDetail.memoryLimit,
                         timeLimit: dto.dsaDetail.timeLimit,
                     }
@@ -668,7 +668,7 @@ export class QuestionRepository {
                     data: {
                         questionId: id,
                         starterCode: dto.dsaDetail.starterCode,
-                        referenceSolution: dto.dsaDetail.referenceSolution,
+                        referenceSolution: dto.dsaDetail.referenceSolution ?? "",
                         memoryLimit: dto.dsaDetail.memoryLimit,
                         timeLimit: dto.dsaDetail.timeLimit,
                     }
