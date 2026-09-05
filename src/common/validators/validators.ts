@@ -817,7 +817,7 @@ export const mcqOptionIsCorrectValidator = z.boolean();
 export const dsaDetailIdValidator = uuidValidator;
 export const dsaDetailQuestionIdValidator = uuidValidator;
 export const dsaStarterCodeValidator = z.string();
-export const dsaReferenceSolutionValidator = z.string();
+export const dsaReferenceSolutionValidator = z.string().optional().nullable();
 export const dsaMemoryLimitValidator = z
   .number()
   .int("Memory limit must be an integer")
