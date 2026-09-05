@@ -206,15 +206,25 @@ export class AuthService {
     static async newRefreshToken(
         refreshToken: string
     ):Promise<AuthTokens> {
-        const verifiedToken = JwtHelper.verifyRefreshToken(refreshToken);
+        if (!refreshToken) {
+            throw new UnauthorizedError("Refresh token is required.");
+        }
+
+        let verifiedToken;
+        try {
+            verifiedToken = JwtHelper.verifyRefreshToken(refreshToken);
+        } catch (error) {
+            throw new UnauthorizedError("Invalid or expired refresh token.");
+        }
+
         if(!verifiedToken) {
-            throw new ConflictError("Invalid refresh token.");
+            throw new UnauthorizedError("Invalid refresh token.");
         }
 
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
         // console.log("storedToken", storedToken);
         if(!storedToken) {
-            throw new ConflictError("Refresh token not found.");
+            throw new UnauthorizedError("Refresh token not found.");
         }
 
         if(storedToken.expiresAt < new Date()){
@@ -223,7 +233,7 @@ export class AuthService {
 
         const user = await AuthRepository.findUserById(storedToken.userId);
         if(!user) {
-            throw new ConflictError("User not found.");
+            throw new UnauthorizedError("User not found.");
         }
 
         await AuthRepository.deleteRefreshToken(refreshToken);
