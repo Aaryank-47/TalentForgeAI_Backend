@@ -4,7 +4,7 @@ import { JobAssignmentsController } from "../controller/jobAssignments.controlle
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorizedCompanyMember } from "../../../common/middleware/allowCompanyRoles.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
-import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany .Middleware.js"
+import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany.Middleware.js"
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
 import { ensureCandidateProfile } from "../../../common/middleware/ensureCandidateProfile.middleware.js";
@@ -52,13 +52,13 @@ router.get(
 router.post(
     "/company/:companyId/job",
     authMiddleware,
-    authorize("EMPLOYER","ADMIN"),
+    authorize("EMPLOYER", "ADMIN"),
     validate(CompanyDto.companyIdParam, "params"),
     validate(JobsDto.createJob, "body"),
     ensureActiveCompany,
     ensureVerifiedCompany,
     loadCompanyMembership,
-    authorizedCompanyMember("HIRING_MANAGER","RECRUITER","OWNER"),
+    authorizedCompanyMember("HIRING_MANAGER", "RECRUITER", "OWNER"),
     JobController.createJob
 );
 
@@ -83,7 +83,7 @@ router.get(
 router.patch(
     "/company/:companyId/job/:jobId/update",
     authMiddleware,
-    authorize("EMPLOYER","ADMIN"),
+    authorize("EMPLOYER", "ADMIN"),
     validate(JobsDto.jobDetailsParam, "params"),
     validate(JobsDto.updateJob, "body"),
     ensureActiveCompany,
@@ -96,7 +96,7 @@ router.patch(
 router.patch(
     "/company/:companyId/job/:jobId/status",
     authMiddleware,
-    authorize("EMPLOYER","ADMIN"),
+    authorize("EMPLOYER", "ADMIN"),
     validate(JobsDto.jobDetailsParam, "params"),
     validate(JobsDto.statusUpdate, "body"),
     ensureActiveCompany,

@@ -7,7 +7,7 @@ import { CompanyController } from "../controller/company.controller.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
 import { authorizedCompanyMember } from "../../../common/middleware/allowCompanyRoles.middleware.js";
 import { uploadSingleFile } from "../../../common/uploads/index.js";
-import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany .Middleware.js";
+import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany.Middleware.js";
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 import { ensureActiveCompanyMember } from "../../../common/middleware/ensureActiveCompanyMember.middleware.js";
 
