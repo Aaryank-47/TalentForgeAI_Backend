@@ -423,6 +423,11 @@ export class InterviewSessionsRepositories {
                                             include: {
                                                 skills: true
                                             }
+                                        },
+                                        candidate: {
+                                            include: {
+                                                user: true
+                                            }
                                         }
                                     }
                                 }
