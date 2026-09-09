@@ -28,7 +28,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: env.app.frontendUrl,
+    origin: [env.app.frontendUrl, env.app.frontendUrlTwo],
     credentials: true
   }
 });
