@@ -273,4 +273,30 @@ export class emailTemplates {
             unsubscribeLink
         };
     };
+
+    static companyVerifiedTemplate = (
+        companyName: string,
+        ownerName: string
+    ): EmailTemplate => {
+        const unsubscribeLink = `${this.baseUnsubscribeLink}?type=updates`;
+        return {
+            subject: `Your Company ${companyName} is Verified!`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #28a745; padding: 20px; text-align: center;">
+                        <h2 style="color: #ffffff; margin: 0; font-size: 24px;">TalentForge</h2>
+                    </div>
+                    <div style="padding: 30px;">
+                        <h1 style="font-size: 22px; color: #333; margin-top: 0;">Company Verified</h1>
+                        <p style="font-size: 16px;">Hello ${ownerName},</p>
+                        <p style="font-size: 16px;">Great news! Your company profile for <strong>${companyName}</strong> has been successfully verified.</p>
+                        <p style="font-size: 16px;">You can now access all features.</p>
+                    </div>
+                    ${this.getFooterHtml(unsubscribeLink)}
+                </div>
+            `,
+            text: `Hello ${ownerName},\n\nGreat news! Your company profile for ${companyName} has been successfully verified. You can now access all features.${this.getFooterText(unsubscribeLink)}`,
+            unsubscribeLink
+        };
+    };
 }

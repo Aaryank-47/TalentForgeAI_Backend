@@ -206,6 +206,19 @@ export class CompanyRepository {
         });
     }
 
+    static async getCompanyOwner(
+        companyId: string
+    ): Promise<CompanyMemberDetails | null> {
+        return prisma.companyMember.findFirst({
+            where: {
+                companyId,
+                role: CompanyMemberRole.OWNER
+            },
+            select: companyMemberSelect
+        });
+    }
+
+
     static async deleteCompany(
         companyId: string,
         userId: string

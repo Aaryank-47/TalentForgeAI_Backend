@@ -14,7 +14,6 @@ export const ensureCandidateProfile = async (
             throw new UnauthorizedError("Unauthorized access.");
         }
 
-        // Check if candidate profile exists for user
         const candidate = await prisma.candidate.findUnique({
             where: { userId: user.id },
             select: {

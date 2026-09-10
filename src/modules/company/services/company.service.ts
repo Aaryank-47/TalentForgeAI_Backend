@@ -706,6 +706,15 @@ export class CompanyService {
             verifiedBy
         );
 
+        const owner = await CompanyRepository.getCompanyOwner(companyId);
+        if (owner && owner.user?.email) {
+            const ownerName = owner.user.employer?.fullName || owner.user.candidate?.fullName || owner.user.email.split('@')[0] || 'Owner';
+            const template = emailTemplates.companyVerifiedTemplate(company.companyName, ownerName);
+            EmailService.sendEmail({ to: owner.user.email, ...template }).catch(err => {
+                logger.error({ err, companyId }, "[Email] Failed to send company verified email.");
+            });
+        }
+
         ElasticsearchService.indexCompany(toCompanySearchView(verified)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to index verified company.");
         });

@@ -23,7 +23,7 @@ const registerRoutes = (router: Router, prefix: string) => {
     router.post(
         `${prefix}`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.EMPLOYER,UserRole.ADMIN, UserRole.SUPER_ADMIN),
         validate(QuestionCategoryDto.createCategory, "body"),
         QuestionController.createCategory
     );
@@ -45,7 +45,7 @@ const registerRoutes = (router: Router, prefix: string) => {
     router.patch(
         `${prefix}/:categoryId`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(QuestionCategoryDto.categoryIdParams, "params"),
         validate(QuestionCategoryDto.updateCategory, "body"),
         QuestionController.updateCategory
@@ -54,7 +54,7 @@ const registerRoutes = (router: Router, prefix: string) => {
     router.delete(
         `${prefix}/:categoryId`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(QuestionCategoryDto.categoryIdParams, "params"),
         QuestionController.deleteCategory
     );
@@ -86,7 +86,7 @@ const registerTagRoutes = (router: Router, prefix: string) => {
     router.patch(
         `${prefix}/:id`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(QuestionTagDto.tagIdParams, "params"),
         validate(QuestionTagDto.updateTag, "body"),
         QuestionController.updateQuestionTag
@@ -127,7 +127,7 @@ const registerLanguageRoutes = (router: Router, prefix: string) => {
     router.patch(
         `${prefix}/:id`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(ProgrammingLanguageDto.languageIdParams, "params"),
         validate(ProgrammingLanguageDto.updateLanguage, "body"),
         QuestionController.updateProgrammingLanguage
@@ -146,7 +146,7 @@ const registerSupportedLanguageRoutes = (router: Router, prefix: string) => {
     router.post(
         `${prefix}`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(DSASupportedLanguageDto.createSupportedLanguages, "body"),
         QuestionController.createSupportedLanguages
     );
@@ -154,7 +154,7 @@ const registerSupportedLanguageRoutes = (router: Router, prefix: string) => {
     router.put(
         `${prefix}`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(DSASupportedLanguageDto.createSupportedLanguages, "body"),
         QuestionController.syncSupportedLanguages
     );
@@ -162,7 +162,7 @@ const registerSupportedLanguageRoutes = (router: Router, prefix: string) => {
     router.delete(
         `${prefix}`,
         authMiddleware,
-        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+        authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER),
         validate(DSASupportedLanguageDto.deleteSupportedLanguages, "body"),
         QuestionController.deleteSupportedLanguages
     );
