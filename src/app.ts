@@ -18,7 +18,7 @@ import env from './config/env.js';
 const app: Application = express();
 
 app.use(cors({
-    origin: env.app.frontendUrl || 'http://localhost:5173',
+    origin: [env.app.frontendUrl, env.app.frontendUrlTwo, 'http://localhost:5173'].filter((url): url is string => !!url),
     credentials: true,
 }));
 app.use(helmet());

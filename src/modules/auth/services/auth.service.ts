@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
+import { randomBytes } from "node:crypto";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
-import type { RegisterCandidateDto, RegisterUserDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto } from "../dto/Candidate.dto.js";
+import type { RegisterCandidateDto, RegisterUserDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto, SendOtpLoginDto, VerifyOtpLoginDto } from "../dto/Candidate.dto.js";
 import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
 import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
@@ -20,6 +21,7 @@ import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
 import { getResetPasswordTokenExpiresAt} from "../utils/auth.utils.js"
 import { MESSAGE } from "../../../common/constants/messages.js";
+import { createRedisConnection } from "../../../common/queue/redis.config.js";
 
 
 
@@ -28,6 +30,7 @@ const isUniqueConstraintError = (error: unknown): boolean => {
 };
 
 export class AuthService {
+    private static redisClient = createRedisConnection();
     static async registerUser(
         payload: RegisterUserDto
     ): Promise<RegisterUserResult> {
@@ -600,5 +603,113 @@ export class AuthService {
             to: user.email,
             ...template
         });
+    }
+
+    static async sendOtpLogin(
+        payload: SendOtpLoginDto
+    ): Promise<void> {
+        const otp = genrateOTP();
+        const hashedOtp = await bcrypt.hash(otp, AUTH_CONSTANTS.OTP_HASH_SALT_ROUNDS);
+
+        await this.redisClient.setex(`auth:otp:${payload.email}`, 300, hashedOtp);
+        await this.redisClient.setex(`auth:otp_attempts:${payload.email}`, 300, "0");
+
+        let name = payload.email;
+        const existingUser = await AuthRepository.findUserByEmail(payload.email);
+        if (existingUser) {
+            const profile = await AuthRepository.findProfileByUserId(existingUser.id);
+            if (profile.profile && "fullName" in profile.profile) {
+                name = profile.profile.fullName;
+            }
+        }
+
+        const template = emailTemplates.verifyEmailOtpTemplate(otp, name);
+        await EmailService.sendEmail({
+            to: payload.email,
+            ...template
+        });
+    }
+
+    static async verifyOtpLogin(payload: VerifyOtpLoginDto): Promise<LoginResult> {
+        const attemptsKey = `auth:otp_attempts:${payload.email}`;
+        const otpKey = `auth:otp:${payload.email}`;
+
+        const attemptsStr = await this.redisClient.get(attemptsKey);
+        const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
+
+        if (attempts >= 5) {
+            throw new UnauthorizedError("Too many failed attempts. Please request a new OTP.");
+        }
+
+        const storedHashedOtp = await this.redisClient.get(otpKey);
+        if (!storedHashedOtp) {
+            throw new NotFoundError("OTP expired or not found. Please request a new OTP.");
+        }
+
+        const isOtpValid = await bcrypt.compare(payload.otp, storedHashedOtp);
+        if (!isOtpValid) {
+            await this.redisClient.incr(attemptsKey);
+            throw new UnauthorizedError("Invalid OTP. Please try again.");
+        }
+
+        await this.redisClient.del(otpKey);
+        await this.redisClient.del(attemptsKey);
+
+        let user = await AuthRepository.findLoginUserByEmail(payload.email);
+        
+        if (!user) {
+            const randomPassword = randomBytes(16).toString("hex");
+            const hashedPassword = await bcrypt.hash(randomPassword, AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS);
+            
+            await AuthRepository.createUserRegistration({
+                email: payload.email,
+                password: hashedPassword
+            });
+            user = await AuthRepository.findLoginUserByEmail(payload.email);
+            if (!user) throw new Error("Failed to retrieve created user.");
+        }
+
+        if (!user.isEmailVerified) {
+            await AuthRepository.markEmailVerified(user.id);
+            user.isEmailVerified = true;
+        }
+
+        if (user.status !== AccountStatus.ACTIVE) {
+             throw new ConflictError("Account is not active. Please contact support.");
+        }
+
+        const loggedInDevicesCount = await AuthRepository.calcLoggedinDevices(user.id);
+        if (loggedInDevicesCount >= AUTH_CONSTANTS.Device_Limit) {
+            throw new ConflictError(`You have reached the maximum number of logged-in devices (${AUTH_CONSTANTS.Device_Limit}). Please log out from another device before logging in again.`);
+        }
+
+        const tokens = buildAuthTokens({
+            id: user.id,
+            email: user.email,
+            role: user.role,
+        });
+
+        await AuthRepository.saveRefreshToken({
+            token: tokens.refreshToken,
+            userId: user.id,
+            expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+        });
+
+        await AuthRepository.updateUserLastLogin(user.id, new Date());
+
+        let profile: CandidateLoginProfileView | EmployerLoginProfileView | null = null;
+        if (user.candidate) {
+            profile = user.candidate as CandidateLoginProfileView;
+        } else if (user.employer) {
+            profile = user.employer as EmployerLoginProfileView;
+        }
+
+        const { password, ...authUser } = user;
+
+        return {
+            user: authUser,
+            profile,
+            tokens,
+        };
     }
 }

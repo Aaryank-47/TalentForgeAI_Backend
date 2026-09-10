@@ -102,6 +102,44 @@ export class AuthController {
         }
     );
 
+    static sendOtpLogin = asyncHandler(
+        async (req: Request, res: Response) => {
+            await AuthService.sendOtpLogin(req.body);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "OTP sent successfully. Please check your email.", null)
+            );
+        }
+    );
+
+    static verifyOtpLogin = asyncHandler(
+        async (req: Request, res: Response) => {
+            const login = await AuthService.verifyOtpLogin(req.body);
+
+            res.cookie("refreshToken", login.tokens.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+            res.cookie("accessToken", login.tokens.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            });
+            
+            const { tokens, ...loginWithoutTokens } = login;
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, {
+                    ...loginWithoutTokens,
+                    tokens,
+                })
+            );
+        }
+    );
+
     static logout = asyncHandler(
         async (req: Request, res: Response) =>{
             

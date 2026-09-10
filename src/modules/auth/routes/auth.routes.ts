@@ -52,6 +52,20 @@ router.post(
 );
 
 router.post(
+    "/otp/send",
+    loginRateLimiter,
+    validate(CandidateDto.sendOtpLogin, "body"),
+    AuthController.sendOtpLogin
+);
+
+router.post(
+    "/otp/verify",
+    loginRateLimiter,
+    validate(CandidateDto.verifyOtpLogin, "body"),
+    AuthController.verifyOtpLogin
+);
+
+router.post(
     "/new-refresh-token",
     AuthController.refreshToken
 );

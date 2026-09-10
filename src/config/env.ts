@@ -23,6 +23,7 @@ const envSchema = z.object({
     INVITATION_TOKEN_SECRET: z.string().min(1),
     INVITATION_TOKEN_EXPIRES_IN: z.string(),
     FRONTEND_URL: z.string(),
+    FRONTEND_URL_TWO: z.string().optional(),
     ELASTICSEARCH_URL: z.string().min(1).default("http://localhost:9200"),
     ELASTICSEARCH_USERNAME: z.string().optional(),
     ELASTICSEARCH_PASSWORD: z.string().optional(),
@@ -80,6 +81,7 @@ export const env = {
     },
     app: {
         frontendUrl: parsedEnv.data.FRONTEND_URL,
+        frontendUrlTwo: parsedEnv.data.FRONTEND_URL_TWO,
     },
     elasticsearch: {
         url: parsedEnv.data.ELASTICSEARCH_URL,
