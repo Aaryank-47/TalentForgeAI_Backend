@@ -200,6 +200,7 @@ export class AIInterviewFinalEvaluationService {
 
         const assignmentParticipant = session.participants?.find(p => p.assignment?.application?.job);
         const job = assignmentParticipant?.assignment?.application?.job || session.interview.jobInterviews[0]?.job;
+        const candidate = assignmentParticipant?.assignment?.application?.candidate;
 
         return {
             session: {
@@ -217,6 +218,11 @@ export class AIInterviewFinalEvaluationService {
                     id: job.id,
                     title: job.title,
                     companyId: job.companyId
+                } : null,
+                candidate: candidate ? {
+                    id: candidate.id,
+                    fullName: candidate.fullName,
+                    email: candidate.user?.email || "candidate@email.com"
                 } : null
             },
             questions: questions.map(q => ({

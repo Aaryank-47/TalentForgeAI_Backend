@@ -49,7 +49,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
@@ -145,8 +145,26 @@ jobs:
           echo "Verifying image manifest for $IMAGE_TAG"
           docker buildx imagetools inspect "$IMAGE_TAG"
 
+  deploy:
+    name: Deploy Backend
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+    concurrency:
+      group: production-deployment
+      cancel-in-progress: false
+
+    environment:
+      name: production
+      url: https://talentforgeai-backend-uqrt.onrender.com
+
+    steps:
       - name: Deploy to Render
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: curl -sSf -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null
+        run: |
+          curl --fail --silent --show-error \
+            --request POST \
+            "$RENDER_DEPLOY_HOOK_URL"
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
