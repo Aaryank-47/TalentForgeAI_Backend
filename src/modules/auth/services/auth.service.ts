@@ -19,7 +19,7 @@ import type { LogoutAllDevicesDto } from "../dto/Candidate.dto.js";
 import type { ProfileResult } from "../interfaces/auth.interface.js";
 import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
-import { getResetPasswordTokenExpiresAt} from "../utils/auth.utils.js"
+import { getResetPasswordTokenExpiresAt } from "../utils/auth.utils.js"
 import { MESSAGE } from "../../../common/constants/messages.js";
 import { createRedisConnection } from "../../../common/queue/redis.config.js";
 
@@ -208,7 +208,7 @@ export class AuthService {
 
     static async newRefreshToken(
         refreshToken: string
-    ):Promise<AuthTokens> {
+    ): Promise<AuthTokens> {
         if (!refreshToken) {
             throw new UnauthorizedError("Refresh token is required.");
         }
@@ -220,22 +220,23 @@ export class AuthService {
             throw new UnauthorizedError("Invalid or expired refresh token.");
         }
 
-        if(!verifiedToken) {
+        if (!verifiedToken) {
             throw new UnauthorizedError("Invalid refresh token.");
         }
 
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
-        // console.log("storedToken", storedToken);
-        if(!storedToken) {
+        console.log("Stored Token 1 : " + storedToken)
+        console.log("storedToken?.token 2 : " + storedToken?.token);
+        if (!storedToken) {
             throw new UnauthorizedError("Refresh token not found.");
         }
 
-        if(storedToken.expiresAt < new Date()){
+        if (storedToken.expiresAt < new Date()) {
             throw new UnauthorizedError("Refresh token has expired.");
         }
 
         const user = await AuthRepository.findUserById(storedToken.userId);
-        if(!user) {
+        if (!user) {
             throw new UnauthorizedError("User not found.");
         }
 
@@ -261,9 +262,9 @@ export class AuthService {
 
     static async logout(
         refreshToken: string
-    ):Promise<void>{
+    ): Promise<void> {
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
-        if(!storedToken){
+        if (!storedToken) {
             throw new ConflictError("Refresh token not found.");
         }
         await AuthRepository.deleteRefreshToken(refreshToken);
@@ -285,9 +286,9 @@ export class AuthService {
 
     static async logoutAllDevicesByEmail(
         payload: LogoutAllDevicesDto
-    ):Promise<void>{
+    ): Promise<void> {
         const user = await AuthRepository.findLoginUserByEmail(payload.email);
-        if(!user){
+        if (!user) {
             throw new NotFoundError("User not found.");
         }
 
@@ -298,7 +299,7 @@ export class AuthService {
         }
 
         await AuthRepository.deleteAllRefreshTokensForUser(user.id);
-        return; 
+        return;
     }
 
     static async getMe(
@@ -344,18 +345,18 @@ export class AuthService {
         await AuthRepository.updateUserPassword(userId, hashedPassword);
         await AuthRepository.deleteAllRefreshTokensForUser(user.id);
 
-        return; 
+        return;
     }
-    
+
 
     static async forgotPassword(
         email: string
-    ):Promise<void>{
+    ): Promise<void> {
         const user = await AuthRepository.findUserByEmail(email);
-        if(!user){
+        if (!user) {
             throw new NotFoundError("User not found.");
         }
-        
+
         const otp = genrateOTP();
         console.log("Generated OTP:", otp);
         const hashOtp = await bcrypt.hash(
@@ -381,26 +382,26 @@ export class AuthService {
 
     static async verifyOtp(
         payload: VerifyOtpDto
-    ):Promise<string>{
+    ): Promise<string> {
         const user = await AuthRepository.findUserByEmail(payload.email);
-        if(!user){
+        if (!user) {
             throw new NotFoundError("User not found.");
         }
 
         const storedOtp = await AuthRepository.findOTPByUserId(user.id);
-        if(!storedOtp?.otp || !storedOtp?.otpExpiresAt) {
+        if (!storedOtp?.otp || !storedOtp?.otpExpiresAt) {
             throw new NotFoundError("OTP not found. Please request a new OTP.");
         }
 
-        if(storedOtp.otpExpiresAt < new Date()){
+        if (storedOtp.otpExpiresAt < new Date()) {
             await AuthRepository.deleteOtpForUser(user.id);
             throw new UnauthorizedError("OTP has expired. Please request a new OTP.");
         }
 
         const isOtpValid = await bcrypt.compare(payload.otp, storedOtp.otp);
-        if(!isOtpValid){
+        if (!isOtpValid) {
             throw new UnauthorizedError("Invalid OTP. Please try again.");
-        }   
+        }
 
         await AuthRepository.deleteOtpForUser(user.id);
 
@@ -409,7 +410,7 @@ export class AuthService {
             email: user.email,
             role: user.role
         });
-        
+
         await AuthRepository.saveResetPasswordToken(
             user.id,
             resetPasswordToken,
@@ -423,18 +424,18 @@ export class AuthService {
     static async resetPassword(
         resetPasswordToken: string,
         newPassword: string
-    ):Promise<void>{
+    ): Promise<void> {
         const decodedToken = JwtHelper.verifyResetPasswordToken(resetPasswordToken);
-        if(!decodedToken){
+        if (!decodedToken) {
             throw new UnauthorizedError("Invalid reset password token.");
         }
 
         const storedToken = await AuthRepository.findResetPasswordTokenByUserId(decodedToken.id);
-        if(!storedToken || storedToken.resetPasswordToken !== resetPasswordToken){
+        if (!storedToken || storedToken.resetPasswordToken !== resetPasswordToken) {
             throw new UnauthorizedError("Reset password token not found.");
         }
 
-        if(getResetPasswordTokenExpiresAt(resetPasswordToken) < new Date()){
+        if (getResetPasswordTokenExpiresAt(resetPasswordToken) < new Date()) {
             await AuthRepository.deleteResetPasswordTokenForUser(decodedToken.id);
             throw new UnauthorizedError("Reset password token has expired.");
         }
@@ -447,7 +448,7 @@ export class AuthService {
         await AuthRepository.updateUserPassword(decodedToken.id, hanshNewPassword);
         await AuthRepository.deleteResetPasswordTokenForUser(decodedToken.id);
         await AuthRepository.deleteAllRefreshTokensForUser(decodedToken.id);
-        
+
         return;
     }
 
@@ -659,11 +660,11 @@ export class AuthService {
         await this.redisClient.del(attemptsKey);
 
         let user = await AuthRepository.findLoginUserByEmail(payload.email);
-        
+
         if (!user) {
             const randomPassword = randomBytes(16).toString("hex");
             const hashedPassword = await bcrypt.hash(randomPassword, AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS);
-            
+
             await AuthRepository.createUserRegistration({
                 email: payload.email,
                 password: hashedPassword
@@ -678,7 +679,7 @@ export class AuthService {
         }
 
         if (user.status !== AccountStatus.ACTIVE) {
-             throw new ConflictError("Account is not active. Please contact support.");
+            throw new ConflictError("Account is not active. Please contact support.");
         }
 
         const loggedInDevicesCount = await AuthRepository.calcLoggedinDevices(user.id);
