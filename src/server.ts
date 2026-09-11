@@ -36,25 +36,41 @@ initializeInterviewSocket(io);
 initializeResumeSocket(io);
 
 async function startServer() {
+  console.log("[Startup] Starting server...");
+
+  console.log("[Startup] Connecting to PostgreSQL...");
   await connectDatabase();
+  console.log("[Startup] PostgreSQL connected.");
 
+  console.log("[Startup] Ensuring Elasticsearch index...");
   await ElasticsearchService.ensureIndex();
+  console.log("[Startup] Elasticsearch index ready.");
+
+  console.log("[Startup] Ensuring matching Elasticsearch indices...");
   await MatchingElasticsearchService.ensureIndices();
+  console.log("[Startup] Matching Elasticsearch indices ready.");
 
-  // Initialize Background Workers
+  console.log("[Startup] Initializing resume worker...");
   initResumeProcessingWorker();
-  initMatchingWorker();
+  console.log("[Startup] Resume worker initialized.");
 
-  // Explicitly initialize AI Interview Timeout Worker with AI Socket.IO namespace
+  console.log("[Startup] Initializing matching worker...");
+  initMatchingWorker();
+  console.log("[Startup] Matching worker initialized.");
+
+  console.log("[Startup] Starting AI interview worker...");
   const aiNamespace = io.of("/interviews/ai") as unknown as Server;
   AIInterviewTimeoutWorker.startWorker(aiNamespace);
+  console.log("[Startup] AI interview worker initialized.");
 
-  // Initialize Interview Auto-Expiry Background Scheduler (runs every 60s)
+  console.log("[Startup] Starting interview expiry scheduler...");
   InterviewSessionsServices.initAutoExpiryScheduler();
+  console.log("[Startup] Interview expiry scheduler initialized.");
 
-  // Start the HTTP + Socket.IO server
-  httpServer.listen(port, () => { 
-    console.log(`Server is running on port http://localhost:${port}`);
+  console.log(`[Startup] Starting HTTP server on port ${port}...`);
+
+  httpServer.listen(port, "0.0.0.0", () => {
+    console.log(`[Startup] HTTP server listening on port ${port}`);
   });
 }
 
