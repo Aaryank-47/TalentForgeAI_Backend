@@ -195,7 +195,7 @@ export class AuthController {
     static refreshToken = asyncHandler(
         async(req: Request, res: Response) =>{
             const refreshToken = await AuthService.newRefreshToken(req.cookies.refreshToken);
-            console.log("Refresh token from backend inside controller : ", refreshToken);
+            // console.log("Refresh token from backend inside controller : ", refreshToken);
 
             res.cookie("refreshToken", refreshToken.refreshToken, {
                 httpOnly: true,

@@ -224,12 +224,8 @@ export class AuthService {
             throw new UnauthorizedError("Invalid refresh token.");
         }
 
-        console.log("Refresh Token from New Refresh Token : ", refreshToken);
-        console.log("Verified Token from New Refresh Token : ", verifiedToken);
-
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
-        console.log("Stored Token 1 : " + storedToken)
-        console.log("storedToken?.token 2 : " + storedToken?.token);
+
         if (!storedToken) {
             throw new UnauthorizedError("Refresh token not found.");
         }
@@ -251,7 +247,6 @@ export class AuthService {
             role: user.role
         });
 
-        console.log("Token inside service 1 : ", tokens);
 
         await AuthRepository.saveRefreshToken({
             token: tokens.refreshToken,
@@ -259,7 +254,6 @@ export class AuthService {
             expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
         });
 
-        console.log("Token inside service 2 : ", tokens);
         return tokens;
     }
 
