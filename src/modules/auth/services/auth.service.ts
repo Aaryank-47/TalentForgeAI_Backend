@@ -224,6 +224,9 @@ export class AuthService {
             throw new UnauthorizedError("Invalid refresh token.");
         }
 
+        console.log("Refresh Token from New Refresh Token : ", refreshToken);
+        console.log("Verified Token from New Refresh Token : ", verifiedToken);
+
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
         console.log("Stored Token 1 : " + storedToken)
         console.log("storedToken?.token 2 : " + storedToken?.token);
