@@ -247,12 +247,15 @@ export class AuthService {
             role: user.role
         });
 
+        console.log("Token inside service 1 : ", tokens);
+
         await AuthRepository.saveRefreshToken({
             token: tokens.refreshToken,
             userId: user.id,
             expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
         });
 
+        console.log("Token inside service 2 : ", tokens);
         return tokens;
     }
 
