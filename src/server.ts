@@ -33,7 +33,8 @@ const io = new Server(httpServer, {
   cors: {
     origin: [
       env.app.frontendUrl,
-      env.app.frontendUrlTwo
+      env.app.frontendUrlTwo,
+      'http://localhost:5173',
     ].filter((url): url is string => !!url),
     credentials: true
   }

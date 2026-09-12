@@ -235,6 +235,7 @@ export class AuthService {
 
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
         // console.log("storedToken", storedToken);
+
         if (!storedToken) {
             throw new UnauthorizedError("Refresh token not found.");
         }
@@ -255,6 +256,7 @@ export class AuthService {
             email: user.email,
             role: user.role
         });
+
 
         await AuthRepository.saveRefreshToken({
             token: tokens.refreshToken,
