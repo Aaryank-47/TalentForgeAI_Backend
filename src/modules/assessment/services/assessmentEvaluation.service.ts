@@ -181,7 +181,7 @@ export class AssessmentEvaluationService {
         }
 
         const question = sectionItem.question;
-        const maxMarks = sectionItem.marksOverride ?? question.defaultMarks;
+        const maxMarks = sectionItem.marksOverride ?? question.defaultMarks ?? 0;
 
         if (score > maxMarks) {
             throw new ValidationError(`Evaluation score cannot exceed maximum question marks (${maxMarks}).`);
@@ -252,7 +252,7 @@ export class MCQEvaluationService {
                 if (question.type !== "MCQ") continue;
 
                 totalQuestions++;
-                const questionMaxMarks = item.marksOverride ?? question.defaultMarks;
+                const questionMaxMarks = item.marksOverride ?? question.defaultMarks ?? 0;
                 totalMarks += questionMaxMarks;
 
                 const answer = attempt.answers.find(a => a.questionId === question.id);
@@ -314,7 +314,7 @@ export class DSAEvaluationService {
                 if (question.type !== "DSA") continue;
 
                 totalQuestions++;
-                const questionMaxMarks = item.marksOverride ?? question.defaultMarks;
+                const questionMaxMarks = item.marksOverride ?? question.defaultMarks ?? 0;
                 totalMarks += questionMaxMarks;
 
                 const answer = attempt.answers.find(a => a.questionId === question.id);
@@ -370,7 +370,7 @@ export class AssessmentResultService {
         // Calculate max total marks of the assessment
         for (const section of attempt.assessment.sections) {
             for (const item of section.items) {
-                totalMarks += item.marksOverride ?? item.question.defaultMarks;
+                totalMarks += item.marksOverride ?? item.question.defaultMarks ?? 0;
             }
         }
 

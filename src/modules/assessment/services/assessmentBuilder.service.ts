@@ -405,7 +405,6 @@ export class AssessmentBuilderService {
 
         const addedItems = await AssessmentBuilderRepository.addQuestionsToSection(
             sectionId,
-            section.assessment.companyId,
             section.sectionType,
             questions.map(q => ({
                 questionId: q.questionId,

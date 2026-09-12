@@ -172,8 +172,8 @@ export interface CreateQuestionInput {
   description: string;
   type: "MCQ" | "DSA" | "MACHINE_CODING" | "PROJECT";
   difficulty: "EASY" | "MEDIUM" | "HARD";
-  estimatedTime: number;
-  defaultMarks: number;
+  estimatedTime?: number | null;
+  defaultMarks?: number | null;
   ownership: "GLOBAL" | "COMPANY";
   categoryId?: string | null;
   tagIds?: string[];
@@ -189,8 +189,8 @@ export interface UpdateQuestionInput {
   title?: string;
   description?: string;
   difficulty?: "EASY" | "MEDIUM" | "HARD";
-  estimatedTime?: number;
-  defaultMarks?: number;
+  estimatedTime?: number | null;
+  defaultMarks?: number | null;
   categoryId?: string | null;
   tagIds?: string[];
 
@@ -209,7 +209,7 @@ export interface SectionQuestionItemView {
     id: string;
     title: string;
     difficulty: QuestionDifficulty;
-    defaultMarks: number;
+    defaultMarks: number | null;
   };
 }
 

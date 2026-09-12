@@ -24,11 +24,15 @@ export async function validateQuestionAccess(
         if (!question.companyId) {
             throw new ConflictError("Company question must have a company ID");
         }
-        const membership = await QuestionRepository.findCompanyMember(user.id, question.companyId);
-        if (!membership) {
-            throw new ForbiddenError("You do not have access to this company's questions");
+        if (action === "write") {
+            const membership = await QuestionRepository.findCompanyMember(user.id, question.companyId);
+            if (!membership) {
+                throw new ForbiddenError("You do not have access to modify this company's questions");
+            }
+            return membership.id;
         }
-        return membership.id;
+        // Reading questions is allowed for all authenticated users so questions across companies can be used in assessments
+        return null;
     }
     return null;
 }

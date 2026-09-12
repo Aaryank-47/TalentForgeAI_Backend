@@ -355,7 +355,6 @@ export class AssessmentBuilderRepository {
 
     static async addQuestionsToSection(
         sectionId: string,
-        companyId: string,
         sectionType: QuestionType,
         questions: {
             questionId: string;
@@ -363,7 +362,14 @@ export class AssessmentBuilderRepository {
             timeLimitOverride: number | null | undefined;
         }[]
     ) {
+        if (!questions || questions.length === 0) {
+            return [];
+        }
+
         return await prisma.$transaction(async (tx) => {
+            const questionIds = questions.map(q => q.questionId);
+
+            //  Get current max display order
             const maxItem = await tx.assessmentSectionItem.findFirst({
                 where: { sectionId },
                 orderBy: { displayOrder: "desc" },
@@ -371,41 +377,39 @@ export class AssessmentBuilderRepository {
             });
             let currentMaxOrder = maxItem?.displayOrder ?? 0;
 
+            // Batch fetch all questions in a single query
+            const foundQuestions = await tx.question.findMany({
+                where: {
+                    id: { in: questionIds },
+                    deletedAt: null
+                }
+            });
+            const questionMap = new Map(foundQuestions.map(q => [q.id, q]));
+
+            //  Batch fetch existing section items in a single query
+            const existingItems = await tx.assessmentSectionItem.findMany({
+                where: {
+                    sectionId,
+                    questionId: { in: questionIds }
+                },
+                select: { questionId: true }
+            });
+            const existingSet = new Set(existingItems.map(i => i.questionId));
+
             const createdItems = [];
 
             for (const questionInput of questions) {
-                const question = await tx.question.findFirst({
-                    where: {
-                        id: questionInput.questionId,
-                        deletedAt: null
-                    }
-                });
+                const question = questionMap.get(questionInput.questionId);
 
                 if (!question) {
                     throw new NotFoundError(`Question not found: ${questionInput.questionId}`);
                 }
 
-                // if (question.status !== "PUBLISHED") {
-                //     throw new ConflictError(`Question is not published: ${question.title}`);
-                // }
-
-                if (question.ownership === "COMPANY" && question.companyId !== companyId) {
-                    console.log("question : " + question.id + " title " + question.title);
-                    console.log(question.companyId + "----" + companyId)
-                    throw new ForbiddenError(`You do not have permission to access question: ${question.title}`);
-                }
                 if (question.type !== sectionType) {
                     throw new ConflictError(`Question type '${question.type}' does not match section type '${sectionType}': ${question.title}`);
                 }
 
-                const existingItem = await tx.assessmentSectionItem.findFirst({
-                    where: {
-                        sectionId,
-                        questionId: questionInput.questionId
-                    }
-                });
-
-                if (existingItem) {
+                if (existingSet.has(questionInput.questionId)) {
                     throw new ConflictError(`Question is already added to this section: ${question.title}`);
                 }
 
@@ -423,6 +427,9 @@ export class AssessmentBuilderRepository {
             }
 
             return createdItems;
+        }, {
+            timeout: 30000,
+            maxWait: 10000,
         });
     }
 
@@ -433,7 +440,7 @@ export class AssessmentBuilderRepository {
             id: string;
             title: string;
             difficulty: QuestionDifficulty;
-            defaultMarks: number;
+            defaultMarks: number | null;
         };
     })[]> {
         return await prisma.assessmentSectionItem.findMany({
