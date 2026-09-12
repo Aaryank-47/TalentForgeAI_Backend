@@ -137,7 +137,7 @@ export class AuthRepository {
     }
 
     static async findRefreshToken(token: string) {
-        return prisma.refreshToken.findUnique({
+        const refreshToken = await prisma.refreshToken.findUnique({
             where: { token },
             select: {
                 token: true,
@@ -145,6 +145,8 @@ export class AuthRepository {
                 expiresAt: true,
             }
         })
+        console.log("Token from findRefreshToken INSIDE AUTH REPOSITORY : ", refreshToken);
+        return refreshToken;
     }
 
     static async deleteRefreshToken(token: string) {
