@@ -172,26 +172,107 @@ HTTP Response
 
 ## Authentication & Authorization
 
-- **JWT Flow**: Uses short-lived Access Tokens (in-memory on frontend) and longer-lived Refresh Tokens (stored in DB and sent as HttpOnly cookies).
-- **Passwords**: Hashed using `bcrypt`.
-- **Middleware**: `authenticateUser` verifies the JWT. `authorizeRoles` checks the `UserRole` enum.
+TalentForge AI utilizes a state-of-the-art dual-token authentication architecture combining in-memory JWT Access Tokens with secure, HttpOnly, SameSite Refresh Token rotation.
+
+### 🔑 Key Concepts & Architecture
+
+1. **Dual-Token Strategy**:
+   - **Access Token**: Short-lived JWT signed with `JWT_ACCESS_SECRET`. Contains claims (`id`, `email`, `role`). Returned in JSON payloads and maintained **strictly in-memory** (Redux store) on the frontend to mitigate XSS vulnerabilities. Passed via `Authorization: Bearer <token>` headers.
+   - **Refresh Token**: Long-lived JWT signed with `JWT_REFRESH_SECRET`. Stored in PostgreSQL (`RefreshToken` table) with expiration timestamps (`expiresAt`) and device context. Transmitted exclusively via encrypted **`HttpOnly`**, **`SameSite`**, and **`Secure`** cookies (`refreshToken`).
+
+2. **Refresh Token Rotation**:
+   - Calling `/auth/new-refresh-token` validates the client cookie, deletes the old refresh token record from the database, issues a brand new Access Token and Refresh Token pair, updates the database, and sets new HttpOnly cookies.
+
+3. **Multi-Device & Session Management**:
+   - Enforces a default active session limit (e.g., maximum 3 active devices per account).
+   - If the active session limit is exceeded during login, authentication yields a `409 ConflictError`. Users can forcefully clear all device sessions via `/auth/logout/all-devices` or `/auth/otp/force-login`.
+
+4. **OTP / Passwordless & Email Verification**:
+   - **Passwordless Login**: OTPs generated with crypto-safe randomness, hashed with `bcrypt`, and stored in Redis with 5-minute TTL and attempt tracking (max 5 attempts).
+   - **Email Verification**: Mandatory verification flow using email OTPs powered by Resend/AgentMail.
+   - **Password Reset**: OTP verification yields a single-use JWT reset token for secure password updates.
+
+5. **Role-Based & Multi-Tenant Authorization**:
+   - **System Roles**: `CANDIDATE`, `EMPLOYER`, `ADMIN`, `SUPER_ADMIN`.
+   - **Company Sub-Roles**: `OWNER`, `ADMIN`, `RECRUITER`, `HIRING_MANAGER`.
+   - **Multi-Tenancy**: Requests inside company workspaces specify active scope via `x-company-id` header.
+
+### 🔄 Authentication Sequence Diagrams
+
+#### Login & Token Issuance Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Frontend SPA (Redux)
+    participant API as Backend Auth Router
+    participant Service as AuthService
+    participant Redis as Redis Store
+    participant DB as PostgreSQL (Prisma)
+
+    Client->>API: POST /api/v1/auth/login (email, password)
+    API->>Service: AuthService.login(payload)
+    Service->>DB: Find user by email
+    Service->>Service: Verify bcrypt password hash & account status
+    Service->>DB: Count active RefreshTokens (Device Limit Check)
+    alt Active sessions >= Limit
+        Service-->>Client: 409 Conflict (Device limit reached)
+    else Limit OK
+        Service->>Service: Generate Access Token & Refresh Token
+        Service->>DB: Save RefreshToken record
+        Service-->>API: Return User profile & Tokens
+        API-->>Client: 200 OK (Set HttpOnly Cookie + return JSON Access Token)
+        Note over Client: Store Access Token strictly in Redux memory
+    end
+```
+
+#### Silent Token Refresh & Rotation Flow
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Frontend apiClient.ts
+    participant API as Backend Auth Router
+    participant Service as AuthService
+    participant DB as PostgreSQL (Prisma)
+
+    Client->>API: API Request (Returns 401 Unauthorized)
+    Note over Client: Intercept 401 & execute single-flight executeRefreshToken()
+    Client->>API: POST /api/v1/auth/new-refresh-token (Cookie: refreshToken)
+    API->>Service: AuthService.newRefreshToken(cookieToken)
+    Service->>Service: Verify JWT signature & expiration
+    Service->>DB: Find & delete stored RefreshToken
+    Service->>Service: Build new Access Token & Refresh Token
+    Service->>DB: Save new RefreshToken record
+    API-->>Client: 200 OK (Set new HttpOnly Cookie + return JSON Access Token)
+    Note over Client: Update Redux store & retry queued failed requests
+```
 
 ---
 
-## API Documentation
+## Authentication Endpoints
 
-Base Path: `/api/v1`
+Base Path: `/api/v1/auth`
 
-*Example Endpoints (See Swagger/Postman for full list):*
-
-| Method | Endpoint | Role | Description |
-|--------|----------|------|-------------|
-| POST | `/auth/register` | Public | Register new user |
-| POST | `/auth/login` | Public | Authenticate user |
-| POST | `/auth/new-refresh-token` | Refresh Token | Issue new access token |
-| GET | `/companies/:id` | Public | Get company details |
-| POST | `/jobs` | EMPLOYER | Create a job posting |
-| GET | `/candidate/applications` | CANDIDATE | List candidate applications |
+| Method | Endpoint | Access Level | Description |
+|--------|----------|--------------|-------------|
+| POST | `/auth/register` | Public | Standard user registration |
+| POST | `/auth/register/candidate` | Public | Candidate account & profile registration |
+| POST | `/auth/register/employer` | Public | Employer account registration |
+| POST | `/auth/register/company-owner` | Public | Company owner & initial workspace creation |
+| POST | `/auth/login` | Public | Authenticate with email & password |
+| POST | `/auth/otp/send` | Public | Dispatch passwordless OTP to user email |
+| POST | `/auth/otp/verify` | Public | Verify login OTP and issue auth tokens |
+| POST | `/auth/otp/force-login` | Public | Verify OTP, purge prior device sessions & log in |
+| POST | `/auth/new-refresh-token` | HttpOnly Cookie | Rotate refresh token & issue new access token |
+| POST | `/auth/logout` | Public / Cookie | Revoke current session refresh token & clear cookies |
+| POST | `/auth/logout/all-devices` | Bearer Token | Revoke all active sessions for authenticated user |
+| POST | `/auth/deviceLimit/logout/all-devices` | Public | Revoke all active sessions by email & password verification |
+| GET | `/auth/me` | Bearer Token | Fetch authenticated user profile & workspace capabilities |
+| POST | `/auth/change/password` | Bearer Token | Change user password & invalidate existing sessions |
+| POST | `/auth/forgot/password` | Public | Trigger password reset OTP email |
+| POST | `/auth/verify/otp` | Public | Verify password reset OTP & return single-use reset token |
+| POST | `/auth/reset/password` | Public | Reset password using valid reset token |
+| POST | `/auth/verify-email` | Public | Confirm user email with verification OTP |
+| POST | `/auth/resend-verification` | Public | Resend email verification OTP |
 
 ---
 
