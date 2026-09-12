@@ -3,7 +3,16 @@ import { Prisma } from "@prisma/client";
 import { randomBytes } from "node:crypto";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
-import type { RegisterCandidateDto, RegisterUserDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto, SendOtpLoginDto, VerifyOtpLoginDto } from "../dto/Candidate.dto.js";
+import type {
+    RegisterCandidateDto,
+    RegisterUserDto,
+    VerifyOtpDto,
+    VerifyEmailDto,
+    ResendVerificationDto,
+    SendOtpLoginDto,
+    VerifyOtpLoginDto,
+    ForceOtpLoginDto
+} from "../dto/Candidate.dto.js";
 import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
 import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
@@ -225,6 +234,7 @@ export class AuthService {
         }
 
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
+        // console.log("storedToken", storedToken);
 
         if (!storedToken) {
             throw new UnauthorizedError("Refresh token not found.");
@@ -653,8 +663,9 @@ export class AuthService {
             throw new UnauthorizedError("Invalid OTP. Please try again.");
         }
 
-        await this.redisClient.del(otpKey);
-        await this.redisClient.del(attemptsKey);
+        // NOTE: OTP is intentionally NOT consumed here yet.
+        // It must survive until the device-limit check passes so that
+        // forceOtpLogin can re-use it if the user chooses to force-logout other devices.
 
         let user = await AuthRepository.findLoginUserByEmail(payload.email);
 
@@ -681,8 +692,13 @@ export class AuthService {
 
         const loggedInDevicesCount = await AuthRepository.calcLoggedinDevices(user.id);
         if (loggedInDevicesCount >= AUTH_CONSTANTS.Device_Limit) {
+            // OTP is still alive in Redis so forceOtpLogin can use it
             throw new ConflictError(`You have reached the maximum number of logged-in devices (${AUTH_CONSTANTS.Device_Limit}). Please log out from another device before logging in again.`);
         }
+
+        // All checks passed — consume the OTP now
+        await this.redisClient.del(otpKey);
+        await this.redisClient.del(attemptsKey);
 
         const tokens = buildAuthTokens({
             id: user.id,
@@ -712,5 +728,74 @@ export class AuthService {
             profile,
             tokens,
         };
+    }
+
+    /**
+     * Force-login via OTP: verifies OTP, logs out ALL existing sessions for the
+     * user, then issues fresh tokens for the current device.
+     * Used when the device-limit is reached and the user wants to sign in anyway.
+     */
+    static async forceOtpLogin(payload: ForceOtpLoginDto): Promise<LoginResult> {
+        const attemptsKey = `auth:otp_attempts:${payload.email}`;
+        const otpKey = `auth:otp:${payload.email}`;
+
+        const attemptsStr = await this.redisClient.get(attemptsKey);
+        const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
+
+        if (attempts >= 5) {
+            throw new UnauthorizedError("Too many failed attempts. Please request a new OTP.");
+        }
+
+        const storedHashedOtp = await this.redisClient.get(otpKey);
+        if (!storedHashedOtp) {
+            throw new NotFoundError("OTP expired or not found. Please request a new OTP.");
+        }
+
+        const isOtpValid = await bcrypt.compare(payload.otp, storedHashedOtp);
+        if (!isOtpValid) {
+            await this.redisClient.incr(attemptsKey);
+            throw new UnauthorizedError("Invalid OTP. Please try again.");
+        }
+
+        // OTP valid — consume it
+        await this.redisClient.del(otpKey);
+        await this.redisClient.del(attemptsKey);
+
+        let user = await AuthRepository.findLoginUserByEmail(payload.email);
+        if (!user) {
+            const randomPassword = randomBytes(16).toString("hex");
+            const hashedPassword = await bcrypt.hash(randomPassword, AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS);
+            await AuthRepository.createUserRegistration({ email: payload.email, password: hashedPassword });
+            user = await AuthRepository.findLoginUserByEmail(payload.email);
+            if (!user) throw new Error("Failed to retrieve created user.");
+        }
+
+        if (!user.isEmailVerified) {
+            await AuthRepository.markEmailVerified(user.id);
+            user.isEmailVerified = true;
+        }
+
+        if (user.status !== AccountStatus.ACTIVE) {
+            throw new ConflictError("Account is not active. Please contact support.");
+        }
+
+        // Force-logout all existing sessions before issuing new tokens
+        await AuthRepository.deleteAllRefreshTokensForUser(user.id);
+
+        const tokens = buildAuthTokens({ id: user.id, email: user.email, role: user.role });
+        await AuthRepository.saveRefreshToken({
+            token: tokens.refreshToken,
+            userId: user.id,
+            expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+        });
+
+        await AuthRepository.updateUserLastLogin(user.id, new Date());
+
+        let profile: CandidateLoginProfileView | EmployerLoginProfileView | null = null;
+        if (user.candidate) profile = user.candidate as CandidateLoginProfileView;
+        else if (user.employer) profile = user.employer as EmployerLoginProfileView;
+
+        const { password, ...authUser } = user;
+        return { user: authUser, profile, tokens };
     }
 }

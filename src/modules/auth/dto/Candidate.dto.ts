@@ -60,6 +60,11 @@ export class CandidateDto {
         email: emailValidator,
         otp: z.string().length(6, "OTP must be 6 digits"),
     });
+
+    static forceOtpLogin = z.object({
+        email: emailValidator,
+        otp: z.string().length(6, "OTP must be 6 digits"),
+    });
 }
 
 export type RegisterUserDto = z.infer<typeof CandidateDto.registerUser>;
@@ -74,3 +79,4 @@ export type VerifyEmailDto = z.infer<typeof CandidateDto.verifyEmail>;
 export type ResendVerificationDto = z.infer<typeof CandidateDto.resendVerification>;
 export type SendOtpLoginDto = z.infer<typeof CandidateDto.sendOtpLogin>;
 export type VerifyOtpLoginDto = z.infer<typeof CandidateDto.verifyOtpLogin>;
+export type ForceOtpLoginDto = z.infer<typeof CandidateDto.forceOtpLogin>;
