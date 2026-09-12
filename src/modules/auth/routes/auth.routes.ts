@@ -66,6 +66,13 @@ router.post(
 );
 
 router.post(
+    "/otp/force-login",
+    loginRateLimiter,
+    validate(CandidateDto.forceOtpLogin, "body"),
+    AuthController.forceOtpLogin
+);
+
+router.post(
     "/new-refresh-token",
     AuthController.refreshToken
 );
