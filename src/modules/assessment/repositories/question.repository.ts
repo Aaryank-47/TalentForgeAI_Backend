@@ -1,5 +1,10 @@
 import prisma from "../../../config/database.js";
-import type { Question, QuestionCategory, QuestionTag, ProgrammingLanguage } from "@prisma/client";
+import type { 
+    Question, 
+    QuestionCategory, 
+    QuestionTag, 
+    ProgrammingLanguage 
+} from "@prisma/client";
 import type {
     GetQuestionCategoriesDto,
     GetQuestionTagsDto,
@@ -494,8 +499,8 @@ export class QuestionRepository {
                     description: dto.description,
                     type: dto.type,
                     difficulty: dto.difficulty,
-                    estimatedTime: dto.estimatedTime,
-                    defaultMarks: dto.defaultMarks,
+                    estimatedTime: dto.estimatedTime ?? null,
+                    defaultMarks: dto.defaultMarks ?? null,
                     ownership: dto.ownership,
                     categoryId: dto.categoryId || null,
                     companyId: dto.companyId || null,

@@ -761,10 +761,14 @@ export const questionDifficultyValidator = z.nativeEnum(QuestionDifficulty);
 export const questionEstimatedTimeValidator = z
   .number()
   .int("Estimated time must be an integer")
-  .positive("Estimated time must be positive");
+  .positive("Estimated time must be positive")
+  .optional()
+  .nullable();
 export const questionDefaultMarksValidator = z
   .number()
-  .positive("Default marks must be positive");
+  .positive("Default marks must be positive")
+  .optional()
+  .nullable();
 export const questionOwnershipValidator = z.nativeEnum(QuestionOwnership);
 export const questionStatusValidator = z.nativeEnum(QuestionStatus);
 export const questionCodeValidator = z.string().trim().optional();

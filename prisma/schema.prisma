@@ -813,8 +813,8 @@ model Question {
   type       QuestionType
   difficulty QuestionDifficulty
 
-  estimatedTime Int
-  defaultMarks  Float
+  estimatedTime Int?
+  defaultMarks  Float?
 
   ownership QuestionOwnership
   status    QuestionStatus    @default(DRAFT)
