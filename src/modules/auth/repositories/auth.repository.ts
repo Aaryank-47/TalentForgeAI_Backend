@@ -145,7 +145,6 @@ export class AuthRepository {
                 expiresAt: true,
             }
         })
-        console.log("Token from findRefreshToken INSIDE AUTH REPOSITORY : ", refreshToken);
         return refreshToken;
     }
 
