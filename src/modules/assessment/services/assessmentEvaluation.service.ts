@@ -367,14 +367,12 @@ export class AssessmentResultService {
         let overallScore = 0;
         let totalMarks = 0;
 
-        // Calculate max total marks of the assessment
         for (const section of attempt.assessment.sections) {
             for (const item of section.items) {
                 totalMarks += item.marksOverride ?? item.question.defaultMarks ?? 0;
             }
         }
 
-        // Sum up answer scores
         for (const answer of attempt.answers) {
             overallScore += answer.score ?? 0;
         }
