@@ -6,7 +6,6 @@ export class SkillRepository {
 
     /**
      * Batch lookup for normalized aliases against SkillAlias database table.
-     * Prevents N+1 database queries by executing a single `IN` query.
      * @param normalizedAliases Array of lookup keys (e.g. ["reactjs", "nodejs", "k8s"])
      * @returns Map of normalizedAlias -> Skill model
      */
