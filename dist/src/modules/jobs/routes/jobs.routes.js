@@ -4,7 +4,7 @@ import { JobAssignmentsController } from "../controller/jobAssignments.controlle
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { authorizedCompanyMember } from "../../../common/middleware/allowCompanyRoles.middleware.js";
 import { authorize } from "../../../common/middleware/authorize.middleware.js";
-import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany .Middleware.js";
+import { ensureActiveCompany } from "../../../common/middleware/ensureActiveCompany.Middleware.js";
 import { ensureVerifiedCompany } from "../../../common/middleware/ensureVerifiedCompany.Middleware.js";
 import { loadCompanyMembership } from "../../../common/middleware/loadCompanyMembership.middleware.js";
 import { ensureCandidateProfile } from "../../../common/middleware/ensureCandidateProfile.middleware.js";

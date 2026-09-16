@@ -65,9 +65,9 @@ export declare class CandidateService {
             candidateId: string;
         }[];
         experiences: {
+            designation: string;
             companyName: string;
             description: string | null;
-            designation: string;
             currentlyWorking: boolean;
             employmentType: import("@prisma/client").$Enums.EmploymentType;
             location: string | null;
@@ -81,6 +81,7 @@ export declare class CandidateService {
     } & {
         fullName: string;
         phoneNumber: string | null;
+        profilePicture: string | null;
         linkedinUrl: string | null;
         currentLocation: string | null;
         githubUrl: string | null;
@@ -95,7 +96,6 @@ export declare class CandidateService {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        profilePicture: string | null;
         dateOfBirth: Date | null;
         gender: import("@prisma/client").$Enums.Gender | null;
         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;

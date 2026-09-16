@@ -328,4 +328,15 @@ export class AuthController {
             );
         }
     );
+
+    static updateEmployerProfile = asyncHandler(
+        async (req: Request, res: Response) => {
+            const userId = req.user?.id;
+            const result = await AuthService.updateEmployerProfile(userId, req.body);
+
+            res.status(HTTP_STATUS.OK).json(
+                new ApiResponse(true, "Employer profile updated successfully", result)
+            );
+        }
+    );
 }

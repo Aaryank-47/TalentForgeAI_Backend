@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
+import { randomBytes } from "node:crypto";
 import { ConflictError } from "../../../common/errors/ConflictError.js";
 import { AUTH_CONSTANTS } from "../constants/auth.constants.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
@@ -12,10 +13,12 @@ import { emailTemplates } from "../../../common/email/email.templates.js";
 import { EmailService } from "../../../common/email/email.service.js";
 import { getResetPasswordTokenExpiresAt } from "../utils/auth.utils.js";
 import { MESSAGE } from "../../../common/constants/messages.js";
+import { createRedisConnection } from "../../../common/queue/redis.config.js";
 const isUniqueConstraintError = (error) => {
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 };
 export class AuthService {
+    static redisClient = createRedisConnection();
     static async registerUser(payload) {
         const existingUser = await AuthRepository.findUserByEmail(payload.email);
         if (existingUser) {
@@ -146,21 +149,30 @@ export class AuthService {
         };
     }
     static async newRefreshToken(refreshToken) {
-        const verifiedToken = JwtHelper.verifyRefreshToken(refreshToken);
+        if (!refreshToken) {
+            throw new UnauthorizedError("Refresh token is required.");
+        }
+        let verifiedToken;
+        try {
+            verifiedToken = JwtHelper.verifyRefreshToken(refreshToken);
+        }
+        catch (error) {
+            throw new UnauthorizedError("Invalid or expired refresh token.");
+        }
         if (!verifiedToken) {
-            throw new ConflictError("Invalid refresh token.");
+            throw new UnauthorizedError("Invalid refresh token.");
         }
         const storedToken = await AuthRepository.findRefreshToken(refreshToken);
         // console.log("storedToken", storedToken);
         if (!storedToken) {
-            throw new ConflictError("Refresh token not found.");
+            throw new UnauthorizedError("Refresh token not found.");
         }
         if (storedToken.expiresAt < new Date()) {
             throw new UnauthorizedError("Refresh token has expired.");
         }
         const user = await AuthRepository.findUserById(storedToken.userId);
         if (!user) {
-            throw new ConflictError("User not found.");
+            throw new UnauthorizedError("User not found.");
         }
         await AuthRepository.deleteRefreshToken(refreshToken);
         const tokens = buildAuthTokens({
@@ -400,6 +412,163 @@ export class AuthService {
             to: user.email,
             ...template
         });
+    }
+    static async sendOtpLogin(payload) {
+        const otp = genrateOTP();
+        const hashedOtp = await bcrypt.hash(otp, AUTH_CONSTANTS.OTP_HASH_SALT_ROUNDS);
+        await this.redisClient.setex(`auth:otp:${payload.email}`, 300, hashedOtp);
+        await this.redisClient.setex(`auth:otp_attempts:${payload.email}`, 300, "0");
+        let name = payload.email;
+        const existingUser = await AuthRepository.findUserByEmail(payload.email);
+        if (existingUser) {
+            const profile = await AuthRepository.findProfileByUserId(existingUser.id);
+            if (profile.profile && "fullName" in profile.profile) {
+                name = profile.profile.fullName;
+            }
+        }
+        const template = emailTemplates.verifyEmailOtpTemplate(otp, name);
+        await EmailService.sendEmail({
+            to: payload.email,
+            ...template
+        });
+    }
+    static async verifyOtpLogin(payload) {
+        const attemptsKey = `auth:otp_attempts:${payload.email}`;
+        const otpKey = `auth:otp:${payload.email}`;
+        const attemptsStr = await this.redisClient.get(attemptsKey);
+        const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
+        if (attempts >= 5) {
+            throw new UnauthorizedError("Too many failed attempts. Please request a new OTP.");
+        }
+        const storedHashedOtp = await this.redisClient.get(otpKey);
+        if (!storedHashedOtp) {
+            throw new NotFoundError("OTP expired or not found. Please request a new OTP.");
+        }
+        const isOtpValid = await bcrypt.compare(payload.otp, storedHashedOtp);
+        if (!isOtpValid) {
+            await this.redisClient.incr(attemptsKey);
+            throw new UnauthorizedError("Invalid OTP. Please try again.");
+        }
+        // NOTE: OTP is intentionally NOT consumed here yet.
+        // It must survive until the device-limit check passes so that
+        // forceOtpLogin can re-use it if the user chooses to force-logout other devices.
+        let user = await AuthRepository.findLoginUserByEmail(payload.email);
+        if (!user) {
+            const randomPassword = randomBytes(16).toString("hex");
+            const hashedPassword = await bcrypt.hash(randomPassword, AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS);
+            await AuthRepository.createUserRegistration({
+                email: payload.email,
+                password: hashedPassword
+            });
+            user = await AuthRepository.findLoginUserByEmail(payload.email);
+            if (!user)
+                throw new Error("Failed to retrieve created user.");
+        }
+        if (!user.isEmailVerified) {
+            await AuthRepository.markEmailVerified(user.id);
+            user.isEmailVerified = true;
+        }
+        if (user.status !== AccountStatus.ACTIVE) {
+            throw new ConflictError("Account is not active. Please contact support.");
+        }
+        const loggedInDevicesCount = await AuthRepository.calcLoggedinDevices(user.id);
+        if (loggedInDevicesCount >= AUTH_CONSTANTS.Device_Limit) {
+            // OTP is still alive in Redis so forceOtpLogin can use it
+            throw new ConflictError(`You have reached the maximum number of logged-in devices (${AUTH_CONSTANTS.Device_Limit}). Please log out from another device before logging in again.`);
+        }
+        // All checks passed — consume the OTP now
+        await this.redisClient.del(otpKey);
+        await this.redisClient.del(attemptsKey);
+        const tokens = buildAuthTokens({
+            id: user.id,
+            email: user.email,
+            role: user.role,
+        });
+        await AuthRepository.saveRefreshToken({
+            token: tokens.refreshToken,
+            userId: user.id,
+            expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+        });
+        await AuthRepository.updateUserLastLogin(user.id, new Date());
+        let profile = null;
+        if (user.candidate) {
+            profile = user.candidate;
+        }
+        else if (user.employer) {
+            profile = user.employer;
+        }
+        const { password, ...authUser } = user;
+        return {
+            user: authUser,
+            profile,
+            tokens,
+        };
+    }
+    /**
+     * Force-login via OTP: verifies OTP, logs out ALL existing sessions for the
+     * user, then issues fresh tokens for the current device.
+     * Used when the device-limit is reached and the user wants to sign in anyway.
+     */
+    static async forceOtpLogin(payload) {
+        const attemptsKey = `auth:otp_attempts:${payload.email}`;
+        const otpKey = `auth:otp:${payload.email}`;
+        const attemptsStr = await this.redisClient.get(attemptsKey);
+        const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
+        if (attempts >= 5) {
+            throw new UnauthorizedError("Too many failed attempts. Please request a new OTP.");
+        }
+        const storedHashedOtp = await this.redisClient.get(otpKey);
+        if (!storedHashedOtp) {
+            throw new NotFoundError("OTP expired or not found. Please request a new OTP.");
+        }
+        const isOtpValid = await bcrypt.compare(payload.otp, storedHashedOtp);
+        if (!isOtpValid) {
+            await this.redisClient.incr(attemptsKey);
+            throw new UnauthorizedError("Invalid OTP. Please try again.");
+        }
+        // OTP valid — consume it
+        await this.redisClient.del(otpKey);
+        await this.redisClient.del(attemptsKey);
+        let user = await AuthRepository.findLoginUserByEmail(payload.email);
+        if (!user) {
+            const randomPassword = randomBytes(16).toString("hex");
+            const hashedPassword = await bcrypt.hash(randomPassword, AUTH_CONSTANTS.PASSWORD_SALT_ROUNDS);
+            await AuthRepository.createUserRegistration({ email: payload.email, password: hashedPassword });
+            user = await AuthRepository.findLoginUserByEmail(payload.email);
+            if (!user)
+                throw new Error("Failed to retrieve created user.");
+        }
+        if (!user.isEmailVerified) {
+            await AuthRepository.markEmailVerified(user.id);
+            user.isEmailVerified = true;
+        }
+        if (user.status !== AccountStatus.ACTIVE) {
+            throw new ConflictError("Account is not active. Please contact support.");
+        }
+        // Force-logout all existing sessions before issuing new tokens
+        await AuthRepository.deleteAllRefreshTokensForUser(user.id);
+        const tokens = buildAuthTokens({ id: user.id, email: user.email, role: user.role });
+        await AuthRepository.saveRefreshToken({
+            token: tokens.refreshToken,
+            userId: user.id,
+            expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+        });
+        await AuthRepository.updateUserLastLogin(user.id, new Date());
+        let profile = null;
+        if (user.candidate)
+            profile = user.candidate;
+        else if (user.employer)
+            profile = user.employer;
+        const { password, ...authUser } = user;
+        return { user: authUser, profile, tokens };
+    }
+    static async updateEmployerProfile(userId, payload) {
+        const profile = await AuthRepository.updateEmployerProfile(userId, payload);
+        const me = await this.getMe(userId);
+        return {
+            profile,
+            me
+        };
     }
 }
 //# sourceMappingURL=auth.service.js.map

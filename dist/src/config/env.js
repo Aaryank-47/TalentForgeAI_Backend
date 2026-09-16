@@ -21,10 +21,11 @@ const envSchema = z.object({
     INVITATION_TOKEN_SECRET: z.string().min(1),
     INVITATION_TOKEN_EXPIRES_IN: z.string(),
     FRONTEND_URL: z.string(),
-    ELASTICSEARCH_URL: z.string().min(1).default("http://localhost:9200"),
-    ELASTICSEARCH_USERNAME: z.string().optional(),
-    ELASTICSEARCH_PASSWORD: z.string().optional(),
-    ELASTICSEARCH_API_KEY: z.string().optional(),
+    FRONTEND_URL_TWO: z.string().optional(),
+    OPENSEARCH_URL: z.string().min(1).default("http://localhost:9200"),
+    OPENSEARCH_USERNAME: z.string().optional(),
+    OPENSEARCH_PASSWORD: z.string().optional(),
+    OPENSEARCH_API_KEY: z.string().optional(),
     OPENROUTER_API_KEY: z.string().min(1),
     OPENROUTER_BASE_URL: z.string().min(1).default("https://openrouter.ai/api/v1"),
     OPENROUTER_MODEL: z.string().min(1),
@@ -32,10 +33,13 @@ const envSchema = z.object({
     REDIS_URL: z.string().optional(),
     REDIS_HOST: z.string().default("localhost"),
     REDIS_PORT: z.coerce.number().default(6379),
+    REDIS_CLOUD_URL: z.string().optional(),
+    REDIS_FALLBACK_URLS: z.string().optional(),
     RESUME_WORKER_CONCURRENCY: z.coerce.number().default(2),
     RESUME_JOB_ATTEMPTS: z.coerce.number().default(3),
     RESUME_JOB_BACKOFF_DELAY_MS: z.coerce.number().default(5000),
     RESEND_API_KEY: z.string().min(1),
+    AGENT_MAIL_API_KEY: z.string().min(1),
 });
 const parsedEnv = envSchema.safeParse(process.env);
 if (!parsedEnv.success) {
@@ -67,12 +71,19 @@ export const env = {
     },
     app: {
         frontendUrl: parsedEnv.data.FRONTEND_URL,
+        frontendUrlTwo: parsedEnv.data.FRONTEND_URL_TWO,
+    },
+    opensearch: {
+        url: parsedEnv.data.OPENSEARCH_URL,
+        username: parsedEnv.data.OPENSEARCH_USERNAME,
+        password: parsedEnv.data.OPENSEARCH_PASSWORD,
+        apiKey: parsedEnv.data.OPENSEARCH_API_KEY,
     },
     elasticsearch: {
-        url: parsedEnv.data.ELASTICSEARCH_URL,
-        username: parsedEnv.data.ELASTICSEARCH_USERNAME,
-        password: parsedEnv.data.ELASTICSEARCH_PASSWORD,
-        apiKey: parsedEnv.data.ELASTICSEARCH_API_KEY,
+        url: parsedEnv.data.OPENSEARCH_URL,
+        username: parsedEnv.data.OPENSEARCH_USERNAME,
+        password: parsedEnv.data.OPENSEARCH_PASSWORD,
+        apiKey: parsedEnv.data.OPENSEARCH_API_KEY,
     },
     openRouter: {
         apiKey: parsedEnv.data.OPENROUTER_API_KEY,
@@ -85,6 +96,12 @@ export const env = {
         host: parsedEnv.data.REDIS_HOST,
         port: parsedEnv.data.REDIS_PORT,
     },
+    redisCloud: {
+        url: parsedEnv.data.REDIS_CLOUD_URL,
+        fallbackUrls: parsedEnv.data.REDIS_FALLBACK_URLS
+            ? parsedEnv.data.REDIS_FALLBACK_URLS.split(',').map(url => url.trim())
+            : [],
+    },
     queue: {
         resumeWorkerConcurrency: parsedEnv.data.RESUME_WORKER_CONCURRENCY,
         resumeJobAttempts: parsedEnv.data.RESUME_JOB_ATTEMPTS,
@@ -92,6 +109,9 @@ export const env = {
     },
     resend: {
         apiKey: parsedEnv.data.RESEND_API_KEY,
+    },
+    agentMail: {
+        apiKey: parsedEnv.data.AGENT_MAIL_API_KEY,
     }
 };
 export default env;

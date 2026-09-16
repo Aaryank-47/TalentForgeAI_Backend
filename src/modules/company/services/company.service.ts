@@ -29,7 +29,7 @@ import type {
     CompanyActivationResult,
 } from "../interfaces/company.interface.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
-import { ElasticsearchService } from "./elasticsearch.service.js";
+import { OpensearchService } from "./opensearch.service.js";
 import { uploadFileToCloudinary } from "../../../common/helper/upload.helper.js";
 import { deleteFileFromCloudinary } from "../../../common/helper/delete.helper.js";
 import { logger } from "../../../common/logger/logger.js";
@@ -78,7 +78,7 @@ export class CompanyService {
             twitterUrl: dto.twitterUrl,
         });
 
-        ElasticsearchService.indexCompany(toCompanySearchView(newCompany)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(newCompany)).catch((err) => {
             logger.error({ err, companyId: newCompany.id }, "[ES] Failed to index new company.");
         });
 
@@ -157,7 +157,7 @@ export class CompanyService {
             })
         );
 
-        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to sync updated company.");
         });
 
@@ -188,7 +188,7 @@ export class CompanyService {
 
         await CompanyRepository.deleteCompany(companyId, userId);
 
-        ElasticsearchService.removeCompany(companyId).catch((err) => {
+        OpensearchService.removeCompany(companyId).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to remove deleted company from index.");
         });
     }
@@ -608,7 +608,7 @@ export class CompanyService {
         });
         const updated = await CompanyRepository.updateLogo(companyId, uploaded.secureUrl);
 
-        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to sync company after logo upload.");
         });
 
@@ -662,7 +662,7 @@ export class CompanyService {
 
         const updated = await CompanyRepository.updateCoverImage(companyId, uploaded.secureUrl);
 
-        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to sync company after cover upload.");
         });
 
@@ -672,7 +672,7 @@ export class CompanyService {
     static async searchCompanies(
         params: SearchCompanyDto
     ): Promise<SearchCompanyResult> {
-        return ElasticsearchService.searchCompanies(params);
+        return OpensearchService.searchCompanies(params);
     }
 
     private static async getValidCompany(companyId: string) {
@@ -715,7 +715,7 @@ export class CompanyService {
             });
         }
 
-        ElasticsearchService.indexCompany(toCompanySearchView(verified)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(verified)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to index verified company.");
         });
 
@@ -740,7 +740,7 @@ export class CompanyService {
             reason
         );
 
-        ElasticsearchService.removeCompany(companyId).catch((err) => {
+        OpensearchService.removeCompany(companyId).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to remove suspended company.");
         });
 
@@ -763,7 +763,7 @@ export class CompanyService {
             restoredBy
         );
 
-        ElasticsearchService.indexCompany(toCompanySearchView(restored)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(restored)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to re-index restored company.");
         });
 
@@ -923,7 +923,7 @@ export class CompanyService {
 
         const deactivated = await CompanyRepository.deactivateCompany(companyId);
 
-        ElasticsearchService.removeCompany(companyId).catch((err) => {
+        OpensearchService.removeCompany(companyId).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to remove deactivated company from index.");
         });
 
@@ -947,7 +947,7 @@ export class CompanyService {
 
         const activated = await CompanyRepository.activateCompany(companyId);
 
-        ElasticsearchService.indexCompany(toCompanySearchView(activated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(activated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to index activated company.");
         });
 

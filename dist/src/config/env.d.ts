@@ -23,6 +23,13 @@ export declare const env: {
     };
     readonly app: {
         readonly frontendUrl: string;
+        readonly frontendUrlTwo: string | undefined;
+    };
+    readonly opensearch: {
+        readonly url: string;
+        readonly username: string | undefined;
+        readonly password: string | undefined;
+        readonly apiKey: string | undefined;
     };
     readonly elasticsearch: {
         readonly url: string;
@@ -41,12 +48,19 @@ export declare const env: {
         readonly host: string;
         readonly port: number;
     };
+    readonly redisCloud: {
+        readonly url: string | undefined;
+        readonly fallbackUrls: string[];
+    };
     readonly queue: {
         readonly resumeWorkerConcurrency: number;
         readonly resumeJobAttempts: number;
         readonly resumeJobBackoffDelayMs: number;
     };
     readonly resend: {
+        readonly apiKey: string;
+    };
+    readonly agentMail: {
         readonly apiKey: string;
     };
 };

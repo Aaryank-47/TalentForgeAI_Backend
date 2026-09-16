@@ -40,6 +40,17 @@ export declare class CandidateDto {
     static resendVerification: z.ZodObject<{
         email: z.ZodEmail;
     }, z.core.$strip>;
+    static sendOtpLogin: z.ZodObject<{
+        email: z.ZodEmail;
+    }, z.core.$strip>;
+    static verifyOtpLogin: z.ZodObject<{
+        email: z.ZodEmail;
+        otp: z.ZodString;
+    }, z.core.$strip>;
+    static forceOtpLogin: z.ZodObject<{
+        email: z.ZodEmail;
+        otp: z.ZodString;
+    }, z.core.$strip>;
 }
 export type RegisterUserDto = z.infer<typeof CandidateDto.registerUser>;
 export type RegisterCandidateDto = z.infer<typeof CandidateDto.registerCandidate>;
@@ -51,4 +62,7 @@ export type VerifyOtpDto = z.infer<typeof CandidateDto.verifyOtp>;
 export type ResetPasswordDto = z.infer<typeof CandidateDto.resetPassword>;
 export type VerifyEmailDto = z.infer<typeof CandidateDto.verifyEmail>;
 export type ResendVerificationDto = z.infer<typeof CandidateDto.resendVerification>;
+export type SendOtpLoginDto = z.infer<typeof CandidateDto.sendOtpLogin>;
+export type VerifyOtpLoginDto = z.infer<typeof CandidateDto.verifyOtpLogin>;
+export type ForceOtpLoginDto = z.infer<typeof CandidateDto.forceOtpLogin>;
 //# sourceMappingURL=Candidate.dto.d.ts.map

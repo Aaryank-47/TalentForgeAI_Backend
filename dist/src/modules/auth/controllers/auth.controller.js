@@ -9,13 +9,13 @@ export class AuthController {
         res.cookie("refreshToken", registration.tokens.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.cookie("accessToken", registration.tokens.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
@@ -25,13 +25,13 @@ export class AuthController {
         res.cookie("refreshToken", registration.tokens.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.cookie("accessToken", registration.tokens.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
@@ -41,19 +41,63 @@ export class AuthController {
         res.cookie("refreshToken", registration.tokens.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.cookie("accessToken", registration.tokens.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
     });
     static login = asyncHandler(async (req, res) => {
         const login = await AuthService.login(req.body);
+        res.cookie("refreshToken", login.tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.cookie("accessToken", login.tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        const { tokens, ...loginWithoutTokens } = login;
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, {
+            ...loginWithoutTokens,
+            tokens,
+        }));
+    });
+    static sendOtpLogin = asyncHandler(async (req, res) => {
+        await AuthService.sendOtpLogin(req.body);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "OTP sent successfully. Please check your email.", null));
+    });
+    static verifyOtpLogin = asyncHandler(async (req, res) => {
+        const login = await AuthService.verifyOtpLogin(req.body);
+        res.cookie("refreshToken", login.tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        res.cookie("accessToken", login.tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        const { tokens, ...loginWithoutTokens } = login;
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, MESSAGE.LOGIN_SUCCESS, {
+            ...loginWithoutTokens,
+            tokens,
+        }));
+    });
+    static forceOtpLogin = asyncHandler(async (req, res) => {
+        const login = await AuthService.forceOtpLogin(req.body);
         res.cookie("refreshToken", login.tokens.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -99,16 +143,17 @@ export class AuthController {
     });
     static refreshToken = asyncHandler(async (req, res) => {
         const refreshToken = await AuthService.newRefreshToken(req.cookies.refreshToken);
+        // console.log("Refresh token from backend inside controller : ", refreshToken);
         res.cookie("refreshToken", refreshToken.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.cookie("accessToken", refreshToken.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.status(HTTP_STATUS.OK).json(new ApiResponse(true, MESSAGE.SUCCESS, refreshToken));
@@ -143,16 +188,21 @@ export class AuthController {
         res.cookie("refreshToken", registration.tokens.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.cookie("accessToken", registration.tokens.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         res.status(HTTP_STATUS.CREATED).json(new ApiResponse(true, MESSAGE.REGISTER_SUCCESS, registration));
+    });
+    static updateEmployerProfile = asyncHandler(async (req, res) => {
+        const userId = req.user?.id;
+        const result = await AuthService.updateEmployerProfile(userId, req.body);
+        res.status(HTTP_STATUS.OK).json(new ApiResponse(true, "Employer profile updated successfully", result));
     });
 }
 //# sourceMappingURL=auth.controller.js.map

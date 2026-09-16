@@ -7,30 +7,30 @@ import { QuestionCategoryDto, QuestionTagDto, getQuestionTagsDto, ProgrammingLan
 import { UserRole } from "@prisma/client";
 const QuestionRoutes = Router();
 const registerRoutes = (router, prefix) => {
-    router.post(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(QuestionCategoryDto.createCategory, "body"), QuestionController.createCategory);
+    router.post(`${prefix}`, authMiddleware, authorize(UserRole.EMPLOYER, UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(QuestionCategoryDto.createCategory, "body"), QuestionController.createCategory);
     router.get(`${prefix}`, authMiddleware, QuestionController.getAllQueCategories);
     router.get(`${prefix}/:categoryId`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(QuestionCategoryDto.categoryIdParams, "params"), QuestionController.getCategoryById);
-    router.patch(`${prefix}/:categoryId`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(QuestionCategoryDto.categoryIdParams, "params"), validate(QuestionCategoryDto.updateCategory, "body"), QuestionController.updateCategory);
-    router.delete(`${prefix}/:categoryId`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(QuestionCategoryDto.categoryIdParams, "params"), QuestionController.deleteCategory);
+    router.patch(`${prefix}/:categoryId`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(QuestionCategoryDto.categoryIdParams, "params"), validate(QuestionCategoryDto.updateCategory, "body"), QuestionController.updateCategory);
+    router.delete(`${prefix}/:categoryId`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(QuestionCategoryDto.categoryIdParams, "params"), QuestionController.deleteCategory);
 };
 const registerTagRoutes = (router, prefix) => {
     router.post(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(QuestionTagDto.createTag, "body"), QuestionController.createTag);
     router.get(`${prefix}`, authMiddleware, validate(getQuestionTagsDto, "query"), QuestionController.getAllQuestionTags);
     router.get(`${prefix}/:id`, authMiddleware, validate(QuestionTagDto.tagIdParams, "params"), QuestionController.getQuestionTagById);
-    router.patch(`${prefix}/:id`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(QuestionTagDto.tagIdParams, "params"), validate(QuestionTagDto.updateTag, "body"), QuestionController.updateQuestionTag);
+    router.patch(`${prefix}/:id`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(QuestionTagDto.tagIdParams, "params"), validate(QuestionTagDto.updateTag, "body"), QuestionController.updateQuestionTag);
     router.delete(`${prefix}/:id`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(QuestionTagDto.tagIdParams, "params"), QuestionController.deleteQuestionTag);
 };
 const registerLanguageRoutes = (router, prefix) => {
     router.post(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(ProgrammingLanguageDto.createLanguage, "body"), QuestionController.createLanguage);
     router.get(`${prefix}`, authMiddleware, validate(getProgrammingLanguagesDto, "query"), QuestionController.getAllProgrammingLanguages);
     router.get(`${prefix}/:id`, authMiddleware, validate(ProgrammingLanguageDto.languageIdParams, "params"), QuestionController.getProgrammingLanguageById);
-    router.patch(`${prefix}/:id`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(ProgrammingLanguageDto.languageIdParams, "params"), validate(ProgrammingLanguageDto.updateLanguage, "body"), QuestionController.updateProgrammingLanguage);
+    router.patch(`${prefix}/:id`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(ProgrammingLanguageDto.languageIdParams, "params"), validate(ProgrammingLanguageDto.updateLanguage, "body"), QuestionController.updateProgrammingLanguage);
     router.delete(`${prefix}/:id`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(ProgrammingLanguageDto.languageIdParams, "params"), QuestionController.deleteProgrammingLanguage);
 };
 const registerSupportedLanguageRoutes = (router, prefix) => {
-    router.post(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.createSupportedLanguages);
-    router.put(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.syncSupportedLanguages);
-    router.delete(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN), validate(DSASupportedLanguageDto.deleteSupportedLanguages, "body"), QuestionController.deleteSupportedLanguages);
+    router.post(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.createSupportedLanguages);
+    router.put(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(DSASupportedLanguageDto.createSupportedLanguages, "body"), QuestionController.syncSupportedLanguages);
+    router.delete(`${prefix}`, authMiddleware, authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EMPLOYER), validate(DSASupportedLanguageDto.deleteSupportedLanguages, "body"), QuestionController.deleteSupportedLanguages);
     router.get(`${prefix}/:dsaDetailId`, authMiddleware, QuestionController.getSupportedLanguagesByDsaId);
 };
 const registerQuestionBankRoutes = (router, prefix) => {

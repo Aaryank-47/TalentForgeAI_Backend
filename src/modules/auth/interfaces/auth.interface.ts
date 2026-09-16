@@ -155,6 +155,7 @@ export interface WorkspaceCompanyView {
 export interface ProfileResult {
     user: AuthUserView;
     profile: CandidateProfileView | EmployerProfileView | null;
+    employer?: EmployerProfileView | null | undefined;
     capabilities?: {
         candidate: boolean;
         employer: boolean;
@@ -169,6 +170,7 @@ export interface ProfileResult {
 
 export interface ProfileViewResult {
     profile: CandidateProfileView | EmployerProfileView | null;
+    employer?: EmployerProfileView | null | undefined;
     capabilities?: {
         candidate: boolean;
         employer: boolean;
@@ -231,4 +233,18 @@ export interface EmployerProfileView {
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
+}
+
+export interface UpdateEmployerProfileInput {
+    fullName?: string | undefined;
+    phoneNumber?: string | null | undefined;
+    designation?: string | null | undefined;
+    department?: string | null | undefined;
+    profilePicture?: string | null | undefined;
+    linkedinUrl?: string | null | undefined;
+}
+
+export interface UpdateEmployerProfileResult {
+    profile: EmployerProfileView;
+    me: ProfileResult;
 }

@@ -3,7 +3,7 @@ import type { CandidateRegistrationView, ProfileViewResult } from "../interfaces
 import type { EmployerCompanyInput } from "../interfaces/auth.interface.js";
 import { companySelect } from "../../../common/prisma.select/company.select.js";
 import { employerSelect } from "../../../common/prisma.select/employer.select.js";
-import type { RegisterCandidateInput, RegisterEmployerInput, RegisterCompanyOwnerInput, AuthUserView } from "../interfaces/auth.interface.js";
+import type { RegisterCandidateInput, RegisterEmployerInput, RegisterCompanyOwnerInput, AuthUserView, UpdateEmployerProfileInput, EmployerProfileView } from "../interfaces/auth.interface.js";
 export declare class AuthRepository {
     static findUserByEmail(email: string): Promise<AuthUserView | null>;
     static findLoginUserByEmail(email: string): Promise<{
@@ -26,14 +26,14 @@ export declare class AuthRepository {
         employer: {
             fullName: string;
             phoneNumber: string | null;
-            linkedinUrl: string | null;
             designation: string | null;
+            department: string | null;
+            profilePicture: string | null;
+            linkedinUrl: string | null;
             id: string;
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            profilePicture: string | null;
-            department: string | null;
             isActive: boolean;
         } | null;
     } | null>;
@@ -289,15 +289,16 @@ export declare class AuthRepository {
     } & {
         fullName: string;
         phoneNumber: string | null;
-        linkedinUrl: string | null;
         designation: string | null;
+        department: string | null;
+        profilePicture: string | null;
+        linkedinUrl: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        profilePicture: string | null;
-        department: string | null;
         isActive: boolean;
     }) | null>;
+    static updateEmployerProfile(userId: string, data: UpdateEmployerProfileInput): Promise<EmployerProfileView>;
 }
 //# sourceMappingURL=auth.repository.d.ts.map

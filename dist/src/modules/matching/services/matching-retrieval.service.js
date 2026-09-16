@@ -1,5 +1,5 @@
 import { logger } from "../../../common/logger/logger.js";
-import { MatchingElasticsearchService } from "./matching-elasticsearch.service.js";
+import { MatchingOpensearchService } from "./matching-opensearch.service.js";
 import { MatchingRepository } from "../repositories/matching.repository.js";
 import { MATCHING_THRESHOLDS } from "../constants/matching.constants.js";
 export class MatchingRetrievalService {
@@ -11,7 +11,7 @@ export class MatchingRetrievalService {
         let candidateIds = [];
         // 1. Try Elasticsearch retrieval
         try {
-            candidateIds = await MatchingElasticsearchService.findCandidateIdsForJob(job, limit);
+            candidateIds = await MatchingOpensearchService.findCandidateIdsForJob(job, limit);
         }
         catch (err) {
             logger.warn({ err, jobId: job.id }, "[MatchingRetrieval] ES candidate search failed; trying SQL fallback");
@@ -38,7 +38,7 @@ export class MatchingRetrievalService {
         let jobIds = [];
         // 1. Try Elasticsearch retrieval
         try {
-            jobIds = await MatchingElasticsearchService.findJobIdsForCandidate(candidate, limit);
+            jobIds = await MatchingOpensearchService.findJobIdsForCandidate(candidate, limit);
         }
         catch (err) {
             logger.warn({ err, candidateId: candidate.id }, "[MatchingRetrieval] ES job search failed; trying SQL fallback");

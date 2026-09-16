@@ -320,10 +320,6 @@ export class CandidateService {
         if (!candidate || !candidate.profile || !('isOpenToWork' in candidate.profile)) {
             throw new NotFoundError('Candidate not found');
         }
-        const companyExists = await CompanyRepository.findCompanyByName(data.companyName);
-        if (!companyExists) {
-            throw new NotFoundError(`Company "${data.companyName}" not found`);
-        }
         const candidateRecordId = candidate.profile.id;
         const newExperience = await CandidateRepository.addExperience(candidateRecordId, data);
         MatchingEventsPublisher.onCandidateMatchingDataChanged(candidateRecordId, ["experience"]).catch(() => { });
@@ -356,12 +352,6 @@ export class CandidateService {
         const experience = await CandidateRepository.findExperienceBelongToUser(candidateId, experienceId);
         if (!experience) {
             throw new NotFoundError('Experience record not found or does not belong to candidate');
-        }
-        if (data.companyName) {
-            const companyExists = await CompanyRepository.findCompanyByName(data.companyName);
-            if (!companyExists) {
-                throw new NotFoundError(`Company "${data.companyName}" not found`);
-            }
         }
         const updatedExperience = await CandidateRepository.updateExperience(experienceId, data);
         MatchingEventsPublisher.onCandidateMatchingDataChanged(candidate.profile.id, ["experience"]).catch(() => { });

@@ -35,6 +35,39 @@ export class CompanyRepository {
                     status: CompanyMemberStatus.ACTIVE,
                 },
             });
+            const existingEmployer = await tx.employer.findUnique({
+                where: { userId: input.userId }
+            });
+            if (!existingEmployer) {
+                const candidate = await tx.candidate.findUnique({
+                    where: { userId: input.userId }
+                });
+                let fullName = "Company Owner";
+                if (candidate && candidate.fullName) {
+                    fullName = candidate.fullName;
+                }
+                else {
+                    const user = await tx.user.findUnique({
+                        where: { id: input.userId }
+                    });
+                    if (user && user.email) {
+                        fullName = user.email.split('@')[0];
+                    }
+                }
+                await tx.employer.create({
+                    data: {
+                        userId: input.userId,
+                        fullName: fullName,
+                    }
+                });
+                const user = await tx.user.findUnique({ where: { id: input.userId } });
+                if (user && user.role === 'CANDIDATE') {
+                    await tx.user.update({
+                        where: { id: input.userId },
+                        data: { role: 'EMPLOYER' }
+                    });
+                }
+            }
             return company;
         });
     }
@@ -111,6 +144,15 @@ export class CompanyRepository {
         return prisma.companyMember.findUnique({
             where: {
                 userId_companyId: { userId, companyId }
+            },
+            select: companyMemberSelect
+        });
+    }
+    static async getCompanyOwner(companyId) {
+        return prisma.companyMember.findFirst({
+            where: {
+                companyId,
+                role: CompanyMemberRole.OWNER
             },
             select: companyMemberSelect
         });

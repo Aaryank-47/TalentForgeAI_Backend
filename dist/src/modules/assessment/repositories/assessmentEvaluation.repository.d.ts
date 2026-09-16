@@ -88,6 +88,7 @@ export declare class AssessmentEvaluationRepository {
                         updatedAt: Date;
                         deletedAt: Date | null;
                         deletedById: string | null;
+                        version: number;
                         title: string;
                         createdById: string | null;
                         updatedById: string | null;
@@ -95,13 +96,12 @@ export declare class AssessmentEvaluationRepository {
                         publishedAt: Date | null;
                         archivedAt: Date | null;
                         difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
-                        estimatedTime: number;
-                        defaultMarks: number;
+                        estimatedTime: number | null;
+                        defaultMarks: number | null;
                         ownership: import("@prisma/client").$Enums.QuestionOwnership;
                         createdByCompanyMemberId: string | null;
                         publishedById: string | null;
                         categoryId: string | null;
-                        version: number;
                         usageCount: number;
                         successRate: number | null;
                     };
@@ -252,6 +252,7 @@ export declare class AssessmentEvaluationRepository {
             updatedAt: Date;
             deletedAt: Date | null;
             deletedById: string | null;
+            version: number;
             title: string;
             createdById: string | null;
             updatedById: string | null;
@@ -259,13 +260,12 @@ export declare class AssessmentEvaluationRepository {
             publishedAt: Date | null;
             archivedAt: Date | null;
             difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
-            estimatedTime: number;
-            defaultMarks: number;
+            estimatedTime: number | null;
+            defaultMarks: number | null;
             ownership: import("@prisma/client").$Enums.QuestionOwnership;
             createdByCompanyMemberId: string | null;
             publishedById: string | null;
             categoryId: string | null;
-            version: number;
             usageCount: number;
             successRate: number | null;
         };

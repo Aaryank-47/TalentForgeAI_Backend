@@ -1,4 +1,3 @@
-import { Client } from "@elastic/elasticsearch";
-declare const elasticsearchClient: Client;
-export default elasticsearchClient;
+import opensearchClient from "./opensearch.js";
+export default opensearchClient;
 //# sourceMappingURL=elasticsearch.d.ts.map

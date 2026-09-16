@@ -301,8 +301,8 @@ export declare const questionDifficultyValidator: z.ZodEnum<{
     MEDIUM: "MEDIUM";
     HARD: "HARD";
 }>;
-export declare const questionEstimatedTimeValidator: z.ZodNumber;
-export declare const questionDefaultMarksValidator: z.ZodNumber;
+export declare const questionEstimatedTimeValidator: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+export declare const questionDefaultMarksValidator: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
 export declare const questionOwnershipValidator: z.ZodEnum<{
     GLOBAL: "GLOBAL";
     COMPANY: "COMPANY";
@@ -337,7 +337,7 @@ export declare const mcqOptionIsCorrectValidator: z.ZodBoolean;
 export declare const dsaDetailIdValidator: z.ZodString;
 export declare const dsaDetailQuestionIdValidator: z.ZodString;
 export declare const dsaStarterCodeValidator: z.ZodString;
-export declare const dsaReferenceSolutionValidator: z.ZodString;
+export declare const dsaReferenceSolutionValidator: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 export declare const dsaMemoryLimitValidator: z.ZodNumber;
 export declare const dsaTimeLimitValidator: z.ZodNumber;
 export declare const programmingLanguageIdValidator: z.ZodString;

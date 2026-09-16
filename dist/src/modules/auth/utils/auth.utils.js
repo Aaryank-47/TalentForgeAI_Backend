@@ -41,6 +41,7 @@ export const createUniqueSlugSeed = (value) => {
 };
 export const genrateOTP = () => {
     const otp = Math.floor(100000 + Math.random() * 900000);
+    console.log("OTP :-----------------", otp);
     return otp.toString();
 };
 //# sourceMappingURL=auth.utils.js.map

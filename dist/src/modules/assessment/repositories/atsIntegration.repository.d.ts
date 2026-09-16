@@ -57,6 +57,7 @@ export declare class ATSIntegrationRepository {
                         updatedAt: Date;
                         deletedAt: Date | null;
                         deletedById: string | null;
+                        version: number;
                         title: string;
                         createdById: string | null;
                         updatedById: string | null;
@@ -64,13 +65,12 @@ export declare class ATSIntegrationRepository {
                         publishedAt: Date | null;
                         archivedAt: Date | null;
                         difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
-                        estimatedTime: number;
-                        defaultMarks: number;
+                        estimatedTime: number | null;
+                        defaultMarks: number | null;
                         ownership: import("@prisma/client").$Enums.QuestionOwnership;
                         createdByCompanyMemberId: string | null;
                         publishedById: string | null;
                         categoryId: string | null;
-                        version: number;
                         usageCount: number;
                         successRate: number | null;
                     };
@@ -107,6 +107,7 @@ export declare class ATSIntegrationRepository {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 deletedById: string | null;
+                version: number;
                 title: string;
                 createdById: string | null;
                 updatedById: string | null;
@@ -114,13 +115,12 @@ export declare class ATSIntegrationRepository {
                 publishedAt: Date | null;
                 archivedAt: Date | null;
                 difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
-                estimatedTime: number;
-                defaultMarks: number;
+                estimatedTime: number | null;
+                defaultMarks: number | null;
                 ownership: import("@prisma/client").$Enums.QuestionOwnership;
                 createdByCompanyMemberId: string | null;
                 publishedById: string | null;
                 categoryId: string | null;
-                version: number;
                 usageCount: number;
                 successRate: number | null;
             };
@@ -189,6 +189,7 @@ export declare class ATSIntegrationRepository {
             } & {
                 fullName: string;
                 phoneNumber: string | null;
+                profilePicture: string | null;
                 linkedinUrl: string | null;
                 currentLocation: string | null;
                 githubUrl: string | null;
@@ -203,7 +204,6 @@ export declare class ATSIntegrationRepository {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
-                profilePicture: string | null;
                 dateOfBirth: Date | null;
                 gender: import("@prisma/client").$Enums.Gender | null;
                 experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
@@ -217,8 +217,9 @@ export declare class ATSIntegrationRepository {
             };
             job: {
                 company: {
-                    companyName: string;
                     phoneNumber: string | null;
+                    linkedinUrl: string | null;
+                    companyName: string;
                     website: string | null;
                     logo: string | null;
                     coverImage: string | null;
@@ -227,7 +228,6 @@ export declare class ATSIntegrationRepository {
                     companySize: string | null;
                     foundedYear: number | null;
                     headquarters: string | null;
-                    linkedinUrl: string | null;
                     twitterUrl: string | null;
                     slug: string;
                     id: string;

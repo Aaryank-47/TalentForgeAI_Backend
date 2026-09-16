@@ -111,7 +111,7 @@ export class AuthRepository {
         });
     }
     static async findRefreshToken(token) {
-        return prisma.refreshToken.findUnique({
+        const refreshToken = await prisma.refreshToken.findUnique({
             where: { token },
             select: {
                 token: true,
@@ -119,6 +119,8 @@ export class AuthRepository {
                 expiresAt: true,
             }
         });
+        console.log("Token from findRefreshToken INSIDE AUTH REPOSITORY : ", refreshToken);
+        return refreshToken;
     }
     static async deleteRefreshToken(token) {
         return prisma.refreshToken.delete({
@@ -400,6 +402,36 @@ export class AuthRepository {
                 user: true
             }
         });
+    }
+    static async updateEmployerProfile(userId, data) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+        const updatedEmployer = await prisma.employer.upsert({
+            where: { userId },
+            create: {
+                userId,
+                fullName: data.fullName ?? "Employer",
+                phoneNumber: data.phoneNumber ?? null,
+                designation: data.designation ?? null,
+                department: data.department ?? null,
+                profilePicture: data.profilePicture ?? null,
+                linkedinUrl: data.linkedinUrl ?? null,
+            },
+            update: {
+                ...(data.fullName !== undefined && { fullName: data.fullName }),
+                ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
+                ...(data.designation !== undefined && { designation: data.designation }),
+                ...(data.department !== undefined && { department: data.department }),
+                ...(data.profilePicture !== undefined && { profilePicture: data.profilePicture }),
+                ...(data.linkedinUrl !== undefined && { linkedinUrl: data.linkedinUrl }),
+            },
+            select: employerSelect,
+        });
+        return updatedEmployer;
     }
 }
 //# sourceMappingURL=auth.repository.js.map

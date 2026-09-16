@@ -27,6 +27,7 @@ export declare class ApplicationRepository {
         } & {
             fullName: string;
             phoneNumber: string | null;
+            profilePicture: string | null;
             linkedinUrl: string | null;
             currentLocation: string | null;
             githubUrl: string | null;
@@ -41,7 +42,6 @@ export declare class ApplicationRepository {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            profilePicture: string | null;
             dateOfBirth: Date | null;
             gender: import("@prisma/client").$Enums.Gender | null;
             experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
@@ -55,8 +55,9 @@ export declare class ApplicationRepository {
         };
         job: {
             company: {
-                companyName: string;
                 phoneNumber: string | null;
+                linkedinUrl: string | null;
+                companyName: string;
                 website: string | null;
                 logo: string | null;
                 coverImage: string | null;
@@ -65,7 +66,6 @@ export declare class ApplicationRepository {
                 companySize: string | null;
                 foundedYear: number | null;
                 headquarters: string | null;
-                linkedinUrl: string | null;
                 twitterUrl: string | null;
                 slug: string;
                 id: string;
@@ -158,6 +158,7 @@ export declare class ApplicationRepository {
         } & {
             fullName: string;
             phoneNumber: string | null;
+            profilePicture: string | null;
             linkedinUrl: string | null;
             currentLocation: string | null;
             githubUrl: string | null;
@@ -172,7 +173,6 @@ export declare class ApplicationRepository {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            profilePicture: string | null;
             dateOfBirth: Date | null;
             gender: import("@prisma/client").$Enums.Gender | null;
             experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
@@ -187,8 +187,9 @@ export declare class ApplicationRepository {
         job: {
             companyId: string;
             company: {
-                companyName: string;
                 phoneNumber: string | null;
+                linkedinUrl: string | null;
+                companyName: string;
                 website: string | null;
                 logo: string | null;
                 coverImage: string | null;
@@ -197,7 +198,6 @@ export declare class ApplicationRepository {
                 companySize: string | null;
                 foundedYear: number | null;
                 headquarters: string | null;
-                linkedinUrl: string | null;
                 twitterUrl: string | null;
                 slug: string;
                 id: string;
@@ -829,9 +829,9 @@ export declare class ApplicationRepository {
                     candidateId: string;
                 }[];
                 experiences: {
+                    designation: string;
                     companyName: string;
                     description: string | null;
-                    designation: string;
                     currentlyWorking: boolean;
                     employmentType: import("@prisma/client").$Enums.EmploymentType;
                     location: string | null;
@@ -845,6 +845,7 @@ export declare class ApplicationRepository {
             } & {
                 fullName: string;
                 phoneNumber: string | null;
+                profilePicture: string | null;
                 linkedinUrl: string | null;
                 currentLocation: string | null;
                 githubUrl: string | null;
@@ -859,7 +860,6 @@ export declare class ApplicationRepository {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
-                profilePicture: string | null;
                 dateOfBirth: Date | null;
                 gender: import("@prisma/client").$Enums.Gender | null;
                 experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
@@ -975,6 +975,7 @@ export declare class ApplicationRepository {
             } & {
                 fullName: string;
                 phoneNumber: string | null;
+                profilePicture: string | null;
                 linkedinUrl: string | null;
                 currentLocation: string | null;
                 githubUrl: string | null;
@@ -989,7 +990,6 @@ export declare class ApplicationRepository {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
-                profilePicture: string | null;
                 dateOfBirth: Date | null;
                 gender: import("@prisma/client").$Enums.Gender | null;
                 experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
@@ -1058,9 +1058,9 @@ export declare class ApplicationRepository {
                 candidateId: string;
             }[];
             experiences: {
+                designation: string;
                 companyName: string;
                 description: string | null;
-                designation: string;
                 currentlyWorking: boolean;
                 employmentType: import("@prisma/client").$Enums.EmploymentType;
                 location: string | null;
@@ -1074,6 +1074,7 @@ export declare class ApplicationRepository {
         } & {
             fullName: string;
             phoneNumber: string | null;
+            profilePicture: string | null;
             linkedinUrl: string | null;
             currentLocation: string | null;
             githubUrl: string | null;
@@ -1088,7 +1089,6 @@ export declare class ApplicationRepository {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            profilePicture: string | null;
             dateOfBirth: Date | null;
             gender: import("@prisma/client").$Enums.Gender | null;
             experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;

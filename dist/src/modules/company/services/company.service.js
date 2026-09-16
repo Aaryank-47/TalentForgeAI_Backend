@@ -5,6 +5,7 @@ import { NotFoundError } from "../../../common/errors/NotFoundError.js";
 import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { ValidationError } from "../../../common/errors/ValidationError.js";
 import { slugifyText } from "../../auth/utils/auth.utils.js";
+import { buildAuthTokens, getRefreshTokenExpiresAt } from "../../auth/utils/auth.utils.js";
 import { calculateProfileCompletion, omitUndefined } from "../utils/company.utils.js";
 import { CompanyMemberRole, UserRole, CompanyMemberStatus, CompanyStatus } from "@prisma/client";
 import { emailTemplates } from "../../../common/email/email.templates.js";
@@ -12,7 +13,7 @@ import { EmailService } from "../../../common/email/email.service.js";
 import { InvitationTokenHelper } from "../utils/invitationToken.util.js";
 import { env } from "../../../config/env.js";
 import { UnauthorizedError } from "../../../common/errors/UnauthorizedError.js";
-import { ElasticsearchService } from "./elasticsearch.service.js";
+import { OpensearchService } from "./opensearch.service.js";
 import { uploadFileToCloudinary } from "../../../common/helper/upload.helper.js";
 import { deleteFileFromCloudinary } from "../../../common/helper/delete.helper.js";
 import { logger } from "../../../common/logger/logger.js";
@@ -20,6 +21,8 @@ import { COMPANY_IMAGE_MIME_TYPES, COMPANY_IMAGE_MAX_BYTES, COMPANY_INDUSTRIES, 
 import { extractPublicId, toCompanySearchView, setInvitationTokenExpiration } from "../utils/company.utils.js";
 export class CompanyService {
     static async createCompany(dto, userId) {
+        console.log("dto :-----------------", dto);
+        console.log("userId :-----------------", userId);
         const user = await AuthRepository.findUserById(userId);
         if (!user) {
             throw new NotFoundError("Authenticated user not found.");
@@ -48,10 +51,23 @@ export class CompanyService {
             linkedinUrl: dto.linkedinUrl,
             twitterUrl: dto.twitterUrl,
         });
-        ElasticsearchService.indexCompany(toCompanySearchView(newCompany)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(newCompany)).catch((err) => {
             logger.error({ err, companyId: newCompany.id }, "[ES] Failed to index new company.");
         });
-        return newCompany;
+        let tokens = undefined;
+        if (user.role === UserRole.CANDIDATE) {
+            tokens = buildAuthTokens({
+                id: user.id,
+                email: user.email,
+                role: UserRole.EMPLOYER,
+            });
+            await AuthRepository.saveRefreshToken({
+                token: tokens.refreshToken,
+                userId: user.id,
+                expiresAt: getRefreshTokenExpiresAt(tokens.refreshToken),
+            });
+        }
+        return { company: newCompany, tokens };
     }
     static async getCompanyMetadata() {
         return {
@@ -90,7 +106,7 @@ export class CompanyService {
             ...dto,
             profileCompletion,
         }));
-        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to sync updated company.");
         });
         return updated;
@@ -110,7 +126,7 @@ export class CompanyService {
             }
         }
         await CompanyRepository.deleteCompany(companyId, userId);
-        ElasticsearchService.removeCompany(companyId).catch((err) => {
+        OpensearchService.removeCompany(companyId).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to remove deleted company from index.");
         });
     }
@@ -362,7 +378,7 @@ export class CompanyService {
             resourceType: "image",
         });
         const updated = await CompanyRepository.updateLogo(companyId, uploaded.secureUrl);
-        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to sync company after logo upload.");
         });
         return { logo: uploaded.secureUrl };
@@ -404,13 +420,13 @@ export class CompanyService {
             resourceType: "image",
         });
         const updated = await CompanyRepository.updateCoverImage(companyId, uploaded.secureUrl);
-        ElasticsearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(updated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to sync company after cover upload.");
         });
         return { coverImage: uploaded.secureUrl };
     }
     static async searchCompanies(params) {
-        return ElasticsearchService.searchCompanies(params);
+        return OpensearchService.searchCompanies(params);
     }
     static async getValidCompany(companyId) {
         const company = await CompanyRepository.getRawCompanyById(companyId);
@@ -431,7 +447,15 @@ export class CompanyService {
             throw new ConflictError("Company is already verified.");
         }
         const verified = await CompanyRepository.verifyCompany(companyId, verifiedBy);
-        ElasticsearchService.indexCompany(toCompanySearchView(verified)).catch((err) => {
+        const owner = await CompanyRepository.getCompanyOwner(companyId);
+        if (owner && owner.user?.email) {
+            const ownerName = owner.user.employer?.fullName || owner.user.candidate?.fullName || owner.user.email.split('@')[0] || 'Owner';
+            const template = emailTemplates.companyVerifiedTemplate(company.companyName, ownerName);
+            EmailService.sendEmail({ to: owner.user.email, ...template }).catch(err => {
+                logger.error({ err, companyId }, "[Email] Failed to send company verified email.");
+            });
+        }
+        OpensearchService.indexCompany(toCompanySearchView(verified)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to index verified company.");
         });
         return verified;
@@ -442,7 +466,7 @@ export class CompanyService {
             throw new ConflictError("Company is already suspended.");
         }
         const suspended = await CompanyRepository.suspendCompany(companyId, suspendedBy, reason);
-        ElasticsearchService.removeCompany(companyId).catch((err) => {
+        OpensearchService.removeCompany(companyId).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to remove suspended company.");
         });
         return suspended;
@@ -453,7 +477,7 @@ export class CompanyService {
             throw new ConflictError("Company is not suspended no need to restore the company");
         }
         const restored = await CompanyRepository.restoreCompany(companyId, restoredBy);
-        ElasticsearchService.indexCompany(toCompanySearchView(restored)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(restored)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to re-index restored company.");
         });
         return restored;
@@ -568,7 +592,7 @@ export class CompanyService {
             throw new ConflictError("Company is already inactive.");
         }
         const deactivated = await CompanyRepository.deactivateCompany(companyId);
-        ElasticsearchService.removeCompany(companyId).catch((err) => {
+        OpensearchService.removeCompany(companyId).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to remove deactivated company from index.");
         });
         return deactivated;
@@ -583,7 +607,7 @@ export class CompanyService {
             throw new ConflictError("Company is already active.");
         }
         const activated = await CompanyRepository.activateCompany(companyId);
-        ElasticsearchService.indexCompany(toCompanySearchView(activated)).catch((err) => {
+        OpensearchService.indexCompany(toCompanySearchView(activated)).catch((err) => {
             logger.error({ err, companyId }, "[ES] Failed to index activated company.");
         });
         return activated;

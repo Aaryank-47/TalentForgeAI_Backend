@@ -41,5 +41,16 @@ export class CandidateDto {
     static resendVerification = z.object({
         email: emailValidator,
     });
+    static sendOtpLogin = z.object({
+        email: emailValidator,
+    });
+    static verifyOtpLogin = z.object({
+        email: emailValidator,
+        otp: z.string().length(6, "OTP must be 6 digits"),
+    });
+    static forceOtpLogin = z.object({
+        email: emailValidator,
+        otp: z.string().length(6, "OTP must be 6 digits"),
+    });
 }
 //# sourceMappingURL=Candidate.dto.js.map
