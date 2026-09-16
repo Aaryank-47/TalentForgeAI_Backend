@@ -26,11 +26,11 @@ export declare class InterviewAssignmentsServices {
         id: string;
         candidate: {
             fullName: string;
+            profilePicture: string | null;
             user: {
                 email: string;
             };
             id: string;
-            profilePicture: string | null;
         };
         job: {
             id: string;

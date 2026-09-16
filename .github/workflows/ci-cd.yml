@@ -42,6 +42,20 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      opensearch:
+        image: opensearchproject/opensearch:2.11.1
+        env:
+          discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: "true"
+          OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl -s http://localhost:9200 >/dev/null || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -89,7 +103,7 @@ jobs:
           INVITATION_TOKEN_SECRET: test_invitation_token_secret_123
           INVITATION_TOKEN_EXPIRES_IN: 7d
           FRONTEND_URL: http://localhost:5173
-          ELASTICSEARCH_URL: http://localhost:9200
+          OPENSEARCH_URL: ${{ secrets.OPENSEARCH_URL || 'http://localhost:9200' }}
           OPENROUTER_API_KEY: sk-or-v1-test-ci-key-0000000000000000
           OPENROUTER_BASE_URL: https://openrouter.ai/api/v1
           OPENROUTER_MODEL: test/model

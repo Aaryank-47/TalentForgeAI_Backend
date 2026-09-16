@@ -6,6 +6,7 @@ export declare class CandidateRepository {
     static findProfileWithRelationsCount(userId: string): Promise<{
         fullName: string;
         phoneNumber: string | null;
+        profilePicture: string | null;
         currentLocation: string | null;
         headline: string | null;
         bio: string | null;
@@ -14,7 +15,6 @@ export declare class CandidateRepository {
             educations: number;
             experiences: number;
         };
-        profilePicture: string | null;
         isOpenToWork: boolean;
     } | null>;
     static uploadResume(userId: string, resumeData: {
@@ -77,9 +77,9 @@ export declare class CandidateRepository {
             candidateId: string;
         }[];
         experiences: {
+            designation: string;
             companyName: string;
             description: string | null;
-            designation: string;
             currentlyWorking: boolean;
             employmentType: import("@prisma/client").$Enums.EmploymentType;
             location: string | null;
@@ -93,6 +93,7 @@ export declare class CandidateRepository {
     } & {
         fullName: string;
         phoneNumber: string | null;
+        profilePicture: string | null;
         linkedinUrl: string | null;
         currentLocation: string | null;
         githubUrl: string | null;
@@ -107,7 +108,6 @@ export declare class CandidateRepository {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        profilePicture: string | null;
         dateOfBirth: Date | null;
         gender: import("@prisma/client").$Enums.Gender | null;
         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;

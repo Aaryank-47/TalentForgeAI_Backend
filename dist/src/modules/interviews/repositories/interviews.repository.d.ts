@@ -102,11 +102,11 @@ export declare class InterviewAssignmentsRepositories {
         id: string;
         candidate: {
             fullName: string;
+            profilePicture: string | null;
             user: {
                 email: string;
             };
             id: string;
-            profilePicture: string | null;
         };
         job: {
             id: string;
@@ -271,6 +271,7 @@ export declare class InterviewSessionsRepositories {
                     } & {
                         fullName: string;
                         phoneNumber: string | null;
+                        profilePicture: string | null;
                         linkedinUrl: string | null;
                         currentLocation: string | null;
                         githubUrl: string | null;
@@ -285,7 +286,6 @@ export declare class InterviewSessionsRepositories {
                         createdAt: Date;
                         updatedAt: Date;
                         userId: string;
-                        profilePicture: string | null;
                         dateOfBirth: Date | null;
                         gender: import("@prisma/client").$Enums.Gender | null;
                         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
@@ -418,26 +418,26 @@ export declare class InterviewSessionParticipantsRepositories {
                 employer: {
                     fullName: string;
                     phoneNumber: string | null;
-                    linkedinUrl: string | null;
                     designation: string | null;
+                    department: string | null;
+                    profilePicture: string | null;
+                    linkedinUrl: string | null;
                     id: string;
                     createdAt: Date;
                     updatedAt: Date;
                     userId: string;
-                    profilePicture: string | null;
-                    department: string | null;
                     isActive: boolean;
                 } | null;
                 admin: {
                     fullName: string;
                     phoneNumber: string | null;
                     designation: string | null;
+                    department: string | null;
+                    profilePicture: string | null;
                     id: string;
                     createdAt: Date;
                     updatedAt: Date;
                     userId: string;
-                    profilePicture: string | null;
-                    department: string | null;
                     isActive: boolean;
                     employeeId: string | null;
                     isSuperAdmin: boolean;
@@ -508,6 +508,7 @@ export declare class InterviewSessionParticipantsRepositories {
                 candidate: {
                     fullName: string;
                     phoneNumber: string | null;
+                    profilePicture: string | null;
                     linkedinUrl: string | null;
                     currentLocation: string | null;
                     githubUrl: string | null;
@@ -522,7 +523,6 @@ export declare class InterviewSessionParticipantsRepositories {
                     createdAt: Date;
                     updatedAt: Date;
                     userId: string;
-                    profilePicture: string | null;
                     dateOfBirth: Date | null;
                     gender: import("@prisma/client").$Enums.Gender | null;
                     experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;

@@ -25,6 +25,12 @@ export declare const env: {
         readonly frontendUrl: string;
         readonly frontendUrlTwo: string | undefined;
     };
+    readonly opensearch: {
+        readonly url: string;
+        readonly username: string | undefined;
+        readonly password: string | undefined;
+        readonly apiKey: string | undefined;
+    };
     readonly elasticsearch: {
         readonly url: string;
         readonly username: string | undefined;

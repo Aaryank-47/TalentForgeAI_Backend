@@ -3,6 +3,7 @@ export declare class AssessmentAttemptRepository {
     static findCandidateByUserId(userId: string): Promise<{
         fullName: string;
         phoneNumber: string | null;
+        profilePicture: string | null;
         linkedinUrl: string | null;
         currentLocation: string | null;
         githubUrl: string | null;
@@ -17,7 +18,6 @@ export declare class AssessmentAttemptRepository {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        profilePicture: string | null;
         dateOfBirth: Date | null;
         gender: import("@prisma/client").$Enums.Gender | null;
         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
@@ -274,6 +274,7 @@ export declare class AssessmentAttemptRepository {
         updatedAt: Date;
         deletedAt: Date | null;
         deletedById: string | null;
+        version: number;
         title: string;
         createdById: string | null;
         updatedById: string | null;
@@ -287,7 +288,6 @@ export declare class AssessmentAttemptRepository {
         createdByCompanyMemberId: string | null;
         publishedById: string | null;
         categoryId: string | null;
-        version: number;
         usageCount: number;
         successRate: number | null;
     }) | null>;

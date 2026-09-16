@@ -4,7 +4,7 @@ import { ForbiddenError } from "../../../common/errors/ForbiddenError.js";
 import { MatchingRepository } from "../repositories/matching.repository.js";
 import { MatchingScorerService } from "./matching-scorer.service.js";
 import { MatchingRetrievalService } from "./matching-retrieval.service.js";
-import { MatchingElasticsearchService } from "./matching-elasticsearch.service.js";
+import { MatchingOpensearchService } from "./matching-opensearch.service.js";
 import { MATCHING_THRESHOLDS } from "../constants/matching.constants.js";
 import type {
     MatchCalculationResult,
@@ -25,7 +25,7 @@ export class MatchingService {
             throw new NotFoundError(`Job with ID "${jobId}" not found for matching`);
         }
 
-        await MatchingElasticsearchService.indexJob(job);
+        await MatchingOpensearchService.indexJob(job);
 
         const candidates = await MatchingRetrievalService.retrieveCandidatesForJob(job);
 
@@ -148,7 +148,7 @@ export class MatchingService {
         }
 
         // Synchronize candidate to Elasticsearch in background
-        await MatchingElasticsearchService.indexCandidate(candidate);
+        await MatchingOpensearchService.indexCandidate(candidate);
 
         // 2. Retrieve targeted published jobs pool via Elasticsearch + DB fallback
         const jobs = await MatchingRetrievalService.retrieveJobsForCandidate(candidate);

@@ -1,7 +1,7 @@
 import type { RegisterCandidateDto, RegisterUserDto, VerifyOtpDto, VerifyEmailDto, ResendVerificationDto, SendOtpLoginDto, VerifyOtpLoginDto, ForceOtpLoginDto } from "../dto/Candidate.dto.js";
-import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
+import type { RegisterEmployerDtoType } from "../dto/Employer.dto.js";
 import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
-import type { RegisterCandidateResult, RegisterUserResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult } from "../interfaces/auth.interface.js";
+import type { RegisterCandidateResult, RegisterUserResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult, UpdateEmployerProfileInput, UpdateEmployerProfileResult } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js";
 import type { AuthTokens } from "../interfaces/auth.interface.js";
 import type { LogoutAllDevicesDto } from "../dto/Candidate.dto.js";
@@ -32,28 +32,6 @@ export declare class AuthService {
      * Used when the device-limit is reached and the user wants to sign in anyway.
      */
     static forceOtpLogin(payload: ForceOtpLoginDto): Promise<LoginResult>;
-    static updateEmployerProfile(userId: string, payload: {
-        fullName?: string;
-        phoneNumber?: string | null;
-        designation?: string | null;
-        department?: string | null;
-        profilePicture?: string | null;
-        linkedinUrl?: string | null;
-    }): Promise<{
-        profile: {
-            fullName: string;
-            phoneNumber: string | null;
-            linkedinUrl: string | null;
-            designation: string | null;
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            userId: string;
-            profilePicture: string | null;
-            department: string | null;
-            isActive: boolean;
-        };
-        me: ProfileResult;
-    }>;
+    static updateEmployerProfile(userId: string, payload: UpdateEmployerProfileInput): Promise<UpdateEmployerProfileResult>;
 }
 //# sourceMappingURL=auth.service.d.ts.map
