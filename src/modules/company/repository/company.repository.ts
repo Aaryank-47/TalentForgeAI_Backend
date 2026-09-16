@@ -184,7 +184,7 @@ export class CompanyRepository {
                 userId_companyId: { userId, companyId }
             }
         });
-        console.log("member : ", member);
+        // console.log("member : ", member);
 
         return member
             ? {

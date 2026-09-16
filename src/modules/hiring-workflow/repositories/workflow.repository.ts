@@ -92,10 +92,22 @@ export class WorkflowRepository {
                 const uniqueStageNames = Array.from(new Set(stageNames));
 
                 const existingStageLibs = await tx.stageLibrary.findMany({
-                    where: { name: { in: uniqueStageNames } }
+                    where: {
+                        name: { in: uniqueStageNames },
+                        OR: [
+                            { companyId: companyId },
+                            { type: StageType.SYSTEM },
+                            { companyId: null }
+                        ]
+                    }
                 });
 
-                const stageLibMap = new Map(existingStageLibs.map((s) => [s.name, s]));
+                const stageLibMap = new Map<string, any>();
+                for (const s of existingStageLibs) {
+                    if (!stageLibMap.has(s.name) || s.companyId === companyId) {
+                        stageLibMap.set(s.name, s);
+                    }
+                }
 
                 const toCreate = [];
                 for (const name of uniqueStageNames) {
@@ -160,7 +172,8 @@ export class WorkflowRepository {
                         status: status
                     }
                 });
-            }
+            },
+            { maxWait: 10000, timeout: 20000 }
         );
     }
 
@@ -400,7 +413,7 @@ export class WorkflowRepository {
                     }
                 }
             });
-        });
+        }, { maxWait: 10000, timeout: 20000 });
     }
 
     static async isWorkflowUsedInJobs(workflowId: string): Promise<boolean> {
@@ -470,6 +483,6 @@ export class WorkflowRepository {
                     }
                 }
             });
-        });
+        }, { maxWait: 10000, timeout: 20000 });
     }
 }
