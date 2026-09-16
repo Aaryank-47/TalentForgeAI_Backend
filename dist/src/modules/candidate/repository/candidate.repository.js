@@ -324,12 +324,20 @@ export class CandidateRepository {
         });
     }
     static async createCandidateProfile(userId, data) {
-        return prisma.candidate.create({
-            data: {
+        return prisma.candidate.upsert({
+            where: { userId },
+            update: {
+                fullName: data.fullName,
+                phoneNumber: data.phoneNumber ?? null,
+                headline: data.headline ?? null,
+                profileCompletion: 10,
+            },
+            create: {
                 userId,
                 fullName: data.fullName,
                 phoneNumber: data.phoneNumber ?? null,
                 headline: data.headline ?? null,
+                profileCompletion: 10,
             },
             select: candidateProfileSelect,
         });

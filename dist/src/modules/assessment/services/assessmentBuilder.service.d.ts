@@ -96,8 +96,8 @@ export declare class AssessmentBuilderService {
                         publishedAt: Date | null;
                         archivedAt: Date | null;
                         difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
-                        estimatedTime: number;
-                        defaultMarks: number;
+                        estimatedTime: number | null;
+                        defaultMarks: number | null;
                         ownership: import("@prisma/client").$Enums.QuestionOwnership;
                         createdByCompanyMemberId: string | null;
                         publishedById: string | null;

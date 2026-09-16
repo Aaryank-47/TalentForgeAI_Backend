@@ -299,5 +299,25 @@ export declare class AuthRepository {
         department: string | null;
         isActive: boolean;
     }) | null>;
+    static updateEmployerProfile(userId: string, data: {
+        fullName?: string;
+        phoneNumber?: string | null;
+        designation?: string | null;
+        department?: string | null;
+        profilePicture?: string | null;
+        linkedinUrl?: string | null;
+    }): Promise<{
+        fullName: string;
+        phoneNumber: string | null;
+        linkedinUrl: string | null;
+        designation: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        profilePicture: string | null;
+        department: string | null;
+        isActive: boolean;
+    }>;
 }
 //# sourceMappingURL=auth.repository.d.ts.map

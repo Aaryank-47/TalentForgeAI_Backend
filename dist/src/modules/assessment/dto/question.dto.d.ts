@@ -115,8 +115,8 @@ export declare const createQuestionSchema: z.ZodObject<{
         MEDIUM: "MEDIUM";
         HARD: "HARD";
     }>;
-    estimatedTime: z.ZodNumber;
-    defaultMarks: z.ZodNumber;
+    estimatedTime: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    defaultMarks: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
     ownership: z.ZodEnum<{
         GLOBAL: "GLOBAL";
         COMPANY: "COMPANY";
@@ -135,7 +135,7 @@ export declare const createQuestionSchema: z.ZodObject<{
     }, z.core.$strip>>>;
     dsaDetail: z.ZodNullable<z.ZodOptional<z.ZodObject<{
         starterCode: z.ZodString;
-        referenceSolution: z.ZodString;
+        referenceSolution: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         memoryLimit: z.ZodNumber;
         timeLimit: z.ZodNumber;
         supportedLanguageIds: z.ZodArray<z.ZodString>;
@@ -171,8 +171,8 @@ export declare const updateQuestionSchema: z.ZodObject<{
         MEDIUM: "MEDIUM";
         HARD: "HARD";
     }>>;
-    estimatedTime: z.ZodOptional<z.ZodNumber>;
-    defaultMarks: z.ZodOptional<z.ZodNumber>;
+    estimatedTime: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodNumber>>>;
+    defaultMarks: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodNumber>>>;
     categoryId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     tagIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
     mcqDetail: z.ZodNullable<z.ZodOptional<z.ZodObject<{
@@ -186,7 +186,7 @@ export declare const updateQuestionSchema: z.ZodObject<{
     }, z.core.$strip>>>;
     dsaDetail: z.ZodNullable<z.ZodOptional<z.ZodObject<{
         starterCode: z.ZodString;
-        referenceSolution: z.ZodString;
+        referenceSolution: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         memoryLimit: z.ZodNumber;
         timeLimit: z.ZodNumber;
         supportedLanguageIds: z.ZodArray<z.ZodString>;

@@ -3,7 +3,10 @@ import type { CompanyView } from "../repository/company.repository.js";
 import { CompanyMemberRole } from "@prisma/client";
 import type { InvitationResponse, CompanyMemberDetails, CompanyMemberList, RemoveCompanyMembersResponse, UploadCompanyLogoResult, UploadCompanyCoverResult, SearchCompanyResult, CompanyInvitationView, CancelInvitationResult, ResendInvitationResult, CompanyDeactivationResult, CompanyActivationResult } from "../interfaces/company.interface.js";
 export declare class CompanyService {
-    static createCompany(dto: CreateCompanyDto, userId: string): Promise<CompanyView>;
+    static createCompany(dto: CreateCompanyDto, userId: string): Promise<{
+        company: CompanyView;
+        tokens?: any;
+    }>;
     static getCompanyMetadata(): Promise<{
         industries: readonly ["Technology & SaaS", "FinTech & Banking", "Healthcare & Life Sciences", "E-Commerce & Retail", "AI & Robotics", "Cybersecurity", "EdTech & Education", "Media & Entertainment", "Consulting & Professional Services", "Telecommunications", "Automotive & Mobility", "CleanTech & Energy", "Manufacturing & Industrial", "Other"];
         companySizes: readonly ["1-10 employees", "11-50 employees", "51-200 employees", "201-500 employees", "501-1000 employees", "1000+ employees"];

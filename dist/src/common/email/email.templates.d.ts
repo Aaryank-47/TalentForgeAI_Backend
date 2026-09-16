@@ -12,5 +12,6 @@ export declare class emailTemplates {
     static assessmentInvitationTemplate: (candidateName: string, assessmentTitle: string, expiresAt: string, invitationLink: string) => EmailTemplate;
     static memberRoleUpdatedTemplate: (companyName: string, memberName: string, newRole: string, oldRole?: string) => EmailTemplate;
     static invitationCancelledTemplate: (companyName: string, recipientName: string, role: string) => EmailTemplate;
+    static companyVerifiedTemplate: (companyName: string, ownerName: string) => EmailTemplate;
 }
 //# sourceMappingURL=email.templates.d.ts.map

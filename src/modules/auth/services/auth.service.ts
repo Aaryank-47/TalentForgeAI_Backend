@@ -13,11 +13,11 @@ import type {
     VerifyOtpLoginDto,
     ForceOtpLoginDto
 } from "../dto/Candidate.dto.js";
-import type { RegisterEmployerDtoType } from "../dto/registerEmployer.dto.js";
+import type { RegisterEmployerDtoType } from "../dto/Employer.dto.js";
 import type { RegisterCompanyOwnerDtoType } from "../dto/registerCompanyOwner.dto.js";
 import { AuthRepository } from "../repositories/auth.repository.js";
 import { buildAuthTokens, getRefreshTokenExpiresAt, genrateOTP } from "../utils/auth.utils.js";
-import type { RegisterCandidateResult, RegisterUserResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult, CandidateLoginProfileView, EmployerLoginProfileView } from "../interfaces/auth.interface.js";
+import type { RegisterCandidateResult, RegisterUserResult, RegisterEmployerResult, RegisterCompanyOwnerResult, LoginResult, CandidateLoginProfileView, EmployerLoginProfileView, UpdateEmployerProfileInput, UpdateEmployerProfileResult } from "../interfaces/auth.interface.js";
 import type { LoginDto } from "../dto/Candidate.dto.js"
 import { AccountStatus } from "../../../common/enums/all_enums.js"
 import type { AuthTokens } from "../interfaces/auth.interface.js"
@@ -797,5 +797,17 @@ export class AuthService {
 
         const { password, ...authUser } = user;
         return { user: authUser, profile, tokens };
+    }
+
+    static async updateEmployerProfile(
+        userId: string,
+        payload: UpdateEmployerProfileInput
+    ): Promise<UpdateEmployerProfileResult> {
+        const profile = await AuthRepository.updateEmployerProfile(userId, payload);
+        const me = await this.getMe(userId);
+        return {
+            profile,
+            me
+        };
     }
 }

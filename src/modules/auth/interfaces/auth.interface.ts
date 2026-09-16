@@ -232,3 +232,17 @@ export interface EmployerProfileView {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface UpdateEmployerProfileInput {
+    fullName?: string | undefined;
+    phoneNumber?: string | null | undefined;
+    designation?: string | null | undefined;
+    department?: string | null | undefined;
+    profilePicture?: string | null | undefined;
+    linkedinUrl?: string | null | undefined;
+}
+
+export interface UpdateEmployerProfileResult {
+    profile: EmployerProfileView;
+    me: ProfileResult;
+}

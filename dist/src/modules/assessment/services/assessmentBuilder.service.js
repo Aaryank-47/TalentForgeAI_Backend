@@ -323,7 +323,7 @@ export class AssessmentBuilderService {
         if (section.assessment.status !== "DRAFT") {
             throw new ConflictError("Cannot add questions to an assessment that is not in DRAFT status.");
         }
-        const addedItems = await AssessmentBuilderRepository.addQuestionsToSection(sectionId, section.assessment.companyId, section.sectionType, questions.map(q => ({
+        const addedItems = await AssessmentBuilderRepository.addQuestionsToSection(sectionId, section.sectionType, questions.map(q => ({
             questionId: q.questionId,
             marksOverride: q.marksOverride ?? null,
             timeLimitOverride: q.timeLimitOverride ?? null

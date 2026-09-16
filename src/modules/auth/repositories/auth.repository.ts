@@ -14,6 +14,8 @@ import type {
     RegisterEmployerInput,
     RegisterCompanyOwnerInput,
     AuthUserView,
+    UpdateEmployerProfileInput,
+    EmployerProfileView,
 } from "../interfaces/auth.interface.js";
 
 const nullableString = (value: string | undefined): string | null => value ?? null;
@@ -497,5 +499,42 @@ export class AuthRepository {
                 user: true
             }
         });
+    }
+
+    static async updateEmployerProfile(
+        userId: string,
+        data: UpdateEmployerProfileInput
+    ): Promise<EmployerProfileView> {
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+
+        if (!user) {
+            throw new NotFoundError("User not found.");
+        }
+
+        const updatedEmployer = await prisma.employer.upsert({
+            where: { userId },
+            create: {
+                userId,
+                fullName: data.fullName ?? "Employer",
+                phoneNumber: data.phoneNumber ?? null,
+                designation: data.designation ?? null,
+                department: data.department ?? null,
+                profilePicture: data.profilePicture ?? null,
+                linkedinUrl: data.linkedinUrl ?? null,
+            },
+            update: {
+                ...(data.fullName !== undefined && { fullName: data.fullName }),
+                ...(data.phoneNumber !== undefined && { phoneNumber: data.phoneNumber }),
+                ...(data.designation !== undefined && { designation: data.designation }),
+                ...(data.department !== undefined && { department: data.department }),
+                ...(data.profilePicture !== undefined && { profilePicture: data.profilePicture }),
+                ...(data.linkedinUrl !== undefined && { linkedinUrl: data.linkedinUrl }),
+            },
+            select: employerSelect,
+        });
+
+        return updatedEmployer;
     }
 }

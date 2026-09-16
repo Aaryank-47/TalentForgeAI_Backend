@@ -50,8 +50,8 @@ export declare class AssessmentBuilderRepository {
                     publishedAt: Date | null;
                     archivedAt: Date | null;
                     difficulty: import("@prisma/client").$Enums.QuestionDifficulty;
-                    estimatedTime: number;
-                    defaultMarks: number;
+                    estimatedTime: number | null;
+                    defaultMarks: number | null;
                     ownership: import("@prisma/client").$Enums.QuestionOwnership;
                     createdByCompanyMemberId: string | null;
                     publishedById: string | null;
@@ -203,7 +203,7 @@ export declare class AssessmentBuilderRepository {
     static findQuestionsAlreadyAdded(sectionId: string, questionIds: string[]): Promise<{
         questionId: string;
     }[]>;
-    static addQuestionsToSection(sectionId: string, companyId: string, sectionType: QuestionType, questions: {
+    static addQuestionsToSection(sectionId: string, sectionType: QuestionType, questions: {
         questionId: string;
         marksOverride: number | null | undefined;
         timeLimitOverride: number | null | undefined;
@@ -222,7 +222,7 @@ export declare class AssessmentBuilderRepository {
             id: string;
             title: string;
             difficulty: QuestionDifficulty;
-            defaultMarks: number;
+            defaultMarks: number | null;
         };
     })[]>;
     static findSectionItemById(id: string): Promise<({

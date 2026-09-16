@@ -41,6 +41,7 @@ export declare class CompanyRepository {
     static getRawCompanyById(companyId: string): Promise<Company | null>;
     static membership(companyId: string, userId: string): Promise<CompanyMemberList | null>;
     static findMemberWithDetails(companyId: string, userId: string): Promise<CompanyMemberDetails | null>;
+    static getCompanyOwner(companyId: string): Promise<CompanyMemberDetails | null>;
     static deleteCompany(companyId: string, userId: string): Promise<CompanyView>;
     static createInvitedMember(data: {
         userId: string;

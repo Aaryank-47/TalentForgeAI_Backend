@@ -12,7 +12,7 @@ import { globalRateLimiter } from "./common/middleware/rateLimit.middleware.js";
 import env from './config/env.js';
 const app = express();
 app.use(cors({
-    origin: env.app.frontendUrl || 'http://localhost:5173',
+    origin: [env.app.frontendUrl, env.app.frontendUrlTwo, 'http://localhost:5173'].filter((url) => !!url),
     credentials: true,
 }));
 app.use(helmet());

@@ -596,10 +596,14 @@ export const questionDifficultyValidator = z.nativeEnum(QuestionDifficulty);
 export const questionEstimatedTimeValidator = z
     .number()
     .int("Estimated time must be an integer")
-    .positive("Estimated time must be positive");
+    .positive("Estimated time must be positive")
+    .optional()
+    .nullable();
 export const questionDefaultMarksValidator = z
     .number()
-    .positive("Default marks must be positive");
+    .positive("Default marks must be positive")
+    .optional()
+    .nullable();
 export const questionOwnershipValidator = z.nativeEnum(QuestionOwnership);
 export const questionStatusValidator = z.nativeEnum(QuestionStatus);
 export const questionCodeValidator = z.string().trim().optional();
@@ -649,7 +653,7 @@ export const mcqOptionIsCorrectValidator = z.boolean();
 export const dsaDetailIdValidator = uuidValidator;
 export const dsaDetailQuestionIdValidator = uuidValidator;
 export const dsaStarterCodeValidator = z.string();
-export const dsaReferenceSolutionValidator = z.string();
+export const dsaReferenceSolutionValidator = z.string().optional().nullable();
 export const dsaMemoryLimitValidator = z
     .number()
     .int("Memory limit must be an integer")

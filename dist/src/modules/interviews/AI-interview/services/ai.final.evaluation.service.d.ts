@@ -45,6 +45,11 @@ export declare class AIInterviewFinalEvaluationService {
                 title: string;
                 companyId: string;
             } | null;
+            candidate: {
+                id: string;
+                fullName: string;
+                email: string;
+            } | null;
         };
         questions: {
             id: string;

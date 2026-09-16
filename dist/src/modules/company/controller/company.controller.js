@@ -6,11 +6,12 @@ export class CompanyController {
     static createCompany = asyncHandler(async (req, res) => {
         const dto = req.body;
         const userId = req.user.id;
-        const company = await CompanyService.createCompany(dto, userId);
+        const result = await CompanyService.createCompany(dto, userId);
         res.status(HTTP_STATUS.CREATED).json({
             success: true,
             message: MESSAGE.COMPANY_CREATED,
-            data: company,
+            data: result.company,
+            tokens: result.tokens,
         });
     });
     static getMyCompanies = asyncHandler(async (req, res) => {

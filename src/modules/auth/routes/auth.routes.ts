@@ -3,16 +3,17 @@ import { validate } from "../../../common/middleware/validate.middleware.js";
 import { AuthController } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../../../common/middleware/auth.middleware.js";
 import { CandidateDto } from "../dto/Candidate.dto.js";
-import { RegisterEmployerDto } from "../dto/registerEmployer.dto.js";
+import { RegisterEmployerDto } from "../dto/Employer.dto.js";
 import { RegisterCompanyOwnerDto } from "../dto/registerCompanyOwner.dto.js";
+import { UpdateEmployerProfileDto } from "../dto/Employer.dto.js";
 
-import { 
+import {
     loginRateLimiter,
     registerRateLimiter,
     forgotPasswordRateLimiter,
     verifyOtpRateLimiter,
     resendVerificationRateLimiter
- } from "../../../common/middleware/rateLimit.middleware.js";
+} from "../../../common/middleware/rateLimit.middleware.js";
 
 const router = Router();
 
@@ -98,6 +99,13 @@ router.get(
     "/me",
     authMiddleware,
     AuthController.getMe
+)
+
+router.patch(
+    "/employer-profile",
+    authMiddleware,
+    validate(UpdateEmployerProfileDto.updateEmployerProfile, "body"),
+    AuthController.updateEmployerProfile
 )
 
 router.post(

@@ -245,6 +245,58 @@ export declare class InterviewSessionsRepositories {
         participants: ({
             assignment: ({
                 application: {
+                    candidate: {
+                        user: {
+                            email: string;
+                            password: string;
+                            otp: string | null;
+                            id: string;
+                            otpExpiresAt: Date | null;
+                            resetPasswordToken: string | null;
+                            resetPasswordTokenExpiresAt: Date | null;
+                            role: import("@prisma/client").$Enums.UserRole;
+                            status: import("@prisma/client").$Enums.AccountStatus;
+                            isEmailVerified: boolean;
+                            lastLoginAt: Date | null;
+                            createdAt: Date;
+                            updatedAt: Date;
+                            deletedAt: Date | null;
+                            deletedById: string | null;
+                            suspendedAt: Date | null;
+                            suspendedById: string | null;
+                            suspendedReason: string | null;
+                            restoredAt: Date | null;
+                            restoredById: string | null;
+                        };
+                    } & {
+                        fullName: string;
+                        phoneNumber: string | null;
+                        linkedinUrl: string | null;
+                        currentLocation: string | null;
+                        githubUrl: string | null;
+                        portfolioUrl: string | null;
+                        websiteUrl: string | null;
+                        headline: string | null;
+                        bio: string | null;
+                        currentCompany: string | null;
+                        currentDesignation: string | null;
+                        totalExperience: number | null;
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        userId: string;
+                        profilePicture: string | null;
+                        dateOfBirth: Date | null;
+                        gender: import("@prisma/client").$Enums.Gender | null;
+                        experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
+                        preferredLocation: string | null;
+                        expectedSalary: number | null;
+                        currentSalary: number | null;
+                        noticePeriod: number | null;
+                        isOpenToWork: boolean;
+                        profileCompletion: number;
+                        profileVersion: number;
+                    };
                     job: {
                         skills: {
                             name: string;
@@ -347,9 +399,9 @@ export declare class InterviewSessionsRepositories {
         status: import("@prisma/client").$Enums.InterviewSessionStatus;
         createdAt: Date;
         updatedAt: Date;
-        scheduledAt: Date;
         interviewId: string;
         startedAt: Date | null;
+        scheduledAt: Date;
         endedAt: Date | null;
         roomId: string | null;
     }) | null>;
@@ -445,9 +497,9 @@ export declare class InterviewSessionParticipantsRepositories {
             status: import("@prisma/client").$Enums.InterviewSessionStatus;
             createdAt: Date;
             updatedAt: Date;
-            scheduledAt: Date;
             interviewId: string;
             startedAt: Date | null;
+            scheduledAt: Date;
             endedAt: Date | null;
             roomId: string | null;
         };
