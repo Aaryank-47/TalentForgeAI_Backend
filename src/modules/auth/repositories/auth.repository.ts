@@ -62,6 +62,7 @@ export class AuthRepository {
         const profile = await prisma.user.findUnique({
             where: { id: userId },
             select: {
+                role: true,
                 candidate: {
                     select: candidateProfileSelect
                 },
@@ -112,8 +113,14 @@ export class AuthRepository {
             employer: (profile.companyMemberships?.length ?? 0) > 0 || !!profile.employer
         };
 
+        const isEmployerRole = profile.role === UserRole.EMPLOYER || (profile.role as string) === 'COMPANY_OWNER' || (profile.role as string) === 'RECRUITER' || (profile.role as string) === 'HIRING_MANAGER';
+        const activeProfile = isEmployerRole
+            ? (profile.employer ?? profile.candidate ?? null)
+            : (profile.candidate ?? profile.employer ?? null);
+
         return {
-            profile: profile.candidate ?? profile.employer ?? null,
+            profile: activeProfile,
+            employer: profile.employer ?? null,
             capabilities,
             candidate,
             companies: profile.companyMemberships ?? []

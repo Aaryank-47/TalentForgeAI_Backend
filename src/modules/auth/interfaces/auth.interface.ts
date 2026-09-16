@@ -155,6 +155,7 @@ export interface WorkspaceCompanyView {
 export interface ProfileResult {
     user: AuthUserView;
     profile: CandidateProfileView | EmployerProfileView | null;
+    employer?: EmployerProfileView | null | undefined;
     capabilities?: {
         candidate: boolean;
         employer: boolean;
@@ -169,6 +170,7 @@ export interface ProfileResult {
 
 export interface ProfileViewResult {
     profile: CandidateProfileView | EmployerProfileView | null;
+    employer?: EmployerProfileView | null | undefined;
     capabilities?: {
         candidate: boolean;
         employer: boolean;

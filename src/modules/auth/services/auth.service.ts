@@ -322,6 +322,7 @@ export class AuthService {
         return {
             user,
             profile: profile.profile,
+            employer: profile.employer,
             capabilities: profile.capabilities,
             candidate: profile.candidate,
             companies: profile.companies,
