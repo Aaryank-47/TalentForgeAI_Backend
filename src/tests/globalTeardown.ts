@@ -47,5 +47,16 @@ export default async function globalTeardown(): Promise<void> {
     } catch {
         // Queue may not have been initialised in this run – that is fine.
     }
+
+    // 4. Belt-and-braces: close the OpenSearch client singleton.
+    try {
+        const { default: opensearchClient } = await import(
+            "../config/opensearch.js"
+        );
+        await opensearchClient.close();
+    } catch {
+        // May not have been initialised – that is fine.
+    }
 }
+
 

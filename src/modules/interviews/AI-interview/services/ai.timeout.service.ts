@@ -130,6 +130,9 @@ export class AIInterviewTimeoutWorker {
                 // Each periodic scan is also tracked.
                 this.runTrackedScan(io);
             }, intervalMs);
+            if (this.intervalTimer.unref) {
+                this.intervalTimer.unref(); // Allows Node event loop to exit naturally
+            }
         }
     }
 

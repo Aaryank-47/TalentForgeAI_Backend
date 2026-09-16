@@ -23,5 +23,12 @@ afterAll(async () => {
     } catch {
         // Ignore
     }
+    try {
+        const { default: opensearchClient } = await import("../config/opensearch.js");
+        await opensearchClient.close();
+    } catch {
+        // Ignore
+    }
 });
+
 
