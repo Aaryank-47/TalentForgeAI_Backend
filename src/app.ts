@@ -12,6 +12,7 @@ import { requestLogger } from './common/middleware/requestLogger.middleware.js'
 import { notFoundMiddleware } from './common/middleware/notFound.middleware.js'
 import { errorMiddleware } from './common/middleware/error.middleware.js';
 import { globalRateLimiter } from "./common/middleware/rateLimit.middleware.js";
+import { performanceMiddleware } from './common/middleware/performance.middleware.js';
 import env from './config/env.js';
 
 
@@ -23,6 +24,7 @@ app.use(cors({
 }));
 app.use(helmet());
 app.use(compression());
+app.use(performanceMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
